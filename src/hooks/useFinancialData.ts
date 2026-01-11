@@ -150,10 +150,13 @@ export function useFinancialData() {
   };
 
   // Calculate financial metrics
-  const calculateMetrics = useCallback(() => {
+  const calculateMetrics = useCallback((variableCostsFromManager?: number) => {
     const revenue = monthlyRevenue.total;
     const fixedCosts = financialData?.fixed_costs || 0;
-    const variablePercentage = financialData?.variable_costs_percentage || 0;
+    // Use variable costs from manager if provided, otherwise use from financial_data
+    const variablePercentage = variableCostsFromManager !== undefined 
+      ? variableCostsFromManager 
+      : (financialData?.variable_costs_percentage || 0);
     const workingDays = financialData?.working_days_per_month || 22;
     const useAutoGoal = financialData?.use_automatic_goal ?? true;
     const manualGoal = financialData?.monthly_goal;
