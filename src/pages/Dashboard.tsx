@@ -8,11 +8,15 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   LogOut,
-  Menu
+  CreditCard,
+  Loader2,
+  RefreshCw
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,12 +57,56 @@ const stats = [
 ];
 
 const Dashboard = () => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, session, signOut, checkSubscription, isCheckingSubscription } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+
+  // Handle successful checkout
+  useEffect(() => {
+    const checkoutResult = searchParams.get("checkout");
+    if (checkoutResult === "success") {
+      toast({
+        title: "Pagamento confirmado! 🎉",
+        description: "Bem-vindo ao DetailerOS! Sua assinatura está ativa.",
+      });
+      // Refresh subscription status
+      checkSubscription();
+    }
+  }, [searchParams, toast, checkSubscription]);
 
   const handleLogout = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const handleManageSubscription = async () => {
+    if (!session?.access_token) return;
+    
+    setIsOpeningPortal(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("customer-portal", {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, "_blank");
+      }
+    } catch (error) {
+      console.error("Portal error:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível abrir o portal de assinatura.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsOpeningPortal(false);
+    }
   };
 
   const getPlanLabel = (plan: string | undefined) => {
@@ -132,6 +180,14 @@ const Dashboard = () => {
                 <p className="text-xs text-primary mt-1">Plano {getPlanLabel(profile?.plan)}</p>
               </div>
               <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleManageSubscription} disabled={isOpeningPortal}>
+                {isOpeningPortal ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <CreditCard className="w-4 h-4 mr-2" />
+                )}
+                Gerenciar assinatura
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to="/planos">Alterar plano</Link>
               </DropdownMenuItem>
@@ -152,12 +208,24 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="font-display text-2xl sm:text-3xl font-bold mb-2">
-            Olá, {profile?.name?.split(" ")[0] || "Usuário"}! 👋
-          </h1>
-          <p className="text-muted-foreground">
-            Aqui está o resumo do seu negócio este mês.
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="font-display text-2xl sm:text-3xl font-bold mb-2">
+                Olá, {profile?.name?.split(" ")[0] || "Usuário"}! 👋
+              </h1>
+              <p className="text-muted-foreground">
+                Aqui está o resumo do seu negócio este mês.
+              </p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => checkSubscription()}
+              disabled={isCheckingSubscription}
+            >
+              <RefreshCw className={`w-4 h-4 ${isCheckingSubscription ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
         </motion.div>
 
         {/* Stats Grid */}

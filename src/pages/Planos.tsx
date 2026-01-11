@@ -1,14 +1,16 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Zap, Crown, ArrowLeft, Loader2, LogOut } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { STRIPE_PLANS, PlanId } from "@/lib/stripe-plans";
 
 const plans = [
   {
-    id: "base",
+    id: "base" as PlanId,
     name: "Base",
     icon: Zap,
     price: "97",
@@ -20,10 +22,9 @@ const plans = [
       "Sócio IA: 5 interações/mês",
     ],
     popular: false,
-    aiLimit: 5,
   },
   {
-    id: "gestao",
+    id: "gestao" as PlanId,
     name: "Gestão",
     icon: Sparkles,
     price: "197",
@@ -36,10 +37,9 @@ const plans = [
       "Sócio IA: 10 interações/mês",
     ],
     popular: true,
-    aiLimit: 10,
   },
   {
-    id: "escala",
+    id: "escala" as PlanId,
     name: "Escala",
     icon: Crown,
     price: "397",
@@ -54,38 +54,73 @@ const plans = [
       "Sócio IA ilimitado",
     ],
     popular: false,
-    aiLimit: -1, // Unlimited
   },
 ];
 
 const Planos = () => {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, session, signOut, checkSubscription } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
-  const handleSelectPlan = async (planId: string) => {
-    if (!user) {
+  // Handle checkout result
+  useEffect(() => {
+    const checkoutResult = searchParams.get("checkout");
+    if (checkoutResult === "cancelled") {
+      toast({
+        title: "Pagamento cancelado",
+        description: "Você cancelou o processo de pagamento. Escolha um plano para continuar.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams, toast]);
+
+  const handleSelectPlan = async (planId: PlanId) => {
+    if (!user || !session) {
       navigate("/cadastro");
       return;
     }
 
     setLoadingPlan(planId);
 
-    // TODO: Implement Stripe checkout
-    // For now, we'll show a toast that Stripe needs to be configured
-    toast({
-      title: "Integração Stripe",
-      description: "A integração com Stripe será implementada em breve. Por enquanto, você pode explorar a plataforma.",
-    });
+    try {
+      const plan = STRIPE_PLANS[planId];
+      
+      const { data, error } = await supabase.functions.invoke("create-checkout", {
+        body: { priceId: plan.priceId },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
 
-    setLoadingPlan(null);
+      if (error) throw error;
+
+      if (data?.url) {
+        // Redirect to Stripe Checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error("No checkout URL received");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      toast({
+        title: "Erro ao processar pagamento",
+        description: "Não foi possível iniciar o checkout. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingPlan(null);
+    }
   };
 
   const handleLogout = async () => {
     await signOut();
     navigate("/");
   };
+
+  const currentPlan = profile?.plan;
+  const isActivePlan = profile?.plan_status === "active";
 
   return (
     <div className="min-h-screen bg-gradient-hero py-12 px-4">
@@ -143,78 +178,90 @@ const Planos = () => {
 
         {/* Plans grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {plans.map((plan, index) => (
-            <motion.div
-              key={plan.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              className={`relative rounded-2xl p-8 ${
-                plan.popular
-                  ? "bg-gradient-primary shadow-accent-glow scale-105"
-                  : "bg-card border border-border"
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-accent text-accent-foreground text-sm font-semibold rounded-full">
-                  Mais Popular
-                </div>
-              )}
-
-              <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  plan.popular ? "bg-primary-foreground/20" : "bg-secondary"
-                }`}>
-                  <plan.icon className={`w-5 h-5 ${plan.popular ? "text-primary-foreground" : "text-primary"}`} />
-                </div>
-                <h3 className={`font-display font-bold text-xl ${plan.popular ? "text-primary-foreground" : ""}`}>
-                  {plan.name}
-                </h3>
-              </div>
-
-              <div className="mb-4">
-                <span className={`text-4xl font-bold font-display ${plan.popular ? "text-primary-foreground" : ""}`}>
-                  R${plan.price}
-                </span>
-                <span className={`text-sm ${plan.popular ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                  /mês
-                </span>
-              </div>
-
-              <p className={`text-sm mb-6 ${plan.popular ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                {plan.description}
-              </p>
-
-              <ul className="space-y-3 mb-8">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2">
-                    <Check className={`w-5 h-5 shrink-0 ${
-                      plan.popular ? "text-primary-foreground" : "text-primary"
-                    }`} />
-                    <span className={`text-sm ${plan.popular ? "text-primary-foreground/90" : "text-muted-foreground"}`}>
-                      {feature}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                onClick={() => handleSelectPlan(plan.id)}
-                variant={plan.popular ? "glass" : "hero"}
-                className={`w-full ${plan.popular ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90" : ""}`}
-                disabled={loadingPlan === plan.id}
+          {plans.map((plan, index) => {
+            const isCurrentPlan = currentPlan === plan.id && isActivePlan;
+            
+            return (
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className={`relative rounded-2xl p-8 ${
+                  plan.popular
+                    ? "bg-gradient-primary shadow-accent-glow scale-105"
+                    : "bg-card border border-border"
+                } ${isCurrentPlan ? "ring-2 ring-accent ring-offset-2" : ""}`}
               >
-                {loadingPlan === plan.id ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Processando...
-                  </>
-                ) : (
-                  `Assinar ${plan.name}`
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-accent text-accent-foreground text-sm font-semibold rounded-full">
+                    Mais Popular
+                  </div>
                 )}
-              </Button>
-            </motion.div>
-          ))}
+                
+                {isCurrentPlan && (
+                  <div className="absolute -top-4 right-4 px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                    Seu Plano
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3 mb-4">
+                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                    plan.popular ? "bg-primary-foreground/20" : "bg-secondary"
+                  }`}>
+                    <plan.icon className={`w-5 h-5 ${plan.popular ? "text-primary-foreground" : "text-primary"}`} />
+                  </div>
+                  <h3 className={`font-display font-bold text-xl ${plan.popular ? "text-primary-foreground" : ""}`}>
+                    {plan.name}
+                  </h3>
+                </div>
+
+                <div className="mb-4">
+                  <span className={`text-4xl font-bold font-display ${plan.popular ? "text-primary-foreground" : ""}`}>
+                    R${plan.price}
+                  </span>
+                  <span className={`text-sm ${plan.popular ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                    /mês
+                  </span>
+                </div>
+
+                <p className={`text-sm mb-6 ${plan.popular ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                  {plan.description}
+                </p>
+
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature) => (
+                    <li key={feature} className="flex items-start gap-2">
+                      <Check className={`w-5 h-5 shrink-0 ${
+                        plan.popular ? "text-primary-foreground" : "text-primary"
+                      }`} />
+                      <span className={`text-sm ${plan.popular ? "text-primary-foreground/90" : "text-muted-foreground"}`}>
+                        {feature}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  onClick={() => handleSelectPlan(plan.id)}
+                  variant={plan.popular ? "glass" : "hero"}
+                  className={`w-full ${plan.popular ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90" : ""}`}
+                  disabled={loadingPlan === plan.id || isCurrentPlan}
+                >
+                  {loadingPlan === plan.id ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Processando...
+                    </>
+                  ) : isCurrentPlan ? (
+                    "Plano Ativo"
+                  ) : (
+                    `Assinar ${plan.name}`
+                  )}
+                </Button>
+              </motion.div>
+            );
+          })}
         </div>
 
         {/* Footer note */}
