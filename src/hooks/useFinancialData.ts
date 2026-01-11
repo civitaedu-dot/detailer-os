@@ -8,6 +8,8 @@ export interface FinancialData {
   fixed_costs: number;
   variable_costs_percentage: number;
   working_days_per_month: number;
+  monthly_goal: number | null;
+  use_automatic_goal: boolean;
 }
 
 export interface MonthlyRevenue {
@@ -15,11 +17,17 @@ export interface MonthlyRevenue {
   completedAppointments: number;
 }
 
+export interface DailyRevenueData {
+  date: string;
+  total: number;
+}
+
 export function useFinancialData() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [financialData, setFinancialData] = useState<FinancialData | null>(null);
   const [monthlyRevenue, setMonthlyRevenue] = useState<MonthlyRevenue>({ total: 0, completedAppointments: 0 });
+  const [dailyRevenues, setDailyRevenues] = useState<DailyRevenueData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -42,12 +50,16 @@ export function useFinancialData() {
           fixed_costs: Number(data.fixed_costs),
           variable_costs_percentage: Number(data.variable_costs_percentage),
           working_days_per_month: data.working_days_per_month,
+          monthly_goal: data.monthly_goal ? Number(data.monthly_goal) : null,
+          use_automatic_goal: data.use_automatic_goal ?? true,
         });
       } else {
         setFinancialData({
           fixed_costs: 0,
           variable_costs_percentage: 0,
           working_days_per_month: 22,
+          monthly_goal: null,
+          use_automatic_goal: true,
         });
       }
     } catch (error) {
@@ -66,7 +78,7 @@ export function useFinancialData() {
 
       const { data, error } = await supabase
         .from('appointments')
-        .select('service_value')
+        .select('service_value, appointment_date')
         .eq('user_id', user.id)
         .eq('status', 'completed')
         .gte('appointment_date', firstDay.toISOString().split('T')[0])
@@ -75,6 +87,20 @@ export function useFinancialData() {
       if (error) throw error;
 
       const total = data?.reduce((sum, apt) => sum + Number(apt.service_value), 0) || 0;
+      
+      // Group by date for daily tracking
+      const dailyMap: Record<string, number> = {};
+      data?.forEach(apt => {
+        const date = apt.appointment_date;
+        dailyMap[date] = (dailyMap[date] || 0) + Number(apt.service_value);
+      });
+
+      const dailyData = Object.entries(dailyMap).map(([date, total]) => ({
+        date,
+        total,
+      })).sort((a, b) => a.date.localeCompare(b.date));
+
+      setDailyRevenues(dailyData);
       setMonthlyRevenue({
         total,
         completedAppointments: data?.length || 0,
@@ -97,6 +123,8 @@ export function useFinancialData() {
           fixed_costs: data.fixed_costs,
           variable_costs_percentage: data.variable_costs_percentage,
           working_days_per_month: data.working_days_per_month,
+          monthly_goal: data.monthly_goal,
+          use_automatic_goal: data.use_automatic_goal,
         }, {
           onConflict: 'user_id',
         });
@@ -127,6 +155,8 @@ export function useFinancialData() {
     const fixedCosts = financialData?.fixed_costs || 0;
     const variablePercentage = financialData?.variable_costs_percentage || 0;
     const workingDays = financialData?.working_days_per_month || 22;
+    const useAutoGoal = financialData?.use_automatic_goal ?? true;
+    const manualGoal = financialData?.monthly_goal;
 
     const variableCosts = revenue * (variablePercentage / 100);
     const totalCosts = fixedCosts + variableCosts;
@@ -138,8 +168,26 @@ export function useFinancialData() {
       ? fixedCosts / (1 - variablePercentage / 100)
       : 0;
     
-    const dailyTarget = workingDays > 0 ? breakEven / workingDays : 0;
+    // Monthly goal: automatic (break-even) or manual
+    const monthlyGoal = useAutoGoal ? breakEven : (manualGoal || 0);
+    
+    const dailyTarget = workingDays > 0 ? monthlyGoal / workingDays : 0;
     const costsPercentage = revenue > 0 ? (totalCosts / revenue) * 100 : 0;
+
+    // Calculate progress
+    const now = new Date();
+    const currentDay = now.getDate();
+    const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    
+    // Worked days so far (approximate - count weekdays or use working_days ratio)
+    const workedDaysSoFar = Math.ceil((currentDay / totalDaysInMonth) * workingDays);
+    const expectedRevenueSoFar = dailyTarget * workedDaysSoFar;
+    const revenueDifference = revenue - expectedRevenueSoFar;
+    const isAhead = revenueDifference >= 0;
+
+    // Average daily revenue this month
+    const daysWithRevenue = dailyRevenues.length;
+    const avgDailyRevenue = daysWithRevenue > 0 ? revenue / daysWithRevenue : 0;
 
     return {
       revenue,
@@ -149,12 +197,21 @@ export function useFinancialData() {
       netProfit,
       profitMargin,
       breakEven,
+      monthlyGoal,
       dailyTarget,
       costsPercentage,
       completedAppointments: monthlyRevenue.completedAppointments,
       workingDays,
+      useAutoGoal,
+      workedDaysSoFar,
+      expectedRevenueSoFar,
+      revenueDifference,
+      isAhead,
+      avgDailyRevenue,
+      remainingDays: workingDays - workedDaysSoFar,
+      remainingToGoal: Math.max(0, monthlyGoal - revenue),
     };
-  }, [financialData, monthlyRevenue]);
+  }, [financialData, monthlyRevenue, dailyRevenues]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -171,6 +228,7 @@ export function useFinancialData() {
   return {
     financialData,
     monthlyRevenue,
+    dailyRevenues,
     isLoading,
     isSaving,
     saveFinancialData,

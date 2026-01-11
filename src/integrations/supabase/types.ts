@@ -61,7 +61,9 @@ export type Database = {
           created_at: string
           fixed_costs: number
           id: string
+          monthly_goal: number | null
           updated_at: string
+          use_automatic_goal: boolean
           user_id: string
           variable_costs_percentage: number
           working_days_per_month: number
@@ -70,7 +72,9 @@ export type Database = {
           created_at?: string
           fixed_costs?: number
           id?: string
+          monthly_goal?: number | null
           updated_at?: string
+          use_automatic_goal?: boolean
           user_id: string
           variable_costs_percentage?: number
           working_days_per_month?: number
@@ -79,7 +83,9 @@ export type Database = {
           created_at?: string
           fixed_costs?: number
           id?: string
+          monthly_goal?: number | null
           updated_at?: string
+          use_automatic_goal?: boolean
           user_id?: string
           variable_costs_percentage?: number
           working_days_per_month?: number

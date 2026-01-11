@@ -42,6 +42,8 @@ export function FinancialForm({ initialData, onSave, isSaving }: FinancialFormPr
       fixed_costs: parseFloat(fixedCosts) || 0,
       variable_costs_percentage: parseFloat(variableCosts) || 0,
       working_days_per_month: parseInt(workingDays) || 22,
+      monthly_goal: initialData?.monthly_goal ?? null,
+      use_automatic_goal: initialData?.use_automatic_goal ?? true,
     });
   };
 
