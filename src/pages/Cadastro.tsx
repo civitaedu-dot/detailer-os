@@ -1,22 +1,64 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail, Lock, User, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Cadastro = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { signUp } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha todos os campos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Senha muito curta",
+        description: "A senha deve ter pelo menos 6 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
-    // TODO: Implement Supabase auth
-    setTimeout(() => setIsLoading(false), 1500);
+    
+    const { error } = await signUp(email.trim(), password, name.trim());
+    
+    if (error) {
+      toast({
+        title: "Erro ao criar conta",
+        description: error.message,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    toast({
+      title: "Conta criada com sucesso!",
+      description: "Você será redirecionado para escolher seu plano.",
+    });
+    
+    // Navigation will be handled by auth state change
+    setIsLoading(false);
   };
 
   return (
@@ -69,6 +111,8 @@ const Cadastro = () => {
                   onChange={(e) => setName(e.target.value)}
                   className="pl-10 h-12"
                   required
+                  disabled={isLoading}
+                  maxLength={100}
                 />
               </div>
             </div>
@@ -85,6 +129,8 @@ const Cadastro = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 h-12"
                   required
+                  disabled={isLoading}
+                  maxLength={255}
                 />
               </div>
             </div>
@@ -102,6 +148,7 @@ const Cadastro = () => {
                   className="pl-10 h-12"
                   minLength={6}
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
