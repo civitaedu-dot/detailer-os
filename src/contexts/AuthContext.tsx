@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Profile {
+export interface Profile {
   id: string;
   user_id: string;
   name: string;
@@ -24,6 +24,7 @@ interface SubscriptionStatus {
   plan_status: string;
   ai_limit: number;
   subscription_end: string | null;
+  error?: string;
 }
 
 interface AuthContextType {
@@ -59,9 +60,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
+  
+  // Track if we're currently fetching to avoid duplicate requests
+  const isFetchingProfile = useRef(false);
+  const lastSubscriptionCheck = useRef<number>(0);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
+    if (isFetchingProfile.current) {
+      console.log("[AuthContext] Profile fetch already in progress, skipping");
+      return null;
+    }
+
+    isFetchingProfile.current = true;
+    
     try {
+      console.log("[AuthContext] Fetching profile for user:", userId);
+      
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -69,22 +83,64 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         .maybeSingle();
 
       if (error) {
-        console.error("Error fetching profile:", error);
+        console.error("[AuthContext] Error fetching profile:", error);
         return null;
       }
 
-      return data as Profile | null;
+      if (!data) {
+        console.log("[AuthContext] No profile found for user, waiting for trigger");
+        // Wait a bit and retry once (for trigger to create profile)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const { data: retryData, error: retryError } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", userId)
+          .maybeSingle();
+        
+        if (retryError) {
+          console.error("[AuthContext] Retry error fetching profile:", retryError);
+          return null;
+        }
+        
+        console.log("[AuthContext] Retry profile result:", retryData ? "found" : "not found");
+        return retryData as Profile | null;
+      }
+
+      console.log("[AuthContext] Profile fetched:", { 
+        id: data.id, 
+        plan: data.plan, 
+        status: data.plan_status 
+      });
+      
+      return data as Profile;
     } catch (error) {
-      console.error("Error fetching profile:", error);
+      console.error("[AuthContext] Error fetching profile:", error);
       return null;
+    } finally {
+      isFetchingProfile.current = false;
     }
-  };
+  }, []);
 
   const checkSubscription = useCallback(async (): Promise<SubscriptionStatus | null> => {
-    if (!session?.access_token) return null;
+    // Prevent checking too frequently (minimum 10 seconds between checks)
+    const now = Date.now();
+    if (now - lastSubscriptionCheck.current < 10000) {
+      console.log("[AuthContext] Subscription check throttled");
+      return null;
+    }
+    
+    if (!session?.access_token) {
+      console.log("[AuthContext] No session for subscription check");
+      return null;
+    }
     
     setIsCheckingSubscription(true);
+    lastSubscriptionCheck.current = now;
+    
     try {
+      console.log("[AuthContext] Checking subscription status...");
+      
       const { data, error } = await supabase.functions.invoke("check-subscription", {
         headers: {
           Authorization: `Bearer ${session.access_token}`,
@@ -92,89 +148,136 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
 
       if (error) {
-        console.error("Error checking subscription:", error);
+        console.error("[AuthContext] Subscription check error:", error);
         return null;
       }
+
+      console.log("[AuthContext] Subscription check result:", data);
 
       // Refresh profile after subscription check to get updated data
       if (user) {
         const updatedProfile = await fetchProfile(user.id);
-        setProfile(updatedProfile);
+        if (updatedProfile) {
+          setProfile(updatedProfile);
+        }
       }
 
       return data as SubscriptionStatus;
     } catch (error) {
-      console.error("Error checking subscription:", error);
+      console.error("[AuthContext] Error checking subscription:", error);
       return null;
     } finally {
       setIsCheckingSubscription(false);
     }
-  }, [session?.access_token, user]);
+  }, [session?.access_token, user, fetchProfile]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (user) {
+      console.log("[AuthContext] Refreshing profile...");
       const profileData = await fetchProfile(user.id);
-      setProfile(profileData);
+      if (profileData) {
+        setProfile(profileData);
+      }
     }
-  };
+  }, [user, fetchProfile]);
 
+  // Initialize auth state
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          // Use setTimeout to avoid race conditions with profile creation trigger
-          setTimeout(async () => {
-            const profileData = await fetchProfile(session.user.id);
+    let mounted = true;
+    
+    const initializeAuth = async () => {
+      console.log("[AuthContext] Initializing auth...");
+      
+      try {
+        // Get initial session
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (initialSession?.user) {
+          console.log("[AuthContext] Initial session found:", initialSession.user.email);
+          setSession(initialSession);
+          setUser(initialSession.user);
+          
+          const profileData = await fetchProfile(initialSession.user.id);
+          if (mounted && profileData) {
             setProfile(profileData);
-            setIsLoading(false);
-          }, 100);
+          }
         } else {
+          console.log("[AuthContext] No initial session");
+        }
+      } catch (error) {
+        console.error("[AuthContext] Init error:", error);
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, newSession) => {
+        console.log("[AuthContext] Auth state changed:", event, newSession?.user?.email);
+        
+        if (!mounted) return;
+        
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+
+        if (event === "SIGNED_IN" && newSession?.user) {
+          // Wait a bit for the trigger to create the profile
+          setTimeout(async () => {
+            if (!mounted) return;
+            const profileData = await fetchProfile(newSession.user.id);
+            if (mounted && profileData) {
+              setProfile(profileData);
+            }
+            setIsLoading(false);
+          }, 500);
+        } else if (event === "SIGNED_OUT") {
           setProfile(null);
           setIsLoading(false);
+        } else if (event === "TOKEN_REFRESHED" && newSession?.user) {
+          // Just update session, don't refetch profile
+          console.log("[AuthContext] Token refreshed");
         }
       }
     );
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    initializeAuth();
 
-      if (session?.user) {
-        fetchProfile(session.user.id).then((profileData) => {
-          setProfile(profileData);
-          setIsLoading(false);
-        });
-      } else {
-        setIsLoading(false);
-      }
-    });
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [fetchProfile]);
 
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // Check subscription status periodically and after login
+  // Periodic subscription check
   useEffect(() => {
-    if (session?.access_token && user) {
-      // Check subscription on login/session restore
+    if (!session?.access_token || !user) return;
+
+    // Initial check after login
+    const initialCheck = setTimeout(() => {
       checkSubscription();
+    }, 2000);
 
-      // Set up periodic check every minute
-      const interval = setInterval(() => {
-        checkSubscription();
-      }, 60000);
+    // Periodic check every 60 seconds
+    const interval = setInterval(() => {
+      checkSubscription();
+    }, 60000);
 
-      return () => clearInterval(interval);
-    }
+    return () => {
+      clearTimeout(initialCheck);
+      clearInterval(interval);
+    };
   }, [session?.access_token, user, checkSubscription]);
 
   const signUp = async (email: string, password: string, name: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      console.log("[AuthContext] Signing up:", email);
+      
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -186,33 +289,42 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       });
 
       if (error) {
+        console.error("[AuthContext] Signup error:", error);
         return { error };
       }
 
+      console.log("[AuthContext] Signup successful:", data.user?.id);
       return { error: null };
     } catch (error) {
+      console.error("[AuthContext] Signup exception:", error);
       return { error: error as Error };
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log("[AuthContext] Signing in:", email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.error("[AuthContext] Signin error:", error);
         return { error };
       }
 
+      console.log("[AuthContext] Signin successful:", data.user?.id);
       return { error: null };
     } catch (error) {
+      console.error("[AuthContext] Signin exception:", error);
       return { error: error as Error };
     }
   };
 
   const signOut = async () => {
+    console.log("[AuthContext] Signing out...");
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);

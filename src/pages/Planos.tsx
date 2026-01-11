@@ -58,7 +58,7 @@ const plans = [
 ];
 
 const Planos = () => {
-  const { user, profile, session, signOut, checkSubscription } = useAuth();
+  const { user, profile, session, signOut, checkSubscription, isLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -76,6 +76,20 @@ const Planos = () => {
     }
   }, [searchParams, toast]);
 
+  // Redirect to cadastro if not logged in
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate("/cadastro", { replace: true });
+    }
+  }, [isLoading, user, navigate]);
+
+  // Redirect to dashboard if already has active plan
+  useEffect(() => {
+    if (!isLoading && profile?.plan_status === "active") {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [isLoading, profile, navigate]);
+
   const handleSelectPlan = async (planId: PlanId) => {
     if (!user || !session) {
       navigate("/cadastro");
@@ -87,6 +101,8 @@ const Planos = () => {
     try {
       const plan = STRIPE_PLANS[planId];
       
+      console.log("[Planos] Creating checkout for plan:", planId, plan.priceId);
+      
       const { data, error } = await supabase.functions.invoke("create-checkout", {
         body: { priceId: plan.priceId },
         headers: {
@@ -94,16 +110,19 @@ const Planos = () => {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("[Planos] Checkout error:", error);
+        throw error;
+      }
 
       if (data?.url) {
-        // Redirect to Stripe Checkout
+        console.log("[Planos] Redirecting to checkout:", data.url);
         window.location.href = data.url;
       } else {
         throw new Error("No checkout URL received");
       }
     } catch (error) {
-      console.error("Checkout error:", error);
+      console.error("[Planos] Checkout error:", error);
       toast({
         title: "Erro ao processar pagamento",
         description: "Não foi possível iniciar o checkout. Tente novamente.",
@@ -121,6 +140,23 @@ const Planos = () => {
 
   const currentPlan = profile?.plan;
   const isActivePlan = profile?.plan_status === "active";
+
+  // Show loading while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-hero">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not logged in (will redirect)
+  if (!user) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-hero py-12 px-4">
@@ -141,12 +177,10 @@ const Planos = () => {
             Voltar
           </Link>
           
-          {user && (
-            <Button variant="ghost" size="sm" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Sair
-            </Button>
-          )}
+          <Button variant="ghost" size="sm" onClick={handleLogout}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
         </div>
 
         {/* Header content */}
@@ -164,16 +198,12 @@ const Planos = () => {
             Escolha seu plano
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            {user 
-              ? "Para acessar o DetailerOS, escolha o plano que melhor atende seu momento. Você pode trocar de plano a qualquer momento."
-              : "Crie sua conta primeiro e escolha o plano ideal para o seu negócio."
-            }
+            Para acessar o DetailerOS, escolha o plano que melhor atende seu momento. 
+            Você pode trocar de plano a qualquer momento.
           </p>
-          {profile && (
-            <p className="text-sm text-primary mt-4">
-              Logado como: {profile.name}
-            </p>
-          )}
+          <p className="text-sm text-primary mt-4">
+            Logado como: {profile?.name || user.email}
+          </p>
         </motion.div>
 
         {/* Plans grid */}

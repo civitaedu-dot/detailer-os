@@ -71,8 +71,13 @@ const Dashboard = () => {
         title: "Pagamento confirmado! 🎉",
         description: "Bem-vindo ao DetailerOS! Sua assinatura está ativa.",
       });
-      // Refresh subscription status
-      checkSubscription();
+      // Refresh subscription status after checkout
+      setTimeout(() => {
+        checkSubscription();
+      }, 1000);
+      
+      // Clear the query param from URL
+      window.history.replaceState({}, "", "/dashboard");
     }
   }, [searchParams, toast, checkSubscription]);
 
