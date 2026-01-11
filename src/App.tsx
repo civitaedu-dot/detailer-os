@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { ProtectedRoute, PublicRoute } from "@/components/auth/ProtectedRoute";
+import { ProtectedRoute, PublicRoute, PlanRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
@@ -44,7 +44,11 @@ const App = () => (
             {/* Plans page - requires auth but not active plan */}
             <Route 
               path="/planos" 
-              element={<Planos />} 
+              element={
+                <PlanRoute>
+                  <Planos />
+                </PlanRoute>
+              } 
             />
             
             {/* Protected routes - require auth AND active plan */}
