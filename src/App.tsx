@@ -10,6 +10,7 @@ import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
 import Planos from "./pages/Planos";
 import Dashboard from "./pages/Dashboard";
+import Financeiro from "./pages/Financeiro";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,12 +62,12 @@ const App = () => (
               } 
             />
             
-            {/* Placeholder routes for future pages */}
+            {/* Financeiro route */}
             <Route 
               path="/financeiro" 
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <Financeiro />
                 </ProtectedRoute>
               } 
             />
