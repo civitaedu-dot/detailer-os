@@ -11,6 +11,8 @@ import Cadastro from "./pages/Cadastro";
 import Planos from "./pages/Planos";
 import Dashboard from "./pages/Dashboard";
 import Financeiro from "./pages/Financeiro";
+import Agenda from "./pages/Agenda";
+import Clientes from "./pages/Clientes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -62,7 +64,6 @@ const App = () => (
               } 
             />
             
-            {/* Financeiro route */}
             <Route 
               path="/financeiro" 
               element={
@@ -75,7 +76,7 @@ const App = () => (
               path="/agenda" 
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <Agenda />
                 </ProtectedRoute>
               } 
             />
@@ -83,7 +84,7 @@ const App = () => (
               path="/clientes" 
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <Clientes />
                 </ProtectedRoute>
               } 
             />
