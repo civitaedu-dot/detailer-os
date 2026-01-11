@@ -12,6 +12,7 @@ import { FinancialIndicators } from "@/components/financeiro/FinancialIndicators
 import { FinancialForm } from "@/components/financeiro/FinancialForm";
 import { DRESimples } from "@/components/financeiro/DRESimples";
 import { FinancialAnalysis } from "@/components/financeiro/FinancialAnalysis";
+import { DailyGoalTracker } from "@/components/financeiro/DailyGoalTracker";
 
 const Financeiro = () => {
   const { profile } = useAuth();
@@ -25,6 +26,18 @@ const Financeiro = () => {
   } = useFinancialData();
 
   const metrics = calculateMetrics();
+
+  const handleSaveGoal = async (goal: number | null, useAuto: boolean) => {
+    if (!financialData) return;
+    
+    await saveFinancialData({
+      fixed_costs: financialData.fixed_costs,
+      variable_costs_percentage: financialData.variable_costs_percentage,
+      working_days_per_month: financialData.working_days_per_month,
+      monthly_goal: goal,
+      use_automatic_goal: useAuto,
+    });
+  };
 
   if (isLoading) {
     return (
@@ -84,6 +97,26 @@ const Financeiro = () => {
           profitMargin={metrics.profitMargin}
           breakEven={metrics.breakEven}
           dailyTarget={metrics.dailyTarget}
+        />
+
+        {/* Daily Goal Tracker - Highlighted Section */}
+        <DailyGoalTracker
+          monthlyGoal={metrics.monthlyGoal}
+          dailyTarget={metrics.dailyTarget}
+          revenue={metrics.revenue}
+          workingDays={metrics.workingDays}
+          useAutoGoal={metrics.useAutoGoal}
+          breakEven={metrics.breakEven}
+          workedDaysSoFar={metrics.workedDaysSoFar}
+          expectedRevenueSoFar={metrics.expectedRevenueSoFar}
+          revenueDifference={metrics.revenueDifference}
+          isAhead={metrics.isAhead}
+          avgDailyRevenue={metrics.avgDailyRevenue}
+          remainingDays={metrics.remainingDays}
+          remainingToGoal={metrics.remainingToGoal}
+          manualGoal={financialData?.monthly_goal || null}
+          onSaveGoal={handleSaveGoal}
+          isSaving={isSaving}
         />
 
         {/* Main Content Grid */}
