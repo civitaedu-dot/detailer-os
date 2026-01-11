@@ -18,8 +18,10 @@ export type Database = {
         Row: {
           appointment_date: string
           appointment_time: string | null
+          client_id: string | null
           client_name: string
           created_at: string
+          duration_minutes: number | null
           id: string
           notes: string | null
           service_name: string
@@ -31,8 +33,10 @@ export type Database = {
         Insert: {
           appointment_date: string
           appointment_time?: string | null
+          client_id?: string | null
           client_name: string
           created_at?: string
+          duration_minutes?: number | null
           id?: string
           notes?: string | null
           service_name: string
@@ -44,8 +48,10 @@ export type Database = {
         Update: {
           appointment_date?: string
           appointment_time?: string | null
+          client_id?: string | null
           client_name?: string
           created_at?: string
+          duration_minutes?: number | null
           id?: string
           notes?: string | null
           service_name?: string
@@ -53,6 +59,50 @@ export type Database = {
           status?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          birthdate: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          phone: string
+          updated_at: string
+          user_id: string
+          vehicle: string | null
+        }
+        Insert: {
+          birthdate?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          phone: string
+          updated_at?: string
+          user_id: string
+          vehicle?: string | null
+        }
+        Update: {
+          birthdate?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+          updated_at?: string
+          user_id?: string
+          vehicle?: string | null
         }
         Relationships: []
       }
