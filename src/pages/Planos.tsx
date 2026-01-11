@@ -1,10 +1,14 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Check, Sparkles, Zap, Crown, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Check, Sparkles, Zap, Crown, ArrowLeft, Loader2, LogOut } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const plans = [
   {
+    id: "base",
     name: "Base",
     icon: Zap,
     price: "97",
@@ -16,8 +20,10 @@ const plans = [
       "Sócio IA: 5 interações/mês",
     ],
     popular: false,
+    aiLimit: 5,
   },
   {
+    id: "gestao",
     name: "Gestão",
     icon: Sparkles,
     price: "197",
@@ -30,8 +36,10 @@ const plans = [
       "Sócio IA: 10 interações/mês",
     ],
     popular: true,
+    aiLimit: 10,
   },
   {
+    id: "escala",
     name: "Escala",
     icon: Crown,
     price: "397",
@@ -46,13 +54,37 @@ const plans = [
       "Sócio IA ilimitado",
     ],
     popular: false,
+    aiLimit: -1, // Unlimited
   },
 ];
 
 const Planos = () => {
-  const handleSelectPlan = (planName: string) => {
+  const { user, profile, signOut } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+
+  const handleSelectPlan = async (planId: string) => {
+    if (!user) {
+      navigate("/cadastro");
+      return;
+    }
+
+    setLoadingPlan(planId);
+
     // TODO: Implement Stripe checkout
-    console.log("Selected plan:", planName);
+    // For now, we'll show a toast that Stripe needs to be configured
+    toast({
+      title: "Integração Stripe",
+      description: "A integração com Stripe será implementada em breve. Por enquanto, você pode explorar a plataforma.",
+    });
+
+    setLoadingPlan(null);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
   };
 
   return (
@@ -64,16 +96,25 @@ const Planos = () => {
       </div>
 
       <div className="container relative z-10 max-w-6xl mx-auto">
-        {/* Back link */}
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Voltar
-        </Link>
-
         {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar
+          </Link>
+          
+          {user && (
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
+            </Button>
+          )}
+        </div>
+
+        {/* Header content */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -88,16 +129,23 @@ const Planos = () => {
             Escolha seu plano
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Para acessar o DetailerOS, escolha o plano que melhor atende seu momento. 
-            Você pode trocar de plano a qualquer momento.
+            {user 
+              ? "Para acessar o DetailerOS, escolha o plano que melhor atende seu momento. Você pode trocar de plano a qualquer momento."
+              : "Crie sua conta primeiro e escolha o plano ideal para o seu negócio."
+            }
           </p>
+          {profile && (
+            <p className="text-sm text-primary mt-4">
+              Logado como: {profile.name}
+            </p>
+          )}
         </motion.div>
 
         {/* Plans grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           {plans.map((plan, index) => (
             <motion.div
-              key={plan.name}
+              key={plan.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
@@ -151,11 +199,19 @@ const Planos = () => {
               </ul>
 
               <Button
-                onClick={() => handleSelectPlan(plan.name)}
+                onClick={() => handleSelectPlan(plan.id)}
                 variant={plan.popular ? "glass" : "hero"}
                 className={`w-full ${plan.popular ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90" : ""}`}
+                disabled={loadingPlan === plan.id}
               >
-                Assinar {plan.name}
+                {loadingPlan === plan.id ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processando...
+                  </>
+                ) : (
+                  `Assinar ${plan.name}`
+                )}
               </Button>
             </motion.div>
           ))}

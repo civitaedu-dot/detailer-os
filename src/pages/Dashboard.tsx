@@ -3,53 +3,88 @@ import { Button } from "@/components/ui/button";
 import { 
   DollarSign, 
   TrendingUp, 
-  Users, 
   Calendar,
   Bot,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  LogOut,
+  Menu
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const stats = [
   {
     label: "Faturamento do Mês",
-    value: "R$ 12.450",
-    change: "+12%",
+    value: "R$ 0",
+    change: "0%",
     trend: "up",
     icon: DollarSign,
   },
   {
     label: "Ticket Médio",
-    value: "R$ 285",
-    change: "+5%",
+    value: "R$ 0",
+    change: "0%",
     trend: "up",
     icon: TrendingUp,
   },
   {
     label: "Atendimentos",
-    value: "43",
-    change: "-3%",
-    trend: "down",
+    value: "0",
+    change: "0%",
+    trend: "up",
     icon: Calendar,
   },
   {
     label: "Lucro Estimado",
-    value: "R$ 4.890",
-    change: "+18%",
+    value: "R$ 0",
+    change: "0%",
     trend: "up",
     icon: TrendingUp,
   },
 ];
 
 const Dashboard = () => {
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  const getPlanLabel = (plan: string | undefined) => {
+    switch (plan) {
+      case "base": return "Base";
+      case "gestao": return "Gestão";
+      case "escala": return "Escala";
+      default: return "Sem plano";
+    }
+  };
+
+  const getAIInteractionsLabel = () => {
+    if (!profile) return "";
+    if (profile.ai_interactions_limit === -1) {
+      return "Ilimitado";
+    }
+    return `${profile.ai_interactions_used}/${profile.ai_interactions_limit}`;
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/" className="flex items-center gap-2">
+            <Link to="/dashboard" className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
                 <span className="font-display font-bold text-primary-foreground text-sm">D</span>
               </div>
@@ -58,7 +93,9 @@ const Dashboard = () => {
               </span>
             </Link>
           </div>
-          <nav className="flex items-center gap-2">
+          
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-2">
             <Button variant="ghost" size="sm" asChild>
               <Link to="/dashboard">Dashboard</Link>
             </Button>
@@ -71,7 +108,40 @@ const Dashboard = () => {
             <Button variant="ghost" size="sm" asChild>
               <Link to="/clientes">Clientes</Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/socio-ia">Sócio IA</Link>
+            </Button>
           </nav>
+
+          {/* User menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                  <span className="text-xs font-semibold text-primary">
+                    {profile?.name?.charAt(0).toUpperCase() || "U"}
+                  </span>
+                </div>
+                <span className="hidden sm:block">{profile?.name || "Usuário"}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium">{profile?.name}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
+                <p className="text-xs text-primary mt-1">Plano {getPlanLabel(profile?.plan)}</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/planos">Alterar plano</Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
@@ -83,7 +153,7 @@ const Dashboard = () => {
           className="mb-8"
         >
           <h1 className="font-display text-2xl sm:text-3xl font-bold mb-2">
-            Bom dia! 👋
+            Olá, {profile?.name?.split(" ")[0] || "Usuário"}! 👋
           </h1>
           <p className="text-muted-foreground">
             Aqui está o resumo do seu negócio este mês.
@@ -121,36 +191,69 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* AI Partner CTA */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-gradient-primary rounded-2xl p-8 shadow-accent-glow"
-        >
-          <div className="flex flex-col sm:flex-row items-center gap-6">
-            <div className="w-16 h-16 rounded-2xl bg-primary-foreground/20 flex items-center justify-center shrink-0">
-              <Bot className="w-8 h-8 text-primary-foreground" />
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* AI Partner CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-gradient-primary rounded-2xl p-8 shadow-accent-glow"
+          >
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="w-16 h-16 rounded-2xl bg-primary-foreground/20 flex items-center justify-center shrink-0">
+                <Bot className="w-8 h-8 text-primary-foreground" />
+              </div>
+              <div className="flex-1 text-center sm:text-left">
+                <h2 className="font-display text-xl sm:text-2xl font-bold text-primary-foreground mb-2">
+                  Fale com seu Sócio IA
+                </h2>
+                <p className="text-primary-foreground/80 text-sm mb-4 sm:mb-0">
+                  Interações: {getAIInteractionsLabel()}
+                </p>
+              </div>
+              <Button 
+                size="lg" 
+                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shrink-0"
+                asChild
+              >
+                <Link to="/socio-ia">
+                  Conversar
+                </Link>
+              </Button>
             </div>
-            <div className="flex-1 text-center sm:text-left">
-              <h2 className="font-display text-xl sm:text-2xl font-bold text-primary-foreground mb-2">
-                Fale com seu Sócio IA
-              </h2>
-              <p className="text-primary-foreground/80 mb-4 sm:mb-0">
-                Tire dúvidas, peça análises e receba sugestões personalizadas para melhorar seu negócio.
-              </p>
+          </motion.div>
+
+          {/* Quick Start */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-card border border-border rounded-2xl p-8"
+          >
+            <h3 className="font-display text-lg font-bold mb-4">Comece por aqui</h3>
+            <div className="space-y-3">
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link to="/financeiro">
+                  <DollarSign className="w-4 h-4 mr-2" />
+                  Cadastrar custos e faturamento
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link to="/clientes">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Cadastrar primeiro cliente
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
+                <Link to="/agenda">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Agendar um atendimento
+                </Link>
+              </Button>
             </div>
-            <Button 
-              size="lg" 
-              className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shrink-0"
-              asChild
-            >
-              <Link to="/socio-ia">
-                Conversar agora
-              </Link>
-            </Button>
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
       </main>
     </div>
   );

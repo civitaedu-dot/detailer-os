@@ -1,21 +1,56 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail, Lock, Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const { signIn } = useAuth();
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email.trim() || !password.trim()) {
+      toast({
+        title: "Campos obrigatórios",
+        description: "Por favor, preencha todos os campos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
-    // TODO: Implement Supabase auth
-    setTimeout(() => setIsLoading(false), 1500);
+    
+    const { error } = await signIn(email.trim(), password);
+    
+    if (error) {
+      toast({
+        title: "Erro ao entrar",
+        description: error.message === "Invalid login credentials" 
+          ? "Email ou senha incorretos."
+          : error.message,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    toast({
+      title: "Bem-vindo de volta!",
+      description: "Login realizado com sucesso.",
+    });
+    
+    // Navigation will be handled by auth state change
+    setIsLoading(false);
   };
 
   return (
@@ -68,6 +103,7 @@ const Login = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 h-12"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -89,6 +125,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 h-12"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
