@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string | null
+          client_name: string
+          created_at: string
+          id: string
+          notes: string | null
+          service_name: string
+          service_value: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time?: string | null
+          client_name: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          service_name: string
+          service_value: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string | null
+          client_name?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          service_name?: string
+          service_value?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      financial_data: {
+        Row: {
+          created_at: string
+          fixed_costs: number
+          id: string
+          updated_at: string
+          user_id: string
+          variable_costs_percentage: number
+          working_days_per_month: number
+        }
+        Insert: {
+          created_at?: string
+          fixed_costs?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+          variable_costs_percentage?: number
+          working_days_per_month?: number
+        }
+        Update: {
+          created_at?: string
+          fixed_costs?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+          variable_costs_percentage?: number
+          working_days_per_month?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           ai_interactions_limit: number | null
