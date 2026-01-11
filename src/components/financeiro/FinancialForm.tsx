@@ -20,9 +20,10 @@ interface FinancialFormProps {
   initialData: FinancialData | null;
   onSave: (data: Omit<FinancialData, 'id'>) => Promise<void>;
   isSaving: boolean;
+  hideVariableCosts?: boolean;
 }
 
-export function FinancialForm({ initialData, onSave, isSaving }: FinancialFormProps) {
+export function FinancialForm({ initialData, onSave, isSaving, hideVariableCosts = false }: FinancialFormProps) {
   const [fixedCosts, setFixedCosts] = useState("");
   const [variableCosts, setVariableCosts] = useState("");
   const [workingDays, setWorkingDays] = useState("22");
@@ -80,59 +81,61 @@ export function FinancialForm({ initialData, onSave, isSaving }: FinancialFormPr
           </div>
         </div>
 
-        {/* Custos Variáveis */}
-        <div className="space-y-2">
-          <Label htmlFor="variableCosts" className="text-base font-medium">
-            Custos Variáveis (%)
-          </Label>
-          <Input
-            id="variableCosts"
-            type="number"
-            placeholder="Ex: 15"
-            value={variableCosts}
-            onChange={(e) => setVariableCosts(e.target.value)}
-            className="h-12 text-lg"
-            min="0"
-            max="100"
-            step="0.1"
-          />
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/50">
-            <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
-            <p className="text-sm text-muted-foreground">
-              Custos variáveis são gastos que aumentam conforme você vende mais. Exemplos: produtos usados por serviço, comissões, materiais, taxas de cartão.
-            </p>
-          </div>
+        {/* Custos Variáveis - Only show if not hidden */}
+        {!hideVariableCosts && (
+          <div className="space-y-2">
+            <Label htmlFor="variableCosts" className="text-base font-medium">
+              Custos Variáveis (%)
+            </Label>
+            <Input
+              id="variableCosts"
+              type="number"
+              placeholder="Ex: 15"
+              value={variableCosts}
+              onChange={(e) => setVariableCosts(e.target.value)}
+              className="h-12 text-lg"
+              min="0"
+              max="100"
+              step="0.1"
+            />
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-secondary/50">
+              <Info className="w-4 h-4 text-muted-foreground mt-0.5 shrink-0" />
+              <p className="text-sm text-muted-foreground">
+                Custos variáveis são gastos que aumentam conforme você vende mais. Exemplos: produtos usados por serviço, comissões, materiais, taxas de cartão.
+              </p>
+            </div>
 
-          <Collapsible open={isHelpOpen} onOpenChange={setIsHelpOpen}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="text-primary">
-                <HelpCircle className="w-4 h-4 mr-2" />
-                Como calcular meu custo variável?
-              </Button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="mt-3 p-4 rounded-lg bg-primary/10 border border-primary/20 space-y-3">
-                <p className="text-sm font-medium text-foreground">
-                  Siga estes passos simples:
-                </p>
-                <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-                  <li>Pegue o valor médio gasto em produtos por serviço</li>
-                  <li>Divida pelo valor médio cobrado do cliente</li>
-                  <li>Multiplique por 100 para encontrar o percentual</li>
-                </ol>
-                <div className="p-3 rounded bg-background/50">
-                  <p className="text-sm font-medium text-primary mb-1">Exemplo prático:</p>
-                  <p className="text-sm text-muted-foreground">
-                    Se você gasta em média <strong>R$ 15</strong> de produto em um serviço de <strong>R$ 100</strong>, seu custo variável é <strong>15%</strong>.
+            <Collapsible open={isHelpOpen} onOpenChange={setIsHelpOpen}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-primary">
+                  <HelpCircle className="w-4 h-4 mr-2" />
+                  Como calcular meu custo variável?
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="mt-3 p-4 rounded-lg bg-primary/10 border border-primary/20 space-y-3">
+                  <p className="text-sm font-medium text-foreground">
+                    Siga estes passos simples:
                   </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Cálculo: (15 ÷ 100) × 100 = 15%
-                  </p>
+                  <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+                    <li>Pegue o valor médio gasto em produtos por serviço</li>
+                    <li>Divida pelo valor médio cobrado do cliente</li>
+                    <li>Multiplique por 100 para encontrar o percentual</li>
+                  </ol>
+                  <div className="p-3 rounded bg-background/50">
+                    <p className="text-sm font-medium text-primary mb-1">Exemplo prático:</p>
+                    <p className="text-sm text-muted-foreground">
+                      Se você gasta em média <strong>R$ 15</strong> de produto em um serviço de <strong>R$ 100</strong>, seu custo variável é <strong>15%</strong>.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Cálculo: (15 ÷ 100) × 100 = 15%
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        )}
 
         {/* Dias Trabalhados */}
         <div className="space-y-2">

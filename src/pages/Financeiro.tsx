@@ -13,6 +13,8 @@ import { FinancialForm } from "@/components/financeiro/FinancialForm";
 import { DRESimples } from "@/components/financeiro/DRESimples";
 import { FinancialAnalysis } from "@/components/financeiro/FinancialAnalysis";
 import { DailyGoalTracker } from "@/components/financeiro/DailyGoalTracker";
+import { VariableCostsManager } from "@/components/financeiro/VariableCostsManager";
+import { useVariableCosts } from "@/hooks/useVariableCosts";
 
 const Financeiro = () => {
   const { profile } = useAuth();
@@ -22,21 +24,35 @@ const Financeiro = () => {
     isSaving, 
     saveFinancialData, 
     calculateMetrics,
-    refetch 
+    refetch,
+    monthlyRevenue
   } = useFinancialData();
+  
+  const { 
+    calculateTotalPercentage, 
+    refetch: refetchVariableCosts 
+  } = useVariableCosts();
 
-  const metrics = calculateMetrics();
+  // Get the calculated total from variable costs
+  const variableCostsPercentage = calculateTotalPercentage(monthlyRevenue.total);
+  
+  const metrics = calculateMetrics(variableCostsPercentage);
 
   const handleSaveGoal = async (goal: number | null, useAuto: boolean) => {
     if (!financialData) return;
     
     await saveFinancialData({
       fixed_costs: financialData.fixed_costs,
-      variable_costs_percentage: financialData.variable_costs_percentage,
+      variable_costs_percentage: variableCostsPercentage, // Use calculated percentage
       working_days_per_month: financialData.working_days_per_month,
       monthly_goal: goal,
       use_automatic_goal: useAuto,
     });
+  };
+
+  const handleVariableCostsChange = (_percentage: number) => {
+    // Trigger re-render by refetching
+    refetchVariableCosts();
   };
 
   if (isLoading) {
@@ -121,12 +137,18 @@ const Financeiro = () => {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Form */}
+          {/* Left Column - Forms */}
           <div className="space-y-6">
             <FinancialForm
               initialData={financialData}
               onSave={saveFinancialData}
               isSaving={isSaving}
+              hideVariableCosts={true}
+            />
+            
+            <VariableCostsManager 
+              monthlyRevenue={monthlyRevenue.total}
+              onTotalPercentageChange={handleVariableCostsChange}
             />
           </div>
 
