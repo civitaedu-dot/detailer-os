@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { 
@@ -9,12 +10,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFinancialData } from "@/hooks/useFinancialData";
 import { FinancialIndicators } from "@/components/financeiro/FinancialIndicators";
-import { FinancialForm } from "@/components/financeiro/FinancialForm";
 import { DRESimples } from "@/components/financeiro/DRESimples";
 import { FinancialAnalysis } from "@/components/financeiro/FinancialAnalysis";
 import { DailyGoalTracker } from "@/components/financeiro/DailyGoalTracker";
 import { VariableCostsManager } from "@/components/financeiro/VariableCostsManager";
+import { FixedCostsManager } from "@/components/financeiro/FixedCostsManager";
+import { WorkingDaysConfig } from "@/components/financeiro/WorkingDaysConfig";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
+import { useFixedCosts } from "@/hooks/useFixedCosts";
 import logo from "@/assets/logo.jpeg";
 import {
   DropdownMenu,
@@ -42,31 +45,72 @@ const Financeiro = () => {
     refetch: refetchVariableCosts 
   } = useVariableCosts();
 
-  // Get the calculated total from variable costs
-  const variableCostsPercentage = calculateTotalPercentage(monthlyRevenue.total);
+  const {
+    calculateTotalFixedCosts,
+    refetch: refetchFixedCosts
+  } = useFixedCosts();
+
+  // Local state for real-time updates
+  const [localFixedCosts, setLocalFixedCosts] = useState(0);
+  const [localVariablePercentage, setLocalVariablePercentage] = useState(0);
+
+  // Initialize local state from hooks
+  useEffect(() => {
+    setLocalFixedCosts(calculateTotalFixedCosts());
+    setLocalVariablePercentage(calculateTotalPercentage(monthlyRevenue.total));
+  }, [calculateTotalFixedCosts, calculateTotalPercentage, monthlyRevenue.total]);
   
-  const metrics = calculateMetrics(variableCostsPercentage);
+  // Calculate metrics with the managed costs
+  const metrics = calculateMetrics(localVariablePercentage, localFixedCosts);
 
   const handleSaveGoal = async (goal: number | null, useAuto: boolean) => {
     if (!financialData) return;
     
     await saveFinancialData({
-      fixed_costs: financialData.fixed_costs,
-      variable_costs_percentage: variableCostsPercentage, // Use calculated percentage
+      fixed_costs: localFixedCosts,
+      variable_costs_percentage: localVariablePercentage,
       working_days_per_month: financialData.working_days_per_month,
       monthly_goal: goal,
       use_automatic_goal: useAuto,
     });
   };
 
-  const handleVariableCostsChange = (_percentage: number) => {
-    // Trigger re-render by refetching
+  const handleSaveWorkingDays = async (days: number) => {
+    if (!financialData) return;
+    
+    await saveFinancialData({
+      fixed_costs: localFixedCosts,
+      variable_costs_percentage: localVariablePercentage,
+      working_days_per_month: days,
+      monthly_goal: financialData.monthly_goal,
+      use_automatic_goal: financialData.use_automatic_goal,
+    });
+  };
+
+  const handleVariableCostsChange = (percentage: number) => {
+    setLocalVariablePercentage(percentage);
     refetchVariableCosts();
+  };
+
+  const handleFixedCostsChange = (total: number) => {
+    setLocalFixedCosts(total);
+    refetchFixedCosts();
   };
 
   const handleLogout = async () => {
     await signOut();
     navigate("/");
+  };
+
+  const handleRefresh = async () => {
+    await Promise.all([
+      refetch(),
+      refetchVariableCosts(),
+      refetchFixedCosts()
+    ]);
+    // Update local state after refetch
+    setLocalFixedCosts(calculateTotalFixedCosts());
+    setLocalVariablePercentage(calculateTotalPercentage(monthlyRevenue.total));
   };
 
   if (isLoading) {
@@ -128,7 +172,7 @@ const Financeiro = () => {
                 <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => refetch()} disabled={isLoading}>
+              <DropdownMenuItem onClick={handleRefresh} disabled={isLoading}>
                 <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
                 Atualizar dados
               </DropdownMenuItem>
@@ -188,18 +232,21 @@ const Financeiro = () => {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Forms */}
+          {/* Left Column - Cost Management */}
           <div className="space-y-6">
-            <FinancialForm
-              initialData={financialData}
-              onSave={saveFinancialData}
-              isSaving={isSaving}
-              hideVariableCosts={true}
+            <FixedCostsManager 
+              onTotalChange={handleFixedCostsChange}
             />
             
             <VariableCostsManager 
               monthlyRevenue={monthlyRevenue.total}
               onTotalPercentageChange={handleVariableCostsChange}
+            />
+
+            <WorkingDaysConfig
+              workingDays={financialData?.working_days_per_month || 22}
+              onSave={handleSaveWorkingDays}
+              isSaving={isSaving}
             />
           </div>
 

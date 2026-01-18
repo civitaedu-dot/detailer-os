@@ -150,9 +150,12 @@ export function useFinancialData() {
   };
 
   // Calculate financial metrics
-  const calculateMetrics = useCallback((variableCostsFromManager?: number) => {
+  const calculateMetrics = useCallback((variableCostsFromManager?: number, fixedCostsFromManager?: number) => {
     const revenue = monthlyRevenue.total;
-    const fixedCosts = financialData?.fixed_costs || 0;
+    // Use fixed costs from manager if provided, otherwise use from financial_data
+    const fixedCosts = fixedCostsFromManager !== undefined 
+      ? fixedCostsFromManager 
+      : (financialData?.fixed_costs || 0);
     // Use variable costs from manager if provided, otherwise use from financial_data
     const variablePercentage = variableCostsFromManager !== undefined 
       ? variableCostsFromManager 
