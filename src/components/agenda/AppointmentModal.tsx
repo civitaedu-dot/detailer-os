@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Plus, User } from 'lucide-react';
+import { Loader2, Plus, User, Wrench } from 'lucide-react';
 import { ClientForm } from './ClientForm';
 import type { Client, ClientFormData } from '@/hooks/useClients';
 import type { Appointment, AppointmentFormData } from '@/hooks/useAppointments';
+import type { Service } from '@/hooks/useServices';
 
 interface AppointmentModalProps {
   isOpen: boolean;
@@ -16,23 +17,11 @@ interface AppointmentModalProps {
   onSubmit: (data: AppointmentFormData) => Promise<void>;
   onCreateClient: (data: ClientFormData) => Promise<Client | null>;
   clients: Client[];
+  services: Service[];
   appointment?: Appointment | null;
   selectedDate: Date;
   isLoading?: boolean;
 }
-
-const SERVICES = [
-  { name: 'Lavagem Simples', value: 50 },
-  { name: 'Lavagem Completa', value: 100 },
-  { name: 'Higienização Interna', value: 150 },
-  { name: 'Polimento Técnico', value: 300 },
-  { name: 'Vitrificação', value: 800 },
-  { name: 'Proteção de Pintura (PPF)', value: 2500 },
-  { name: 'Correção de Pintura', value: 500 },
-  { name: 'Cristalização de Vidros', value: 200 },
-  { name: 'Limpeza de Motor', value: 100 },
-  { name: 'Revitalização de Plásticos', value: 80 },
-];
 
 const DURATIONS = [
   { label: '30 minutos', value: 30 },
@@ -50,6 +39,7 @@ export const AppointmentModal = ({
   onSubmit,
   onCreateClient,
   clients,
+  services,
   appointment,
   selectedDate,
   isLoading,
@@ -117,8 +107,8 @@ export const AppointmentModal = ({
     }
   };
 
-  const handleServiceSelect = (serviceName: string) => {
-    if (serviceName === 'custom') {
+  const handleServiceSelect = (serviceId: string) => {
+    if (serviceId === 'custom') {
       setFormData((prev) => ({
         ...prev,
         service_name: '',
@@ -127,12 +117,13 @@ export const AppointmentModal = ({
       return;
     }
 
-    const service = SERVICES.find((s) => s.name === serviceName);
+    const service = services.find((s) => s.id === serviceId);
     if (service) {
       setFormData((prev) => ({
         ...prev,
         service_name: service.name,
-        service_value: service.value,
+        service_value: service.default_price,
+        duration_minutes: service.duration_minutes,
       }));
     }
   };
@@ -157,6 +148,10 @@ export const AppointmentModal = ({
     formData.service_name &&
     formData.service_value > 0 &&
     formData.appointment_date;
+
+  // Check if current service matches a registered service
+  const selectedService = services.find((s) => s.name === formData.service_name);
+  const isCustomService = formData.service_name && !selectedService;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -267,32 +262,39 @@ export const AppointmentModal = ({
           {/* Service */}
           <div>
             <Label>Serviço *</Label>
-            <Select
-              value={
-                SERVICES.find((s) => s.name === formData.service_name)
-                  ? formData.service_name
-                  : formData.service_name
-                  ? 'custom'
-                  : undefined
-              }
-              onValueChange={handleServiceSelect}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o serviço" />
-              </SelectTrigger>
-              <SelectContent>
-                {SERVICES.map((service) => (
-                  <SelectItem key={service.name} value={service.name}>
-                    {service.name} - R$ {service.value}
-                  </SelectItem>
-                ))}
-                <SelectItem value="custom">Serviço personalizado</SelectItem>
-              </SelectContent>
-            </Select>
+            {services.length === 0 ? (
+              <div className="text-sm text-muted-foreground p-3 bg-muted rounded-lg">
+                <p className="mb-2">Nenhum serviço cadastrado.</p>
+                <a href="/servicos" className="text-primary hover:underline flex items-center gap-1">
+                  <Wrench className="w-3 h-3" />
+                  Cadastrar serviços
+                </a>
+              </div>
+            ) : (
+              <Select
+                value={selectedService?.id || (isCustomService ? 'custom' : undefined)}
+                onValueChange={handleServiceSelect}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o serviço" />
+                </SelectTrigger>
+                <SelectContent>
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.id}>
+                      <div className="flex items-center gap-2">
+                        <Wrench className="w-4 h-4" />
+                        {service.name} - R$ {service.default_price.toFixed(2)}
+                      </div>
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="custom">Serviço personalizado</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {/* Custom Service Name */}
-          {!SERVICES.find((s) => s.name === formData.service_name) && (
+          {(isCustomService || (formData.service_name === '' && services.length > 0)) && (
             <div>
               <Label htmlFor="custom-service">Nome do serviço *</Label>
               <Input
