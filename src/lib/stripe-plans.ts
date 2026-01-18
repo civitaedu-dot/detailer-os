@@ -21,7 +21,7 @@ export const STRIPE_PLANS = {
     name: "Escala",
     priceId: "price_1SoPg9HwVdWmxZBg7YHhJxFF",
     productId: "prod_Tlxb8LLvPXjGS8",
-    price: 397,
+    price: 297,
     aiLimit: -1, // Unlimited
   },
 } as const;
