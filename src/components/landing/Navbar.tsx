@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import logo from "@/assets/logo.jpeg";
 
 export const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,10 +13,8 @@ export const Navbar = () => {
       <nav className="container px-4 sm:px-6">
         <div className="flex items-center justify-between h-20 bg-background/80 backdrop-blur-lg border-b border-border/50 -mx-4 px-4 sm:-mx-6 sm:px-6">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-primary flex items-center justify-center">
-              <span className="font-display font-bold text-primary-foreground text-lg">D</span>
-            </div>
+          <Link to="/" className="flex items-center gap-3">
+            <img src={logo} alt="DetailerOS Logo" className="w-10 h-10 rounded-lg object-contain" />
             <span className="font-display font-bold text-xl hidden sm:block">
               Detailer<span className="text-primary">OS</span>
             </span>
