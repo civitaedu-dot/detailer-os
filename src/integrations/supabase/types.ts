@@ -190,6 +190,45 @@ export type Database = {
         }
         Relationships: []
       }
+      services: {
+        Row: {
+          created_at: string
+          default_price: number
+          description: string | null
+          duration_minutes: number
+          estimated_cost: number | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_price?: number
+          description?: string | null
+          duration_minutes?: number
+          estimated_cost?: number | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_price?: number
+          description?: string | null
+          duration_minutes?: number
+          estimated_cost?: number | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       variable_costs: {
         Row: {
           cost_type: string

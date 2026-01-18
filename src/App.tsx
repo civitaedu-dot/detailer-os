@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import Financeiro from "./pages/Financeiro";
 import Agenda from "./pages/Agenda";
 import Clientes from "./pages/Clientes";
+import Servicos from "./pages/Servicos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -85,6 +86,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Clientes />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/servicos" 
+              element={
+                <ProtectedRoute>
+                  <Servicos />
                 </ProtectedRoute>
               } 
             />

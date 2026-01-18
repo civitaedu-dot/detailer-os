@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { LogOut, Users, Plus, Search, Phone, Car, Calendar, Pencil, Trash2 } from 'lucide-react';
+import logo from '@/assets/logo.jpeg';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useClients, Client, ClientFormData } from '@/hooks/useClients';
@@ -119,9 +120,7 @@ const Clientes = () => {
         <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/dashboard" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <span className="font-display font-bold text-primary-foreground text-sm">D</span>
-              </div>
+              <img src={logo} alt="DetailerOS Logo" className="w-8 h-8 rounded-lg object-contain" />
               <span className="font-display font-semibold hidden sm:block">
                 Detailer<span className="text-primary">OS</span>
               </span>
@@ -140,6 +139,9 @@ const Clientes = () => {
             </Button>
             <Button variant="default" size="sm" asChild>
               <Link to="/clientes">Clientes</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/servicos">Serviços</Link>
             </Button>
           </nav>
 

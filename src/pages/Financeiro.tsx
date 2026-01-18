@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { 
-  ArrowLeft,
   RefreshCw,
-  Loader2
+  Loader2,
+  LogOut
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFinancialData } from "@/hooks/useFinancialData";
 import { FinancialIndicators } from "@/components/financeiro/FinancialIndicators";
@@ -15,9 +15,18 @@ import { FinancialAnalysis } from "@/components/financeiro/FinancialAnalysis";
 import { DailyGoalTracker } from "@/components/financeiro/DailyGoalTracker";
 import { VariableCostsManager } from "@/components/financeiro/VariableCostsManager";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
+import logo from "@/assets/logo.jpeg";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Financeiro = () => {
-  const { profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
   const { 
     financialData, 
     isLoading, 
@@ -55,6 +64,11 @@ const Financeiro = () => {
     refetchVariableCosts();
   };
 
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -69,25 +83,62 @@ const Financeiro = () => {
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" asChild>
-              <Link to="/dashboard">
-                <ArrowLeft className="w-5 h-5" />
-              </Link>
-            </Button>
-            <div>
-              <h1 className="font-display font-semibold">Financeiro</h1>
-              <p className="text-xs text-muted-foreground">Controle seus números</p>
-            </div>
+            <Link to="/dashboard" className="flex items-center gap-2">
+              <img src={logo} alt="DetailerOS Logo" className="w-8 h-8 rounded-lg object-contain" />
+              <span className="font-display font-semibold hidden sm:block">
+                Detailer<span className="text-primary">OS</span>
+              </span>
+            </Link>
           </div>
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => refetch()}
-            disabled={isLoading}
-          >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
-          </Button>
+
+          {/* Desktop nav */}
+          <nav className="hidden md:flex items-center gap-2">
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/dashboard">Dashboard</Link>
+            </Button>
+            <Button variant="default" size="sm" asChild>
+              <Link to="/financeiro">Financeiro</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/agenda">Agenda</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/clientes">Clientes</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/servicos">Serviços</Link>
+            </Button>
+          </nav>
+
+          {/* User menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                  <span className="text-xs font-semibold text-primary">
+                    {profile?.name?.charAt(0).toUpperCase() || "U"}
+                  </span>
+                </div>
+                <span className="hidden sm:block">{profile?.name || "Usuário"}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="px-2 py-1.5">
+                <p className="text-sm font-medium">{profile?.name}</p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
+              </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => refetch()} disabled={isLoading}>
+                <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+                Atualizar dados
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 

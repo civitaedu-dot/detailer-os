@@ -7,11 +7,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useClients } from '@/hooks/useClients';
 import { useAppointments } from '@/hooks/useAppointments';
+import { useServices } from '@/hooks/useServices';
 import { DatePicker } from '@/components/agenda/DatePicker';
 import { DayView } from '@/components/agenda/DayView';
 import { AppointmentModal } from '@/components/agenda/AppointmentModal';
 import type { Appointment, AppointmentFormData } from '@/hooks/useAppointments';
 import type { ClientFormData } from '@/hooks/useClients';
+import logo from '@/assets/logo.jpeg';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +31,7 @@ const Agenda = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { clients, createClient } = useClients();
+  const { activeServices } = useServices();
   const {
     appointments,
     isLoading,
@@ -92,9 +95,7 @@ const Agenda = () => {
         <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/dashboard" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <span className="font-display font-bold text-primary-foreground text-sm">D</span>
-              </div>
+              <img src={logo} alt="DetailerOS Logo" className="w-8 h-8 rounded-lg object-contain" />
               <span className="font-display font-semibold hidden sm:block">
                 Detailer<span className="text-primary">OS</span>
               </span>
@@ -114,6 +115,9 @@ const Agenda = () => {
             </Button>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/clientes">Clientes</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/servicos">Serviços</Link>
             </Button>
           </nav>
 
@@ -185,6 +189,7 @@ const Agenda = () => {
         onSubmit={handleSubmitAppointment}
         onCreateClient={handleCreateClient}
         clients={clients}
+        services={activeServices}
         appointment={editingAppointment}
         selectedDate={selectedDate}
         isLoading={isSubmitting}

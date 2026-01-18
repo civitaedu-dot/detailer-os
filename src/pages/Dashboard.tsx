@@ -10,13 +10,15 @@ import {
   LogOut,
   CreditCard,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Wrench
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import logo from "@/assets/logo.jpeg";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -138,9 +140,7 @@ const Dashboard = () => {
         <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/dashboard" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-                <span className="font-display font-bold text-primary-foreground text-sm">D</span>
-              </div>
+              <img src={logo} alt="DetailerOS Logo" className="w-8 h-8 rounded-lg object-contain" />
               <span className="font-display font-semibold hidden sm:block">
                 Detailer<span className="text-primary">OS</span>
               </span>
@@ -149,7 +149,7 @@ const Dashboard = () => {
           
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="default" size="sm" asChild>
               <Link to="/dashboard">Dashboard</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
@@ -162,7 +162,7 @@ const Dashboard = () => {
               <Link to="/clientes">Clientes</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/socio-ia">Sócio IA</Link>
+              <Link to="/servicos">Serviços</Link>
             </Button>
           </nav>
 
@@ -307,9 +307,15 @@ const Dashboard = () => {
             <h3 className="font-display text-lg font-bold mb-4">Comece por aqui</h3>
             <div className="space-y-3">
               <Button variant="outline" className="w-full justify-start" asChild>
+                <Link to="/servicos">
+                  <Wrench className="w-4 h-4 mr-2" />
+                  Cadastrar seus serviços
+                </Link>
+              </Button>
+              <Button variant="outline" className="w-full justify-start" asChild>
                 <Link to="/financeiro">
                   <DollarSign className="w-4 h-4 mr-2" />
-                  Cadastrar custos e faturamento
+                  Cadastrar custos e metas
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
