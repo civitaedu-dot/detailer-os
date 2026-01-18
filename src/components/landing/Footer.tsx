@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.jpeg";
 
 export const Footer = () => {
   return (
@@ -7,9 +8,7 @@ export const Footer = () => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-primary flex items-center justify-center">
-              <span className="font-display font-bold text-primary-foreground">D</span>
-            </div>
+            <img src={logo} alt="DetailerOS Logo" className="w-8 h-8 rounded-lg object-contain" />
             <span className="font-display font-semibold">
               Detailer<span className="text-primary">OS</span>
             </span>
