@@ -67,7 +67,7 @@ export function useFinancialData() {
     }
   }, [user?.id]);
 
-  // Fetch monthly revenue from completed appointments
+  // Fetch monthly revenue from financial_entries table (includes automatic + manual entries)
   const fetchMonthlyRevenue = useCallback(async () => {
     if (!user?.id) return;
 
@@ -77,22 +77,21 @@ export function useFinancialData() {
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
       const { data, error } = await supabase
-        .from('appointments')
-        .select('service_value, appointment_date')
+        .from('financial_entries')
+        .select('value, entry_date, is_automatic')
         .eq('user_id', user.id)
-        .eq('status', 'completed')
-        .gte('appointment_date', firstDay.toISOString().split('T')[0])
-        .lte('appointment_date', lastDay.toISOString().split('T')[0]);
+        .gte('entry_date', firstDay.toISOString().split('T')[0])
+        .lte('entry_date', lastDay.toISOString().split('T')[0]);
 
       if (error) throw error;
 
-      const total = data?.reduce((sum, apt) => sum + Number(apt.service_value), 0) || 0;
+      const total = data?.reduce((sum, entry) => sum + Number(entry.value), 0) || 0;
       
       // Group by date for daily tracking
       const dailyMap: Record<string, number> = {};
-      data?.forEach(apt => {
-        const date = apt.appointment_date;
-        dailyMap[date] = (dailyMap[date] || 0) + Number(apt.service_value);
+      data?.forEach(entry => {
+        const date = entry.entry_date;
+        dailyMap[date] = (dailyMap[date] || 0) + Number(entry.value);
       });
 
       const dailyData = Object.entries(dailyMap).map(([date, total]) => ({
@@ -103,7 +102,7 @@ export function useFinancialData() {
       setDailyRevenues(dailyData);
       setMonthlyRevenue({
         total,
-        completedAppointments: data?.length || 0,
+        completedAppointments: data?.filter(e => e.is_automatic).length || 0,
       });
     } catch (error) {
       console.error('Error fetching monthly revenue:', error);

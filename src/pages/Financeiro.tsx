@@ -9,6 +9,8 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useFinancialData } from "@/hooks/useFinancialData";
+import { useFinancialEntries, type FinancialEntry, type FinancialEntryFormData } from "@/hooks/useFinancialEntries";
+import { useClients } from "@/hooks/useClients";
 import { FinancialIndicators } from "@/components/financeiro/FinancialIndicators";
 import { DRESimples } from "@/components/financeiro/DRESimples";
 import { FinancialAnalysis } from "@/components/financeiro/FinancialAnalysis";
@@ -16,6 +18,8 @@ import { DailyGoalTracker } from "@/components/financeiro/DailyGoalTracker";
 import { VariableCostsManager } from "@/components/financeiro/VariableCostsManager";
 import { FixedCostsManager } from "@/components/financeiro/FixedCostsManager";
 import { WorkingDaysConfig } from "@/components/financeiro/WorkingDaysConfig";
+import { FinancialEntriesList } from "@/components/financeiro/FinancialEntriesList";
+import { ManualEntryModal } from "@/components/financeiro/ManualEntryModal";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
 import { useFixedCosts } from "@/hooks/useFixedCosts";
 import logo from "@/assets/logo.jpeg";
@@ -49,6 +53,27 @@ const Financeiro = () => {
     calculateTotalFixedCosts,
     refetch: refetchFixedCosts
   } = useFixedCosts();
+
+  // Financial entries for the current month
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  
+  const {
+    entries,
+    isLoading: isLoadingEntries,
+    createEntry,
+    updateEntry,
+    deleteEntry,
+    refetch: refetchEntries,
+  } = useFinancialEntries(firstDayOfMonth, lastDayOfMonth);
+
+  // Clients for manual entry
+  const { clients } = useClients();
+
+  // Modal state
+  const [isManualEntryModalOpen, setIsManualEntryModalOpen] = useState(false);
+  const [entryToEdit, setEntryToEdit] = useState<FinancialEntry | null>(null);
 
   // Local state for real-time updates
   const [localFixedCosts, setLocalFixedCosts] = useState(0);
@@ -106,11 +131,47 @@ const Financeiro = () => {
     await Promise.all([
       refetch(),
       refetchVariableCosts(),
-      refetchFixedCosts()
+      refetchFixedCosts(),
+      refetchEntries()
     ]);
     // Update local state after refetch
     setLocalFixedCosts(calculateTotalFixedCosts());
     setLocalVariablePercentage(calculateTotalPercentage(monthlyRevenue.total));
+  };
+
+  // Manual entry handlers
+  const handleOpenManualEntry = () => {
+    setEntryToEdit(null);
+    setIsManualEntryModalOpen(true);
+  };
+
+  const handleEditEntry = (entry: FinancialEntry) => {
+    setEntryToEdit(entry);
+    setIsManualEntryModalOpen(true);
+  };
+
+  const handleSubmitEntry = async (data: FinancialEntryFormData) => {
+    if (entryToEdit) {
+      const success = await updateEntry(entryToEdit.id, data);
+      if (success) {
+        await refetch(); // Refresh revenue data
+        return entryToEdit as FinancialEntry;
+      }
+      return null;
+    } else {
+      const result = await createEntry(data);
+      if (result) {
+        await refetch(); // Refresh revenue data
+      }
+      return result;
+    }
+  };
+
+  const handleDeleteEntry = async (id: string) => {
+    const success = await deleteEntry(id);
+    if (success) {
+      await refetch(); // Refresh revenue data
+    }
   };
 
   if (isLoading) {
@@ -230,6 +291,15 @@ const Financeiro = () => {
           isSaving={isSaving}
         />
 
+        {/* Financial Entries Section */}
+        <FinancialEntriesList
+          entries={entries}
+          isLoading={isLoadingEntries}
+          onAddManual={handleOpenManualEntry}
+          onEdit={handleEditEntry}
+          onDelete={handleDeleteEntry}
+        />
+
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Cost Management */}
@@ -271,6 +341,15 @@ const Financeiro = () => {
           </div>
         </div>
 
+        {/* Manual Entry Modal */}
+        <ManualEntryModal
+          isOpen={isManualEntryModalOpen}
+          onClose={() => setIsManualEntryModalOpen(false)}
+          onSubmit={handleSubmitEntry}
+          clients={clients}
+          entryToEdit={entryToEdit}
+        />
+
         {/* Info about revenue calculation */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -279,10 +358,10 @@ const Financeiro = () => {
           className="bg-primary/5 border border-primary/20 rounded-xl p-4"
         >
           <p className="text-sm text-muted-foreground">
-            <strong className="text-primary">💡 Dica:</strong> O faturamento é calculado automaticamente a partir dos agendamentos concluídos na sua agenda. 
-            {metrics.completedAppointments > 0 
-              ? ` Você tem ${metrics.completedAppointments} atendimento${metrics.completedAppointments > 1 ? 's' : ''} concluído${metrics.completedAppointments > 1 ? 's' : ''} este mês.`
-              : " Adicione e conclua atendimentos na agenda para ver o faturamento."}
+            <strong className="text-primary">💡 Dica:</strong> O faturamento é calculado automaticamente a partir dos agendamentos concluídos na sua agenda e entradas manuais. 
+            {entries.length > 0 
+              ? ` Você tem ${entries.length} entrada${entries.length > 1 ? 's' : ''} financeira${entries.length > 1 ? 's' : ''} este mês${metrics.completedAppointments > 0 ? ` (${metrics.completedAppointments} automática${metrics.completedAppointments > 1 ? 's' : ''})` : ''}.`
+              : " Conclua atendimentos na agenda ou adicione entradas manuais para ver o faturamento."}
           </p>
         </motion.div>
       </main>

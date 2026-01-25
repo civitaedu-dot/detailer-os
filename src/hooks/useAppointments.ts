@@ -144,17 +144,94 @@ export const useAppointments = (selectedDate?: Date) => {
     }
   };
 
-  const updateStatus = async (id: string, status: string): Promise<boolean> => {
+  // Create financial entry when appointment is completed
+  const createFinancialEntryForAppointment = async (appointment: Appointment): Promise<void> => {
+    if (!user) return;
+
+    try {
+      // Check if entry already exists for this appointment
+      const { data: existingEntry } = await supabase
+        .from('financial_entries')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('appointment_id', appointment.id)
+        .maybeSingle();
+
+      if (existingEntry) {
+        console.log('Financial entry already exists for appointment:', appointment.id);
+        return;
+      }
+
+      // Create financial entry
+      const { error } = await supabase
+        .from('financial_entries')
+        .insert({
+          user_id: user.id,
+          appointment_id: appointment.id,
+          client_id: appointment.client_id,
+          client_name: appointment.client_name,
+          entry_type: 'service',
+          description: appointment.service_name,
+          value: appointment.service_value,
+          entry_date: appointment.appointment_date,
+          notes: appointment.notes,
+          is_automatic: true,
+        });
+
+      if (error) throw error;
+      console.log('Financial entry created for appointment:', appointment.id);
+    } catch (error) {
+      console.error('Error creating financial entry:', error);
+    }
+  };
+
+  // Delete financial entry when appointment status changes from completed
+  const deleteFinancialEntryForAppointment = async (appointmentId: string): Promise<void> => {
+    if (!user) return;
+
     try {
       const { error } = await supabase
+        .from('financial_entries')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('appointment_id', appointmentId);
+
+      if (error) throw error;
+      console.log('Financial entry deleted for appointment:', appointmentId);
+    } catch (error) {
+      console.error('Error deleting financial entry:', error);
+    }
+  };
+
+  const updateStatus = async (id: string, newStatus: string): Promise<boolean> => {
+    try {
+      // Get current appointment to check previous status
+      const currentAppointment = appointments.find((apt) => apt.id === id);
+      const previousStatus = currentAppointment?.status;
+
+      const { error } = await supabase
         .from('appointments')
-        .update({ status })
+        .update({ status: newStatus })
         .eq('id', id);
 
       if (error) throw error;
 
+      // Handle financial entry based on status change
+      if (currentAppointment) {
+        if (newStatus === 'completed' && previousStatus !== 'completed') {
+          // Status changed TO completed - create financial entry
+          await createFinancialEntryForAppointment({
+            ...currentAppointment,
+            status: newStatus,
+          });
+        } else if (previousStatus === 'completed' && newStatus !== 'completed') {
+          // Status changed FROM completed - delete financial entry
+          await deleteFinancialEntryForAppointment(id);
+        }
+      }
+
       setAppointments((prev) =>
-        prev.map((apt) => (apt.id === id ? { ...apt, status } : apt))
+        prev.map((apt) => (apt.id === id ? { ...apt, status: newStatus } : apt))
       );
 
       const statusLabels: Record<string, string> = {
@@ -165,7 +242,9 @@ export const useAppointments = (selectedDate?: Date) => {
 
       toast({
         title: 'Status atualizado',
-        description: `Atendimento marcado como ${statusLabels[status] || status}.`,
+        description: `Atendimento marcado como ${statusLabels[newStatus] || newStatus}.${
+          newStatus === 'completed' ? ' Entrada financeira registrada!' : ''
+        }`,
       });
 
       return true;
@@ -182,6 +261,12 @@ export const useAppointments = (selectedDate?: Date) => {
 
   const deleteAppointment = async (id: string): Promise<boolean> => {
     try {
+      // Check if appointment was completed - if so, delete financial entry first
+      const appointment = appointments.find((apt) => apt.id === id);
+      if (appointment?.status === 'completed') {
+        await deleteFinancialEntryForAppointment(id);
+      }
+
       const { error } = await supabase
         .from('appointments')
         .delete()
