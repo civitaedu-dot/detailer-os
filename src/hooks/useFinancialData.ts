@@ -22,7 +22,7 @@ export interface DailyRevenueData {
   total: number;
 }
 
-export function useFinancialData() {
+export function useFinancialData(selectedDate?: Date) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [financialData, setFinancialData] = useState<FinancialData | null>(null);
@@ -30,6 +30,9 @@ export function useFinancialData() {
   const [dailyRevenues, setDailyRevenues] = useState<DailyRevenueData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Use selectedDate or default to current month
+  const referenceDate = selectedDate || new Date();
 
   // Fetch financial data
   const fetchFinancialData = useCallback(async () => {
@@ -67,14 +70,13 @@ export function useFinancialData() {
     }
   }, [user?.id]);
 
-  // Fetch monthly revenue from financial_entries table (includes automatic + manual entries)
+  // Fetch monthly revenue from financial_entries table for the selected month
   const fetchMonthlyRevenue = useCallback(async () => {
     if (!user?.id) return;
 
     try {
-      const now = new Date();
-      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const firstDay = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), 1);
+      const lastDay = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0);
 
       const { data, error } = await supabase
         .from('financial_entries')
@@ -107,7 +109,8 @@ export function useFinancialData() {
     } catch (error) {
       console.error('Error fetching monthly revenue:', error);
     }
-  }, [user?.id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, referenceDate.getFullYear(), referenceDate.getMonth()]);
 
   // Save financial data
   const saveFinancialData = async (data: Omit<FinancialData, 'id'>) => {
@@ -151,11 +154,9 @@ export function useFinancialData() {
   // Calculate financial metrics
   const calculateMetrics = useCallback((variableCostsFromManager?: number, fixedCostsFromManager?: number) => {
     const revenue = monthlyRevenue.total;
-    // Use fixed costs from manager if provided, otherwise use from financial_data
     const fixedCosts = fixedCostsFromManager !== undefined 
       ? fixedCostsFromManager 
       : (financialData?.fixed_costs || 0);
-    // Use variable costs from manager if provided, otherwise use from financial_data
     const variablePercentage = variableCostsFromManager !== undefined 
       ? variableCostsFromManager 
       : (financialData?.variable_costs_percentage || 0);
@@ -168,29 +169,27 @@ export function useFinancialData() {
     const netProfit = revenue - totalCosts;
     const profitMargin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
     
-    // Break-even: fixed costs / (1 - variable percentage)
     const breakEven = variablePercentage < 100 
       ? fixedCosts / (1 - variablePercentage / 100)
       : 0;
     
-    // Monthly goal: automatic (break-even) or manual
     const monthlyGoal = useAutoGoal ? breakEven : (manualGoal || 0);
-    
     const dailyTarget = workingDays > 0 ? monthlyGoal / workingDays : 0;
     const costsPercentage = revenue > 0 ? (totalCosts / revenue) * 100 : 0;
 
-    // Calculate progress
     const now = new Date();
     const currentDay = now.getDate();
-    const totalDaysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const totalDaysInMonth = new Date(referenceDate.getFullYear(), referenceDate.getMonth() + 1, 0).getDate();
     
-    // Worked days so far (approximate - count weekdays or use working_days ratio)
-    const workedDaysSoFar = Math.ceil((currentDay / totalDaysInMonth) * workingDays);
+    // For past months, use full working days; for current month, calculate proportionally
+    const isCurrentMonth = referenceDate.getFullYear() === now.getFullYear() && referenceDate.getMonth() === now.getMonth();
+    const workedDaysSoFar = isCurrentMonth 
+      ? Math.ceil((currentDay / totalDaysInMonth) * workingDays)
+      : workingDays;
     const expectedRevenueSoFar = dailyTarget * workedDaysSoFar;
     const revenueDifference = revenue - expectedRevenueSoFar;
     const isAhead = revenueDifference >= 0;
 
-    // Average daily revenue this month
     const daysWithRevenue = dailyRevenues.length;
     const avgDailyRevenue = daysWithRevenue > 0 ? revenue / daysWithRevenue : 0;
 
@@ -213,10 +212,11 @@ export function useFinancialData() {
       revenueDifference,
       isAhead,
       avgDailyRevenue,
-      remainingDays: workingDays - workedDaysSoFar,
+      remainingDays: isCurrentMonth ? workingDays - workedDaysSoFar : 0,
       remainingToGoal: Math.max(0, monthlyGoal - revenue),
     };
-  }, [financialData, monthlyRevenue, dailyRevenues]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [financialData, monthlyRevenue, dailyRevenues, referenceDate.getFullYear(), referenceDate.getMonth()]);
 
   useEffect(() => {
     const loadData = async () => {

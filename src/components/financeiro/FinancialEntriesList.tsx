@@ -24,9 +24,9 @@ import type { FinancialEntry } from '@/hooks/useFinancialEntries';
 interface FinancialEntriesListProps {
   entries: FinancialEntry[];
   isLoading: boolean;
-  onAddManual: () => void;
-  onEdit: (entry: FinancialEntry) => void;
-  onDelete: (id: string) => void;
+  onAddManual?: () => void;
+  onEdit?: (entry: FinancialEntry) => void;
+  onDelete?: (id: string) => void;
 }
 
 const entryTypeLabels: Record<string, { label: string; className: string }> = {
@@ -78,10 +78,12 @@ export function FinancialEntriesList({
             <DollarSign className="w-5 h-5 text-primary" />
             Entradas Financeiras
           </CardTitle>
-          <Button size="sm" onClick={onAddManual}>
-            <Plus className="w-4 h-4 mr-1" />
-            Entrada Manual
-          </Button>
+          {onAddManual && (
+            <Button size="sm" onClick={onAddManual}>
+              <Plus className="w-4 h-4 mr-1" />
+              Entrada Manual
+            </Button>
+          )}
         </div>
         {entries.length > 0 && (
           <div className="text-sm text-muted-foreground">
@@ -145,7 +147,7 @@ export function FinancialEntriesList({
                       {formatCurrency(entry.value)}
                     </span>
 
-                    {!entry.is_automatic && (
+                    {!entry.is_automatic && onEdit && onDelete && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">

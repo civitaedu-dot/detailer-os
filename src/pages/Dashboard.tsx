@@ -15,9 +15,12 @@ import {
 } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useFinancialData } from "@/hooks/useFinancialData";
+import { useFixedCosts } from "@/hooks/useFixedCosts";
+import { useVariableCosts } from "@/hooks/useVariableCosts";
 import logo from "@/assets/logo.jpeg";
 import {
   DropdownMenu,
@@ -27,36 +30,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const stats = [
-  {
-    label: "Faturamento do Mês",
-    value: "R$ 0",
-    change: "0%",
-    trend: "up",
-    icon: DollarSign,
-  },
-  {
-    label: "Ticket Médio",
-    value: "R$ 0",
-    change: "0%",
-    trend: "up",
-    icon: TrendingUp,
-  },
-  {
-    label: "Atendimentos",
-    value: "0",
-    change: "0%",
-    trend: "up",
-    icon: Calendar,
-  },
-  {
-    label: "Lucro Estimado",
-    value: "R$ 0",
-    change: "0%",
-    trend: "up",
-    icon: TrendingUp,
-  },
-];
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
 const Dashboard = () => {
   const { user, profile, session, signOut, checkSubscription, isCheckingSubscription } = useAuth();
@@ -64,6 +39,42 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+
+  const { monthlyRevenue, isLoading: isLoadingFinancial, calculateMetrics, refetch } = useFinancialData();
+  const { calculateTotalFixedCosts } = useFixedCosts();
+  const { calculateTotalPercentage } = useVariableCosts();
+
+  const metrics = useMemo(() => {
+    const fixedCosts = calculateTotalFixedCosts();
+    const variablePercentage = calculateTotalPercentage(monthlyRevenue.total);
+    return calculateMetrics(variablePercentage, fixedCosts);
+  }, [calculateMetrics, calculateTotalFixedCosts, calculateTotalPercentage, monthlyRevenue.total]);
+
+  const stats = useMemo(() => [
+    {
+      label: "Faturamento do Mês",
+      value: formatCurrency(metrics.revenue),
+      icon: DollarSign,
+    },
+    {
+      label: "Ticket Médio",
+      value: formatCurrency(
+        metrics.completedAppointments > 0 ? metrics.revenue / metrics.completedAppointments : 0
+      ),
+      icon: TrendingUp,
+    },
+    {
+      label: "Atendimentos",
+      value: String(metrics.completedAppointments),
+      icon: Calendar,
+    },
+    {
+      label: "Lucro Estimado",
+      value: formatCurrency(metrics.netProfit),
+      trend: metrics.netProfit >= 0 ? "up" : "down",
+      icon: TrendingUp,
+    },
+  ], [metrics]);
 
   // Handle successful checkout
   useEffect(() => {
@@ -73,12 +84,7 @@ const Dashboard = () => {
         title: "Pagamento confirmado! 🎉",
         description: "Bem-vindo ao DetailerOS! Sua assinatura está ativa.",
       });
-      // Refresh subscription status after checkout
-      setTimeout(() => {
-        checkSubscription();
-      }, 1000);
-      
-      // Clear the query param from URL
+      setTimeout(() => checkSubscription(), 1000);
       window.history.replaceState({}, "", "/dashboard");
     }
   }, [searchParams, toast, checkSubscription]);
@@ -90,27 +96,16 @@ const Dashboard = () => {
 
   const handleManageSubscription = async () => {
     if (!session?.access_token) return;
-    
     setIsOpeningPortal(true);
     try {
       const { data, error } = await supabase.functions.invoke("customer-portal", {
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
+        headers: { Authorization: `Bearer ${session.access_token}` },
       });
-
       if (error) throw error;
-
-      if (data?.url) {
-        window.open(data.url, "_blank");
-      }
+      if (data?.url) window.open(data.url, "_blank");
     } catch (error) {
       console.error("Portal error:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível abrir o portal de assinatura.",
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Não foi possível abrir o portal de assinatura.", variant: "destructive" });
     } finally {
       setIsOpeningPortal(false);
     }
@@ -127,9 +122,7 @@ const Dashboard = () => {
 
   const getAIInteractionsLabel = () => {
     if (!profile) return "";
-    if (profile.ai_interactions_limit === -1) {
-      return "Ilimitado";
-    }
+    if (profile.ai_interactions_limit === -1) return "Ilimitado";
     return `${profile.ai_interactions_used}/${profile.ai_interactions_limit}`;
   };
 
@@ -225,41 +218,42 @@ const Dashboard = () => {
             <Button 
               variant="ghost" 
               size="sm" 
-              onClick={() => checkSubscription()}
-              disabled={isCheckingSubscription}
+              onClick={() => { checkSubscription(); refetch(); }}
+              disabled={isCheckingSubscription || isLoadingFinancial}
             >
-              <RefreshCw className={`w-4 h-4 ${isCheckingSubscription ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-4 h-4 ${isCheckingSubscription || isLoadingFinancial ? "animate-spin" : ""}`} />
             </Button>
           </div>
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
           {stats.map((stat, index) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-card border border-border rounded-xl p-6"
+              className="bg-card border border-border rounded-xl p-4 sm:p-6"
             >
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                  <stat.icon className="w-5 h-5 text-primary" />
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-secondary flex items-center justify-center">
+                  <stat.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 </div>
-                <span className={`inline-flex items-center text-sm font-medium ${
-                  stat.trend === "up" ? "text-success" : "text-destructive"
-                }`}>
-                  {stat.trend === "up" ? (
-                    <ArrowUpRight className="w-4 h-4" />
-                  ) : (
-                    <ArrowDownRight className="w-4 h-4" />
-                  )}
-                  {stat.change}
-                </span>
+                {stat.trend && (
+                  <span className={`inline-flex items-center text-xs sm:text-sm font-medium ${
+                    stat.trend === "up" ? "text-success" : "text-destructive"
+                  }`}>
+                    {stat.trend === "up" ? (
+                      <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                    )}
+                  </span>
+                )}
               </div>
-              <p className="text-2xl font-bold font-display mb-1">{stat.value}</p>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
+              <p className="text-lg sm:text-2xl font-bold font-display mb-1 truncate">{stat.value}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">{stat.label}</p>
             </motion.div>
           ))}
         </div>
@@ -271,14 +265,14 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-gradient-primary rounded-2xl p-8 shadow-accent-glow"
+            className="bg-gradient-primary rounded-2xl p-6 sm:p-8 shadow-accent-glow"
           >
-            <div className="flex flex-col sm:flex-row items-center gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-primary-foreground/20 flex items-center justify-center shrink-0">
-                <Bot className="w-8 h-8 text-primary-foreground" />
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary-foreground/20 flex items-center justify-center shrink-0">
+                <Bot className="w-7 h-7 sm:w-8 sm:h-8 text-primary-foreground" />
               </div>
               <div className="flex-1 text-center sm:text-left">
-                <h2 className="font-display text-xl sm:text-2xl font-bold text-primary-foreground mb-2">
+                <h2 className="font-display text-lg sm:text-2xl font-bold text-primary-foreground mb-2">
                   Fale com seu Sócio IA
                 </h2>
                 <p className="text-primary-foreground/80 text-sm mb-4 sm:mb-0">
@@ -287,12 +281,10 @@ const Dashboard = () => {
               </div>
               <Button 
                 size="lg" 
-                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shrink-0"
+                className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 shrink-0 w-full sm:w-auto"
                 asChild
               >
-                <Link to="/socio-ia">
-                  Conversar
-                </Link>
+                <Link to="/socio-ia">Conversar</Link>
               </Button>
             </div>
           </motion.div>
@@ -302,7 +294,7 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
-            className="bg-card border border-border rounded-2xl p-8"
+            className="bg-card border border-border rounded-2xl p-6 sm:p-8"
           >
             <h3 className="font-display text-lg font-bold mb-4">Comece por aqui</h3>
             <div className="space-y-3">
