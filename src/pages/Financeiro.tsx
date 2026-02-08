@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { 
@@ -20,6 +20,7 @@ import { FixedCostsManager } from "@/components/financeiro/FixedCostsManager";
 import { WorkingDaysConfig } from "@/components/financeiro/WorkingDaysConfig";
 import { FinancialEntriesList } from "@/components/financeiro/FinancialEntriesList";
 import { ManualEntryModal } from "@/components/financeiro/ManualEntryModal";
+import { MonthSelector } from "@/components/financeiro/MonthSelector";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
 import { useFixedCosts } from "@/hooks/useFixedCosts";
 import logo from "@/assets/logo.jpeg";
@@ -34,6 +35,16 @@ import {
 const Financeiro = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Month selector state
+  const now = new Date();
+  const [selectedDate, setSelectedDate] = useState(new Date(now.getFullYear(), now.getMonth(), 1));
+  
+  const isCurrentMonth = useMemo(() => {
+    const today = new Date();
+    return selectedDate.getFullYear() === today.getFullYear() && selectedDate.getMonth() === today.getMonth();
+  }, [selectedDate]);
+
   const { 
     financialData, 
     isLoading, 
@@ -42,7 +53,7 @@ const Financeiro = () => {
     calculateMetrics,
     refetch,
     monthlyRevenue
-  } = useFinancialData();
+  } = useFinancialData(selectedDate);
   
   const { 
     calculateTotalPercentage, 
@@ -54,10 +65,9 @@ const Financeiro = () => {
     refetch: refetchFixedCosts
   } = useFixedCosts();
 
-  // Financial entries for the current month
-  const now = new Date();
-  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  // Financial entries for the selected month
+  const firstDayOfMonth = useMemo(() => new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1), [selectedDate]);
+  const lastDayOfMonth = useMemo(() => new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0), [selectedDate]);
   
   const {
     entries,
@@ -134,7 +144,6 @@ const Financeiro = () => {
       refetchFixedCosts(),
       refetchEntries()
     ]);
-    // Update local state after refetch
     setLocalFixedCosts(calculateTotalFixedCosts());
     setLocalVariablePercentage(calculateTotalPercentage(monthlyRevenue.total));
   };
@@ -154,14 +163,14 @@ const Financeiro = () => {
     if (entryToEdit) {
       const success = await updateEntry(entryToEdit.id, data);
       if (success) {
-        await refetch(); // Refresh revenue data
+        await refetch();
         return entryToEdit as FinancialEntry;
       }
       return null;
     } else {
       const result = await createEntry(data);
       if (result) {
-        await refetch(); // Refresh revenue data
+        await refetch();
       }
       return result;
     }
@@ -170,7 +179,7 @@ const Financeiro = () => {
   const handleDeleteEntry = async (id: string) => {
     const success = await deleteEntry(id);
     if (success) {
-      await refetch(); // Refresh revenue data
+      await refetch();
     }
   };
 
@@ -248,18 +257,35 @@ const Financeiro = () => {
       </header>
 
       <main className="container px-4 sm:px-6 py-6 space-y-6">
-        {/* Welcome */}
+        {/* Welcome + Month Selector */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
+          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
         >
-          <h2 className="font-display text-2xl font-bold mb-1">
-            Olá, {profile?.name?.split(" ")[0] || "Usuário"}! 📊
-          </h2>
-          <p className="text-muted-foreground">
-            Acompanhe a saúde financeira do seu negócio
-          </p>
+          <div>
+            <h2 className="font-display text-2xl font-bold mb-1">
+              Financeiro 📊
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              {isCurrentMonth 
+                ? "Acompanhe a saúde financeira do seu negócio" 
+                : "Visualizando histórico financeiro"}
+            </p>
+          </div>
+          <MonthSelector selectedDate={selectedDate} onMonthChange={setSelectedDate} />
         </motion.div>
+
+        {/* Past month banner */}
+        {!isCurrentMonth && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-secondary/80 border border-border rounded-lg px-4 py-3 text-sm text-muted-foreground"
+          >
+            📅 Você está visualizando dados históricos. A edição de custos e metas afeta apenas a configuração atual.
+          </motion.div>
+        )}
 
         {/* Financial Indicators */}
         <FinancialIndicators
@@ -271,7 +297,7 @@ const Financeiro = () => {
           dailyTarget={metrics.dailyTarget}
         />
 
-        {/* Daily Goal Tracker - Highlighted Section */}
+        {/* Daily Goal Tracker */}
         <DailyGoalTracker
           monthlyGoal={metrics.monthlyGoal}
           dailyTarget={metrics.dailyTarget}
@@ -295,9 +321,9 @@ const Financeiro = () => {
         <FinancialEntriesList
           entries={entries}
           isLoading={isLoadingEntries}
-          onAddManual={handleOpenManualEntry}
-          onEdit={handleEditEntry}
-          onDelete={handleDeleteEntry}
+          onAddManual={isCurrentMonth ? handleOpenManualEntry : undefined}
+          onEdit={isCurrentMonth ? handleEditEntry : undefined}
+          onDelete={isCurrentMonth ? handleDeleteEntry : undefined}
         />
 
         {/* Main Content Grid */}
@@ -358,9 +384,9 @@ const Financeiro = () => {
           className="bg-primary/5 border border-primary/20 rounded-xl p-4"
         >
           <p className="text-sm text-muted-foreground">
-            <strong className="text-primary">💡 Dica:</strong> O faturamento é calculado automaticamente a partir dos agendamentos concluídos na sua agenda e entradas manuais. 
+            <strong className="text-primary">💡 Dica:</strong> O faturamento é calculado automaticamente a partir dos agendamentos concluídos e entradas manuais. 
             {entries.length > 0 
-              ? ` Você tem ${entries.length} entrada${entries.length > 1 ? 's' : ''} financeira${entries.length > 1 ? 's' : ''} este mês${metrics.completedAppointments > 0 ? ` (${metrics.completedAppointments} automática${metrics.completedAppointments > 1 ? 's' : ''})` : ''}.`
+              ? ` Você tem ${entries.length} entrada${entries.length > 1 ? 's' : ''} financeira${entries.length > 1 ? 's' : ''} neste período${metrics.completedAppointments > 0 ? ` (${metrics.completedAppointments} automática${metrics.completedAppointments > 1 ? 's' : ''})` : ''}.`
               : " Conclua atendimentos na agenda ou adicione entradas manuais para ver o faturamento."}
           </p>
         </motion.div>
