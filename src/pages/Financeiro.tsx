@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { 
   RefreshCw,
   Loader2,
-  LogOut
+  LogOut,
+  Lock
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +14,7 @@ import { useFinancialEntries, type FinancialEntry, type FinancialEntryFormData }
 import { useClients } from "@/hooks/useClients";
 import { FinancialIndicators } from "@/components/financeiro/FinancialIndicators";
 import { DRESimples } from "@/components/financeiro/DRESimples";
+import { DFCReport } from "@/components/financeiro/DFCReport";
 import { FinancialAnalysis } from "@/components/financeiro/FinancialAnalysis";
 import { DailyGoalTracker } from "@/components/financeiro/DailyGoalTracker";
 import { VariableCostsManager } from "@/components/financeiro/VariableCostsManager";
@@ -21,6 +23,7 @@ import { WorkingDaysConfig } from "@/components/financeiro/WorkingDaysConfig";
 import { FinancialEntriesList } from "@/components/financeiro/FinancialEntriesList";
 import { ManualEntryModal } from "@/components/financeiro/ManualEntryModal";
 import { MonthSelector } from "@/components/financeiro/MonthSelector";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
 import { useFixedCosts } from "@/hooks/useFixedCosts";
 import logo from "@/assets/logo.jpeg";
@@ -35,6 +38,12 @@ import {
 const Financeiro = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+
+  // Check if user has DFC access (gestao or escala plan, or admin bypass)
+  const hasDFCAccess = useMemo(() => {
+    const plan = profile?.plan;
+    return plan === "gestao" || plan === "escala";
+  }, [profile?.plan]);
 
   // Month selector state
   const now = new Date();
@@ -56,11 +65,13 @@ const Financeiro = () => {
   } = useFinancialData(selectedDate);
   
   const { 
+    variableCosts,
     calculateTotalPercentage, 
     refetch: refetchVariableCosts 
   } = useVariableCosts();
 
   const {
+    fixedCosts,
     calculateTotalFixedCosts,
     refetch: refetchFixedCosts
   } = useFixedCosts();
@@ -287,85 +298,137 @@ const Financeiro = () => {
           </motion.div>
         )}
 
-        {/* Financial Indicators */}
-        <FinancialIndicators
-          revenue={metrics.revenue}
-          totalCosts={metrics.totalCosts}
-          netProfit={metrics.netProfit}
-          profitMargin={metrics.profitMargin}
-          breakEven={metrics.breakEven}
-          dailyTarget={metrics.dailyTarget}
-        />
+        {/* Tabs: Visão Geral + DFC */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="overview" className="flex-1 sm:flex-none">Visão Geral</TabsTrigger>
+            <TabsTrigger value="dfc" className="flex-1 sm:flex-none" disabled={!hasDFCAccess}>
+              {!hasDFCAccess && <Lock className="w-3 h-3 mr-1.5" />}
+              DFC – Fluxo de Caixa
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Daily Goal Tracker */}
-        <DailyGoalTracker
-          monthlyGoal={metrics.monthlyGoal}
-          dailyTarget={metrics.dailyTarget}
-          revenue={metrics.revenue}
-          workingDays={metrics.workingDays}
-          useAutoGoal={metrics.useAutoGoal}
-          breakEven={metrics.breakEven}
-          workedDaysSoFar={metrics.workedDaysSoFar}
-          expectedRevenueSoFar={metrics.expectedRevenueSoFar}
-          revenueDifference={metrics.revenueDifference}
-          isAhead={metrics.isAhead}
-          avgDailyRevenue={metrics.avgDailyRevenue}
-          remainingDays={metrics.remainingDays}
-          remainingToGoal={metrics.remainingToGoal}
-          manualGoal={financialData?.monthly_goal || null}
-          onSaveGoal={handleSaveGoal}
-          isSaving={isSaving}
-        />
-
-        {/* Financial Entries Section */}
-        <FinancialEntriesList
-          entries={entries}
-          isLoading={isLoadingEntries}
-          onAddManual={isCurrentMonth ? handleOpenManualEntry : undefined}
-          onEdit={isCurrentMonth ? handleEditEntry : undefined}
-          onDelete={isCurrentMonth ? handleDeleteEntry : undefined}
-        />
-
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Column - Cost Management */}
-          <div className="space-y-6">
-            <FixedCostsManager 
-              onTotalChange={handleFixedCostsChange}
-            />
-            
-            <VariableCostsManager 
-              monthlyRevenue={monthlyRevenue.total}
-              onTotalPercentageChange={handleVariableCostsChange}
-            />
-
-            <WorkingDaysConfig
-              workingDays={financialData?.working_days_per_month || 22}
-              onSave={handleSaveWorkingDays}
-              isSaving={isSaving}
-            />
-          </div>
-
-          {/* Right Column - DRE & Analysis */}
-          <div className="space-y-6">
-            <DRESimples
+          {/* TAB: Visão Geral (existing content) */}
+          <TabsContent value="overview" className="space-y-6">
+            {/* Financial Indicators */}
+            <FinancialIndicators
               revenue={metrics.revenue}
-              variableCosts={metrics.variableCosts}
-              fixedCosts={metrics.fixedCosts}
-              netProfit={metrics.netProfit}
-            />
-
-            <FinancialAnalysis
-              revenue={metrics.revenue}
-              costsPercentage={metrics.costsPercentage}
+              totalCosts={metrics.totalCosts}
               netProfit={metrics.netProfit}
               profitMargin={metrics.profitMargin}
               breakEven={metrics.breakEven}
               dailyTarget={metrics.dailyTarget}
-              workingDays={metrics.workingDays}
             />
-          </div>
-        </div>
+
+            {/* Daily Goal Tracker */}
+            <DailyGoalTracker
+              monthlyGoal={metrics.monthlyGoal}
+              dailyTarget={metrics.dailyTarget}
+              revenue={metrics.revenue}
+              workingDays={metrics.workingDays}
+              useAutoGoal={metrics.useAutoGoal}
+              breakEven={metrics.breakEven}
+              workedDaysSoFar={metrics.workedDaysSoFar}
+              expectedRevenueSoFar={metrics.expectedRevenueSoFar}
+              revenueDifference={metrics.revenueDifference}
+              isAhead={metrics.isAhead}
+              avgDailyRevenue={metrics.avgDailyRevenue}
+              remainingDays={metrics.remainingDays}
+              remainingToGoal={metrics.remainingToGoal}
+              manualGoal={financialData?.monthly_goal || null}
+              onSaveGoal={handleSaveGoal}
+              isSaving={isSaving}
+            />
+
+            {/* Financial Entries Section */}
+            <FinancialEntriesList
+              entries={entries}
+              isLoading={isLoadingEntries}
+              onAddManual={isCurrentMonth ? handleOpenManualEntry : undefined}
+              onEdit={isCurrentMonth ? handleEditEntry : undefined}
+              onDelete={isCurrentMonth ? handleDeleteEntry : undefined}
+            />
+
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Cost Management */}
+              <div className="space-y-6">
+                <FixedCostsManager 
+                  onTotalChange={handleFixedCostsChange}
+                />
+                
+                <VariableCostsManager 
+                  monthlyRevenue={monthlyRevenue.total}
+                  onTotalPercentageChange={handleVariableCostsChange}
+                />
+
+                <WorkingDaysConfig
+                  workingDays={financialData?.working_days_per_month || 22}
+                  onSave={handleSaveWorkingDays}
+                  isSaving={isSaving}
+                />
+              </div>
+
+              {/* Right Column - DRE & Analysis */}
+              <div className="space-y-6">
+                <DRESimples
+                  revenue={metrics.revenue}
+                  variableCosts={metrics.variableCosts}
+                  fixedCosts={metrics.fixedCosts}
+                  netProfit={metrics.netProfit}
+                />
+
+                <FinancialAnalysis
+                  revenue={metrics.revenue}
+                  costsPercentage={metrics.costsPercentage}
+                  netProfit={metrics.netProfit}
+                  profitMargin={metrics.profitMargin}
+                  breakEven={metrics.breakEven}
+                  dailyTarget={metrics.dailyTarget}
+                  workingDays={metrics.workingDays}
+                />
+              </div>
+            </div>
+
+            {/* Info about revenue calculation */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-primary/5 border border-primary/20 rounded-xl p-4"
+            >
+              <p className="text-sm text-muted-foreground">
+                <strong className="text-primary">💡 Dica:</strong> O faturamento é calculado automaticamente a partir dos agendamentos concluídos e entradas manuais. 
+                {entries.length > 0 
+                  ? ` Você tem ${entries.length} entrada${entries.length > 1 ? 's' : ''} financeira${entries.length > 1 ? 's' : ''} neste período${metrics.completedAppointments > 0 ? ` (${metrics.completedAppointments} automática${metrics.completedAppointments > 1 ? 's' : ''})` : ''}.`
+                  : " Conclua atendimentos na agenda ou adicione entradas manuais para ver o faturamento."}
+              </p>
+            </motion.div>
+          </TabsContent>
+
+          {/* TAB: DFC */}
+          <TabsContent value="dfc" className="space-y-6">
+            {hasDFCAccess ? (
+              <DFCReport
+                entries={entries}
+                fixedCosts={fixedCosts}
+                variableCosts={variableCosts}
+                monthlyRevenue={monthlyRevenue.total}
+              />
+            ) : (
+              <div className="bg-card border border-border rounded-xl p-8 text-center">
+                <Lock className="w-10 h-10 mx-auto mb-4 text-muted-foreground" />
+                <h3 className="font-display text-lg font-bold mb-2">Recurso disponível no plano Gestão</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  O Demonstrativo de Fluxo de Caixa está disponível a partir do plano Gestão.
+                </p>
+                <Button asChild>
+                  <Link to="/planos">Ver planos</Link>
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Manual Entry Modal */}
         <ManualEntryModal
@@ -375,21 +438,6 @@ const Financeiro = () => {
           clients={clients}
           entryToEdit={entryToEdit}
         />
-
-        {/* Info about revenue calculation */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="bg-primary/5 border border-primary/20 rounded-xl p-4"
-        >
-          <p className="text-sm text-muted-foreground">
-            <strong className="text-primary">💡 Dica:</strong> O faturamento é calculado automaticamente a partir dos agendamentos concluídos e entradas manuais. 
-            {entries.length > 0 
-              ? ` Você tem ${entries.length} entrada${entries.length > 1 ? 's' : ''} financeira${entries.length > 1 ? 's' : ''} neste período${metrics.completedAppointments > 0 ? ` (${metrics.completedAppointments} automática${metrics.completedAppointments > 1 ? 's' : ''})` : ''}.`
-              : " Conclua atendimentos na agenda ou adicione entradas manuais para ver o faturamento."}
-          </p>
-        </motion.div>
       </main>
     </div>
   );
