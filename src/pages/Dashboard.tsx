@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { 
   DollarSign, 
   TrendingUp, 
@@ -15,7 +16,7 @@ import {
 } from "lucide-react";
 import { Shield } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, isTrialActive, getTrialDaysRemaining } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -211,6 +212,27 @@ const Dashboard = () => {
       </header>
 
       <main className="container px-4 sm:px-6 py-8">
+        {/* Trial Banner */}
+        {isTrialActive(profile) && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-primary/10 border border-primary/20 rounded-xl p-4"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="flex-1">
+                <p className="text-sm font-medium text-primary">
+                  🎉 Período de teste gratuito — {getTrialDaysRemaining(profile)} dia{getTrialDaysRemaining(profile) !== 1 ? 's' : ''} restante{getTrialDaysRemaining(profile) !== 1 ? 's' : ''}
+                </p>
+                <Progress value={((14 - getTrialDaysRemaining(profile)) / 14) * 100} className="mt-2 h-2" />
+              </div>
+              <Button size="sm" variant="outline" asChild>
+                <Link to="/planos">Assinar agora</Link>
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
         {/* Welcome */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}

@@ -9,14 +9,39 @@ export interface Profile {
   business_name: string | null;
   phone: string | null;
   plan: "none" | "base" | "gestao" | "escala";
-  plan_status: "active" | "inactive" | "cancelled";
+  plan_status: "active" | "inactive" | "cancelled" | "trial";
   ai_interactions_used: number;
   ai_interactions_limit: number;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
+  trial_start: string | null;
+  trial_end: string | null;
+  trial_used: boolean;
   created_at: string;
   updated_at: string;
 }
+
+export const isTrialActive = (profile: Profile | null): boolean => {
+  if (!profile) return false;
+  if (profile.plan_status !== "trial") return false;
+  if (!profile.trial_end) return false;
+  return new Date(profile.trial_end) > new Date();
+};
+
+export const getTrialDaysRemaining = (profile: Profile | null): number => {
+  if (!profile?.trial_end) return 0;
+  const diff = new Date(profile.trial_end).getTime() - new Date().getTime();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+};
+
+export const isTrialExpired = (profile: Profile | null): boolean => {
+  if (!profile) return false;
+  if (profile.plan_status === "active") return false;
+  if (profile.plan_status === "trial" && profile.trial_end) {
+    return new Date(profile.trial_end) <= new Date();
+  }
+  return false;
+};
 
 interface SubscriptionStatus {
   subscribed: boolean;
