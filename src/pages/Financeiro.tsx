@@ -8,7 +8,7 @@ import {
   Lock
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, isTrialActive } from "@/contexts/AuthContext";
 import { useFinancialData } from "@/hooks/useFinancialData";
 import { useFinancialEntries, type FinancialEntry, type FinancialEntryFormData } from "@/hooks/useFinancialEntries";
 import { useClients } from "@/hooks/useClients";
@@ -42,9 +42,10 @@ const Financeiro = () => {
 
   // Check if user has DFC access (gestao or escala plan, or admin bypass)
   const hasDFCAccess = useMemo(() => {
+    if (isTrialActive(profile)) return true; // trial = gestao access
     const plan = profile?.plan;
     return plan === "gestao" || plan === "escala";
-  }, [profile?.plan]);
+  }, [profile]);
 
   // Month selector state
   const now = new Date();

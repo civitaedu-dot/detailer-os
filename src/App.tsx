@@ -16,6 +16,7 @@ import Clientes from "./pages/Clientes";
 import Servicos from "./pages/Servicos";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
+import TrialExpired from "./pages/TrialExpired";
 
 const queryClient = new QueryClient();
 
@@ -117,6 +118,16 @@ const App = () => (
               } 
             />
             
+            {/* Trial expired */}
+            <Route 
+              path="/trial-expirado" 
+              element={
+                <ProtectedRoute requirePlan={false}>
+                  <TrialExpired />
+                </ProtectedRoute>
+              } 
+            />
+
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>

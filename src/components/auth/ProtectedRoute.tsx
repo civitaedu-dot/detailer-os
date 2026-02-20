@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, isTrialActive, isTrialExpired } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Loader2 } from "lucide-react";
 
@@ -28,8 +28,23 @@ export const ProtectedRoute = ({ children, requirePlan = true }: ProtectedRouteP
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Admins bypass plan requirement
-  if (requirePlan && !isAdmin && (!profile || profile.plan_status !== "active")) {
+  // Admins bypass all checks
+  if (isAdmin) {
+    return <>{children}</>;
+  }
+
+  // Check if trial expired → block access
+  if (isTrialExpired(profile)) {
+    return <Navigate to="/trial-expirado" replace />;
+  }
+
+  // Trial active → allow access (treated as gestao plan)
+  if (isTrialActive(profile)) {
+    return <>{children}</>;
+  }
+
+  // Regular plan check
+  if (requirePlan && (!profile || profile.plan_status !== "active")) {
     return <Navigate to="/planos" state={{ from: location }} replace />;
   }
 
@@ -55,13 +70,18 @@ export const PublicRoute = ({ children }: PublicRouteProps) => {
     );
   }
 
-  // Admins go straight to dashboard
   if (user && isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 
-  if (user && profile?.plan_status === "active") {
+  // Trial active or paid plan → dashboard
+  if (user && (isTrialActive(profile) || profile?.plan_status === "active")) {
     return <Navigate to="/dashboard" replace />;
+  }
+
+  // Trial expired → block page
+  if (user && isTrialExpired(profile)) {
+    return <Navigate to="/trial-expirado" replace />;
   }
 
   if (user && profile && profile.plan_status !== "active") {
@@ -95,10 +115,17 @@ export const PlanRoute = ({ children }: PlanRouteProps) => {
     return <Navigate to="/cadastro" state={{ from: location }} replace />;
   }
 
-  // Admins bypass plans page
-  if (isAdmin || profile?.plan_status === "active") {
+  // Admins bypass
+  if (isAdmin) {
     return <Navigate to="/dashboard" replace />;
   }
 
+  // Active paid plan → dashboard
+  if (profile?.plan_status === "active") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // Trial active → allow seeing plans (user might want to subscribe early)
+  // Trial expired → also allow seeing plans (they need to subscribe)
   return <>{children}</>;
 };

@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, Sparkles, Zap, Crown, ArrowLeft, Loader2, LogOut } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, isTrialActive, getTrialDaysRemaining } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -83,7 +83,7 @@ const Planos = () => {
     }
   }, [isLoading, user, navigate]);
 
-  // Redirect to dashboard if already has active plan
+  // Redirect to dashboard if already has active paid plan (not trial)
   useEffect(() => {
     if (!isLoading && profile?.plan_status === "active") {
       navigate("/dashboard", { replace: true });
@@ -198,8 +198,9 @@ const Planos = () => {
             Escolha seu plano
           </h1>
           <p className="text-muted-foreground max-w-xl mx-auto">
-            Para acessar o DetailerOS, escolha o plano que melhor atende seu momento. 
-            Você pode trocar de plano a qualquer momento.
+            {isTrialActive(profile) 
+              ? `Seu período de teste gratuito termina em ${getTrialDaysRemaining(profile)} dias. Escolha um plano para continuar usando o DetailerOS.`
+              : "Para acessar o DetailerOS, escolha o plano que melhor atende seu momento. Você pode trocar de plano a qualquer momento."}
           </p>
           <p className="text-sm text-primary mt-4">
             Logado como: {profile?.name || user.email}
