@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
@@ -9,9 +10,10 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ children, requirePlan = true }: ProtectedRouteProps) => {
   const { user, profile, isLoading } = useAuth();
+  const { isAdmin, isLoading: isLoadingRole } = useUserRole();
   const location = useLocation();
 
-  if (isLoading) {
+  if (isLoading || isLoadingRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -22,13 +24,12 @@ export const ProtectedRoute = ({ children, requirePlan = true }: ProtectedRouteP
     );
   }
 
-  // Not authenticated - redirect to login
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Authenticated but no active plan - redirect to plans page
-  if (requirePlan && (!profile || profile.plan_status !== "active")) {
+  // Admins bypass plan requirement
+  if (requirePlan && !isAdmin && (!profile || profile.plan_status !== "active")) {
     return <Navigate to="/planos" state={{ from: location }} replace />;
   }
 
@@ -41,8 +42,9 @@ interface PublicRouteProps {
 
 export const PublicRoute = ({ children }: PublicRouteProps) => {
   const { user, profile, isLoading } = useAuth();
+  const { isAdmin, isLoading: isLoadingRole } = useUserRole();
 
-  if (isLoading) {
+  if (isLoading || isLoadingRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -53,12 +55,15 @@ export const PublicRoute = ({ children }: PublicRouteProps) => {
     );
   }
 
-  // If user is logged in and has active plan, redirect to dashboard
+  // Admins go straight to dashboard
+  if (user && isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   if (user && profile?.plan_status === "active") {
     return <Navigate to="/dashboard" replace />;
   }
 
-  // If user is logged in but no active plan, redirect to plans
   if (user && profile && profile.plan_status !== "active") {
     return <Navigate to="/planos" replace />;
   }
@@ -70,12 +75,12 @@ interface PlanRouteProps {
   children: React.ReactNode;
 }
 
-// Route that requires authentication but allows users without active plan
 export const PlanRoute = ({ children }: PlanRouteProps) => {
   const { user, profile, isLoading } = useAuth();
+  const { isAdmin, isLoading: isLoadingRole } = useUserRole();
   const location = useLocation();
 
-  if (isLoading) {
+  if (isLoading || isLoadingRole) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-4">
@@ -86,13 +91,12 @@ export const PlanRoute = ({ children }: PlanRouteProps) => {
     );
   }
 
-  // Not authenticated - redirect to cadastro
   if (!user) {
     return <Navigate to="/cadastro" state={{ from: location }} replace />;
   }
 
-  // If user already has active plan, redirect to dashboard
-  if (profile?.plan_status === "active") {
+  // Admins bypass plans page
+  if (isAdmin || profile?.plan_status === "active") {
     return <Navigate to="/dashboard" replace />;
   }
 
