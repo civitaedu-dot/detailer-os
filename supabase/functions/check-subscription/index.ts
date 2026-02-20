@@ -12,15 +12,14 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Mapping of Stripe product IDs to plan details
+// Updated to match LIVE Stripe product IDs from stripe-plans.ts
 const PLAN_MAP: Record<string, { plan: string; aiLimit: number }> = {
-  "prod_TlxaBncGC6ZRFS": { plan: "base", aiLimit: 5 },
-  "prod_TlxbGKuCCztc85": { plan: "gestao", aiLimit: 10 },
-  "prod_Tlxb8LLvPXjGS8": { plan: "escala", aiLimit: -1 }, // -1 = unlimited
+  "prod_ToPe3sO7yHoz7c": { plan: "base", aiLimit: 5 },
+  "prod_ToPe9qWJjk3yE2": { plan: "gestao", aiLimit: 10 },
+  "prod_ToPeE6xN70O7B0": { plan: "escala", aiLimit: -1 },
 };
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -28,122 +27,113 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
-    // Validate environment variables
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
 
-    if (!supabaseUrl || !supabaseServiceKey) {
-      throw new Error("Missing Supabase configuration");
-    }
-    if (!stripeKey) {
-      throw new Error("STRIPE_SECRET_KEY is not set");
-    }
+    if (!supabaseUrl || !supabaseServiceKey) throw new Error("Missing Supabase configuration");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
     logStep("Environment verified");
 
-    // Initialize Supabase with service role key
     const supabaseClient = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { persistSession: false }
     });
 
-    // Validate authorization header
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("No authorization header provided");
-    }
-    logStep("Authorization header found");
+    if (!authHeader) throw new Error("No authorization header provided");
 
-    // Authenticate user
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    
-    if (userError) {
-      logStep("Authentication error", { error: userError.message });
-      throw new Error(`Authentication error: ${userError.message}`);
-    }
+    if (userError) throw new Error(`Authentication error: ${userError.message}`);
     
     const user = userData.user;
-    if (!user?.email) {
-      throw new Error("User not authenticated or email not available");
-    }
+    if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    // Check if user has a profile
-    const { data: existingProfile, error: profileError } = await supabaseClient
+    // Fetch current profile
+    const { data: existingProfile } = await supabaseClient
       .from("profiles")
       .select("*")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (profileError) {
-      logStep("Profile fetch error", { error: profileError.message });
-    }
-
     if (!existingProfile) {
-      // Create profile if it doesn't exist
       logStep("No profile found, creating one");
-      const { error: insertError } = await supabaseClient
-        .from("profiles")
-        .insert({
-          user_id: user.id,
-          name: user.user_metadata?.name || "Usuário",
-          plan: "none",
-          plan_status: "inactive",
-        });
-      
-      if (insertError) {
-        logStep("Profile insert error", { error: insertError.message });
-      }
+      await supabaseClient.from("profiles").insert({
+        user_id: user.id,
+        name: user.user_metadata?.name || "Usuário",
+        plan: "none",
+        plan_status: "inactive",
+      });
     }
 
     // Initialize Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
-
-    // Find customer in Stripe by email
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     if (customers.data.length === 0) {
-      logStep("No Stripe customer found, updating profile to inactive");
-      
-      // Update profile to inactive
-      const { error: updateError } = await supabaseClient
-        .from("profiles")
-        .update({ 
-          plan: "none", 
-          plan_status: "inactive",
-          stripe_customer_id: null,
-          stripe_subscription_id: null,
-          ai_interactions_limit: 0,
-        })
-        .eq("user_id", user.id);
+      logStep("No Stripe customer found");
 
-      if (updateError) {
-        logStep("Profile update error", { error: updateError.message });
+      // If user is on trial, DON'T overwrite to inactive — preserve trial status
+      if (existingProfile?.plan_status === "trial") {
+        const trialEnd = existingProfile.trial_end ? new Date(existingProfile.trial_end) : null;
+        const isTrialActive = trialEnd && trialEnd > new Date();
+
+        logStep("User is on trial", { trialEnd: existingProfile.trial_end, isActive: isTrialActive });
+
+        if (!isTrialActive) {
+          // Trial expired, no Stripe subscription → mark inactive
+          await supabaseClient.from("profiles").update({
+            plan_status: "inactive",
+            plan: "none",
+            ai_interactions_limit: 0,
+          }).eq("user_id", user.id);
+
+          return new Response(JSON.stringify({
+            subscribed: false,
+            plan: "none",
+            plan_status: "inactive",
+            ai_limit: 0,
+            subscription_end: null,
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+        }
+
+        // Trial still active — return current trial info
+        return new Response(JSON.stringify({
+          subscribed: false,
+          plan: existingProfile.plan || "gestao",
+          plan_status: "trial",
+          ai_limit: 10,
+          subscription_end: existingProfile.trial_end,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
       }
 
-      return new Response(JSON.stringify({ 
+      // Not on trial and no Stripe customer → inactive
+      await supabaseClient.from("profiles").update({
+        plan: "none",
+        plan_status: "inactive",
+        stripe_customer_id: null,
+        stripe_subscription_id: null,
+        ai_interactions_limit: 0,
+      }).eq("user_id", user.id);
+
+      return new Response(JSON.stringify({
         subscribed: false,
         plan: "none",
         plan_status: "inactive",
         ai_limit: 0,
         subscription_end: null,
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      });
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
     }
 
     const customerId = customers.data[0].id;
     logStep("Found Stripe customer", { customerId });
 
-    // List active subscriptions
     const subscriptions = await stripe.subscriptions.list({
       customer: customerId,
       status: "active",
       limit: 1,
     });
-
-    logStep("Subscriptions fetched", { count: subscriptions.data.length });
 
     const hasActiveSub = subscriptions.data.length > 0;
     let plan = "none";
@@ -155,21 +145,12 @@ serve(async (req) => {
       const subscription = subscriptions.data[0];
       subscriptionId = subscription.id;
       
-      // Safely handle current_period_end
       if (subscription.current_period_end) {
         try {
-          const endTimestamp = subscription.current_period_end * 1000;
-          subscriptionEnd = new Date(endTimestamp).toISOString();
-        } catch (dateError) {
-          logStep("Date parsing error", { 
-            current_period_end: subscription.current_period_end,
-            error: String(dateError)
-          });
-          subscriptionEnd = null;
-        }
+          subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+        } catch { subscriptionEnd = null; }
       }
       
-      // Get product ID from subscription items
       const priceItem = subscription.items.data[0];
       if (priceItem?.price?.product) {
         const productId = typeof priceItem.price.product === 'string' 
@@ -177,7 +158,6 @@ serve(async (req) => {
           : priceItem.price.product.id;
         
         const planInfo = PLAN_MAP[productId];
-        
         if (planInfo) {
           plan = planInfo.plan;
           aiLimit = planInfo.aiLimit;
@@ -186,49 +166,49 @@ serve(async (req) => {
           logStep("Unknown product ID", { productId, knownProducts: Object.keys(PLAN_MAP) });
         }
       }
-      
-      logStep("Active subscription found", { 
-        subscriptionId, 
-        plan, 
-        aiLimit,
-        endDate: subscriptionEnd 
-      });
 
-      // Update profile with subscription info
-      const { error: updateError } = await supabaseClient
-        .from("profiles")
-        .update({ 
-          plan,
-          plan_status: "active",
-          stripe_customer_id: customerId,
-          stripe_subscription_id: subscriptionId,
-          ai_interactions_limit: aiLimit,
-        })
-        .eq("user_id", user.id);
+      // Update profile to active (overrides trial if present)
+      await supabaseClient.from("profiles").update({
+        plan,
+        plan_status: "active",
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscriptionId,
+        ai_interactions_limit: aiLimit,
+      }).eq("user_id", user.id);
 
-      if (updateError) {
-        logStep("Profile update error", { error: updateError.message });
-      } else {
-        logStep("Profile updated successfully", { plan, status: "active" });
-      }
+      logStep("Profile updated to active", { plan });
     } else {
       logStep("No active subscription found");
-      
-      // Update profile to inactive but keep customer ID
-      const { error: updateError } = await supabaseClient
-        .from("profiles")
-        .update({ 
-          plan: "none", 
-          plan_status: "inactive",
-          stripe_customer_id: customerId,
-          stripe_subscription_id: null,
-          ai_interactions_limit: 0,
-        })
-        .eq("user_id", user.id);
 
-      if (updateError) {
-        logStep("Profile update error", { error: updateError.message });
+      // Has Stripe customer but no active sub — check trial before overwriting
+      if (existingProfile?.plan_status === "trial") {
+        const trialEnd = existingProfile.trial_end ? new Date(existingProfile.trial_end) : null;
+        const isTrialActive = trialEnd && trialEnd > new Date();
+
+        if (isTrialActive) {
+          // Keep trial status, just store the customer ID
+          await supabaseClient.from("profiles").update({
+            stripe_customer_id: customerId,
+          }).eq("user_id", user.id);
+
+          return new Response(JSON.stringify({
+            subscribed: false,
+            plan: existingProfile.plan || "gestao",
+            plan_status: "trial",
+            ai_limit: 10,
+            subscription_end: existingProfile.trial_end,
+          }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
+        }
       }
+
+      // No active sub, no active trial → inactive
+      await supabaseClient.from("profiles").update({
+        plan: "none",
+        plan_status: "inactive",
+        stripe_customer_id: customerId,
+        stripe_subscription_id: null,
+        ai_interactions_limit: 0,
+      }).eq("user_id", user.id);
     }
 
     const response = {
@@ -240,7 +220,6 @@ serve(async (req) => {
     };
 
     logStep("Response prepared", response);
-
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
@@ -248,15 +227,11 @@ serve(async (req) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logStep("ERROR", { message: errorMessage });
-    
-    return new Response(JSON.stringify({ 
+    return new Response(JSON.stringify({
       error: errorMessage,
       subscribed: false,
       plan: "none",
       plan_status: "inactive",
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 500,
-    });
+    }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 500 });
   }
 });
