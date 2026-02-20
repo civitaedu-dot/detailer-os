@@ -17,6 +17,7 @@ import Servicos from "./pages/Servicos";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import TrialExpired from "./pages/TrialExpired";
+import SocioIA from "./pages/SocioIA";
 
 const queryClient = new QueryClient();
 
@@ -103,7 +104,7 @@ const App = () => (
               path="/socio-ia" 
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <SocioIA />
                 </ProtectedRoute>
               } 
             />

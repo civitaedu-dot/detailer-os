@@ -161,6 +161,12 @@ const Dashboard = () => {
             <Button variant="ghost" size="sm" asChild>
               <Link to="/servicos">Serviços</Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/socio-ia">
+                <Bot className="w-4 h-4 mr-1" />
+                Sócio IA
+              </Link>
+            </Button>
             {isAdmin && (
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/admin" className="text-primary">
