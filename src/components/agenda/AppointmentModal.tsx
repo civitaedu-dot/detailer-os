@@ -5,8 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Plus, User, Wrench } from 'lucide-react';
+import { Loader2, Plus, User, Wrench, CreditCard } from 'lucide-react';
 import { ClientForm } from './ClientForm';
+import { PAYMENT_METHODS } from '@/hooks/usePaymentMethodFees';
 import type { Client, ClientFormData } from '@/hooks/useClients';
 import type { Appointment, AppointmentFormData } from '@/hooks/useAppointments';
 import type { Service } from '@/hooks/useServices';
@@ -55,6 +56,7 @@ export const AppointmentModal = ({
     appointment_time: '',
     duration_minutes: 60,
     notes: '',
+    payment_method: '',
   });
 
   useEffect(() => {
@@ -69,6 +71,7 @@ export const AppointmentModal = ({
           appointment_time: appointment.appointment_time || '',
           duration_minutes: appointment.duration_minutes || 60,
           notes: appointment.notes || '',
+          payment_method: appointment.payment_method || '',
         });
       } else {
         setFormData({
@@ -80,6 +83,7 @@ export const AppointmentModal = ({
           appointment_time: '',
           duration_minutes: 60,
           notes: '',
+          payment_method: '',
         });
       }
       setShowNewClientForm(false);
@@ -324,6 +328,31 @@ export const AppointmentModal = ({
               placeholder="0,00"
               required
             />
+          </div>
+
+          {/* Payment Method */}
+          <div>
+            <Label>Forma de Pagamento</Label>
+            <Select
+              value={formData.payment_method || undefined}
+              onValueChange={(value) =>
+                setFormData((prev) => ({ ...prev, payment_method: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a forma de pagamento" />
+              </SelectTrigger>
+              <SelectContent>
+                {PAYMENT_METHODS.map((method) => (
+                  <SelectItem key={method.value} value={method.value}>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      {method.label}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Notes */}

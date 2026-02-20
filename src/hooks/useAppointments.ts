@@ -15,6 +15,7 @@ export interface Appointment {
   duration_minutes: number | null;
   status: string;
   notes: string | null;
+  payment_method: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -28,6 +29,7 @@ export interface AppointmentFormData {
   appointment_time?: string;
   duration_minutes?: number;
   notes?: string;
+  payment_method?: string;
 }
 
 export const useAppointments = (selectedDate?: Date) => {
@@ -84,6 +86,7 @@ export const useAppointments = (selectedDate?: Date) => {
           appointment_time: data.appointment_time || null,
           duration_minutes: data.duration_minutes || 60,
           notes: data.notes || null,
+          payment_method: data.payment_method || null,
           status: 'scheduled',
         })
         .select()
@@ -175,6 +178,7 @@ export const useAppointments = (selectedDate?: Date) => {
           value: appointment.service_value,
           entry_date: appointment.appointment_date,
           notes: appointment.notes,
+          payment_method: (appointment as any).payment_method || null,
           is_automatic: true,
         });
 
