@@ -15,6 +15,7 @@ import Agenda from "./pages/Agenda";
 import Clientes from "./pages/Clientes";
 import Servicos from "./pages/Servicos";
 import NotFound from "./pages/NotFound";
+import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +103,16 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Admin route - requires auth + admin role (checked inside component) */}
+            <Route 
+              path="/admin" 
+              element={
+                <ProtectedRoute requirePlan={false}>
+                  <Admin />
                 </ProtectedRoute>
               } 
             />
