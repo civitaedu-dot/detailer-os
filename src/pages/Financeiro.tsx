@@ -15,6 +15,7 @@ import { useClients } from "@/hooks/useClients";
 import { FinancialIndicators } from "@/components/financeiro/FinancialIndicators";
 import { DRESimples } from "@/components/financeiro/DRESimples";
 import { DFCReport } from "@/components/financeiro/DFCReport";
+import { PaymentFeesManager } from "@/components/financeiro/PaymentFeesManager";
 import { FinancialAnalysis } from "@/components/financeiro/FinancialAnalysis";
 import { DailyGoalTracker } from "@/components/financeiro/DailyGoalTracker";
 import { VariableCostsManager } from "@/components/financeiro/VariableCostsManager";
@@ -367,6 +368,8 @@ const Financeiro = () => {
                   onSave={handleSaveWorkingDays}
                   isSaving={isSaving}
                 />
+
+                <PaymentFeesManager />
               </div>
 
               {/* Right Column - DRE & Analysis */}

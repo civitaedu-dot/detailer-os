@@ -24,6 +24,7 @@ export type Database = {
           duration_minutes: number | null
           id: string
           notes: string | null
+          payment_method: string | null
           service_name: string
           service_value: number
           status: string
@@ -39,6 +40,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           notes?: string | null
+          payment_method?: string | null
           service_name: string
           service_value: number
           status?: string
@@ -54,6 +56,7 @@ export type Database = {
           duration_minutes?: number | null
           id?: string
           notes?: string | null
+          payment_method?: string | null
           service_name?: string
           service_value?: number
           status?: string
@@ -154,6 +157,7 @@ export type Database = {
           id: string
           is_automatic: boolean
           notes: string | null
+          payment_method: string | null
           updated_at: string
           user_id: string
           value: number
@@ -169,6 +173,7 @@ export type Database = {
           id?: string
           is_automatic?: boolean
           notes?: string | null
+          payment_method?: string | null
           updated_at?: string
           user_id: string
           value?: number
@@ -184,6 +189,7 @@ export type Database = {
           id?: string
           is_automatic?: boolean
           notes?: string | null
+          payment_method?: string | null
           updated_at?: string
           user_id?: string
           value?: number
@@ -235,6 +241,36 @@ export type Database = {
           updated_at?: string
           user_id?: string
           value?: number
+        }
+        Relationships: []
+      }
+      payment_method_fees: {
+        Row: {
+          created_at: string
+          description: string | null
+          fee_percentage: number
+          id: string
+          method: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          fee_percentage?: number
+          id?: string
+          method: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          fee_percentage?: number
+          id?: string
+          method?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

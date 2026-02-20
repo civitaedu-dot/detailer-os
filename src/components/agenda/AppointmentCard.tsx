@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Clock, User, Check, X, Pencil, MoreVertical, Phone } from 'lucide-react';
+import { Clock, User, Check, X, Pencil, MoreVertical, Phone, CreditCard } from 'lucide-react';
+import { getPaymentMethodLabel } from '@/hooks/usePaymentMethodFees';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -90,10 +91,18 @@ export const AppointmentCard = ({
             {appointment.service_name}
           </p>
 
-          {/* Value */}
-          <p className="text-lg font-bold text-primary">
-            {formatCurrency(appointment.service_value)}
-          </p>
+          {/* Value + Payment Method */}
+          <div className="flex items-center gap-3 mb-1">
+            <p className="text-lg font-bold text-primary">
+              {formatCurrency(appointment.service_value)}
+            </p>
+            {appointment.payment_method && (
+              <Badge variant="outline" className="text-xs">
+                <CreditCard className="w-3 h-3 mr-1" />
+                {getPaymentMethodLabel(appointment.payment_method)}
+              </Badge>
+            )}
+          </div>
 
           {/* Notes */}
           {appointment.notes && (
