@@ -13,8 +13,10 @@ import {
   RefreshCw,
   Wrench
 } from "lucide-react";
+import { Shield } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +37,7 @@ const formatCurrency = (value: number) =>
 
 const Dashboard = () => {
   const { user, profile, session, signOut, checkSubscription, isCheckingSubscription } = useAuth();
+  const { isAdmin } = useUserRole();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
@@ -157,6 +160,14 @@ const Dashboard = () => {
             <Button variant="ghost" size="sm" asChild>
               <Link to="/servicos">Serviços</Link>
             </Button>
+            {isAdmin && (
+              <Button variant="ghost" size="sm" asChild>
+                <Link to="/admin" className="text-primary">
+                  <Shield className="w-4 h-4 mr-1" />
+                  Admin
+                </Link>
+              </Button>
+            )}
           </nav>
 
           {/* User menu */}
