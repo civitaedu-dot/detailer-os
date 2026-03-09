@@ -330,13 +330,21 @@ const Financeiro = () => {
           </motion.div>
         )}
 
-        {/* Tabs: Visão Geral + Custos + DFC */}
+        {/* Tabs: Visão Geral + Custos + Valor Hora + Precificação + DFC */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="w-full sm:w-auto">
+          <TabsList className="w-full sm:w-auto flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="overview" className="flex-1 sm:flex-none">Visão Geral</TabsTrigger>
             <TabsTrigger value="custos" className="flex-1 sm:flex-none">
               <TrendingDown className="w-3.5 h-3.5 mr-1.5" />
               Custos
+            </TabsTrigger>
+            <TabsTrigger value="valorhora" className="flex-1 sm:flex-none">
+              <Clock className="w-3.5 h-3.5 mr-1.5" />
+              Valor Hora
+            </TabsTrigger>
+            <TabsTrigger value="precificacao" className="flex-1 sm:flex-none">
+              <Calculator className="w-3.5 h-3.5 mr-1.5" />
+              Precificação
             </TabsTrigger>
             <TabsTrigger value="dfc" className="flex-1 sm:flex-none" disabled={!hasDFCAccess}>
               {!hasDFCAccess && <Lock className="w-3 h-3 mr-1.5" />}
