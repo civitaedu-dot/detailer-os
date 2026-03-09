@@ -128,6 +128,15 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+
+            <Route 
+              path="/configuracoes" 
+              element={
+                <ProtectedRoute>
+                  <ConfiguracaoEmpresa />
+                </ProtectedRoute>
+              } 
+            />
             
             {/* Trial expired */}
             <Route 
