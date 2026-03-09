@@ -57,6 +57,8 @@ export function useFinancialData(selectedDate?: Date) {
           working_days_per_month: data.working_days_per_month,
           monthly_goal: data.monthly_goal ? Number(data.monthly_goal) : null,
           use_automatic_goal: data.use_automatic_goal ?? true,
+          hours_per_day: Number(data.hours_per_day) || 8,
+          avg_services_per_day: Number(data.avg_services_per_day) || 3,
         });
       } else {
         setFinancialData({
@@ -65,6 +67,8 @@ export function useFinancialData(selectedDate?: Date) {
           working_days_per_month: 22,
           monthly_goal: null,
           use_automatic_goal: true,
+          hours_per_day: 8,
+          avg_services_per_day: 3,
         });
       }
     } catch (error) {
