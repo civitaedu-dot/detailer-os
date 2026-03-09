@@ -14,6 +14,11 @@ export interface Service {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // Novos campos para precificação
+  calculated_price: number | null;
+  material_cost: number;
+  additional_cost: number;
+  profit_margin: number;
 }
 
 export interface ServiceFormData {
@@ -23,6 +28,11 @@ export interface ServiceFormData {
   duration_minutes: number;
   estimated_cost?: number;
   is_active?: boolean;
+  // Novos campos para precificação
+  calculated_price?: number | null;
+  material_cost?: number;
+  additional_cost?: number;
+  profit_margin?: number;
 }
 
 export const useServices = () => {
@@ -97,16 +107,22 @@ export const useServices = () => {
 
   const updateServiceMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<ServiceFormData> }) => {
+      const updateData: Record<string, unknown> = {};
+      
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.description !== undefined) updateData.description = data.description;
+      if (data.default_price !== undefined) updateData.default_price = data.default_price;
+      if (data.duration_minutes !== undefined) updateData.duration_minutes = data.duration_minutes;
+      if (data.estimated_cost !== undefined) updateData.estimated_cost = data.estimated_cost;
+      if (data.is_active !== undefined) updateData.is_active = data.is_active;
+      if (data.calculated_price !== undefined) updateData.calculated_price = data.calculated_price;
+      if (data.material_cost !== undefined) updateData.material_cost = data.material_cost;
+      if (data.additional_cost !== undefined) updateData.additional_cost = data.additional_cost;
+      if (data.profit_margin !== undefined) updateData.profit_margin = data.profit_margin;
+
       const { error } = await supabase
         .from('services')
-        .update({
-          name: data.name,
-          description: data.description,
-          default_price: data.default_price,
-          duration_minutes: data.duration_minutes,
-          estimated_cost: data.estimated_cost,
-          is_active: data.is_active,
-        })
+        .update(updateData)
         .eq('id', id);
 
       if (error) {

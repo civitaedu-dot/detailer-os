@@ -6,13 +6,16 @@ import {
   Loader2,
   LogOut,
   Lock,
-  TrendingDown
+  TrendingDown,
+  Clock,
+  Calculator
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth, isTrialActive } from "@/contexts/AuthContext";
 import { useFinancialData } from "@/hooks/useFinancialData";
 import { useFinancialEntries, type FinancialEntry, type FinancialEntryFormData } from "@/hooks/useFinancialEntries";
 import { useClients } from "@/hooks/useClients";
+import { useServices } from "@/hooks/useServices";
 import { FinancialIndicators } from "@/components/financeiro/FinancialIndicators";
 import { DRESimples } from "@/components/financeiro/DRESimples";
 import { DFCReport } from "@/components/financeiro/DFCReport";
@@ -24,6 +27,8 @@ import { FinancialEntriesList } from "@/components/financeiro/FinancialEntriesLi
 import { ManualEntryModal } from "@/components/financeiro/ManualEntryModal";
 import { MonthSelector } from "@/components/financeiro/MonthSelector";
 import { GestaoCompletaCustos } from "@/components/financeiro/GestaoCompletaCustos";
+import { ValorHoraEmpresa } from "@/components/financeiro/ValorHoraEmpresa";
+import { PrecificacaoServicos } from "@/components/financeiro/PrecificacaoServicos";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
 import { useFixedCosts } from "@/hooks/useFixedCosts";
@@ -94,7 +99,8 @@ const Financeiro = () => {
   // Clients for manual entry
   const { clients } = useClients();
 
-  // Modal state
+  // Services for pricing
+  const { services, updateService, isUpdating: isUpdatingService } = useServices();
   const [isManualEntryModalOpen, setIsManualEntryModalOpen] = useState(false);
   const [entryToEdit, setEntryToEdit] = useState<FinancialEntry | null>(null);
 
@@ -120,6 +126,8 @@ const Financeiro = () => {
       working_days_per_month: financialData.working_days_per_month,
       monthly_goal: goal,
       use_automatic_goal: useAuto,
+      hours_per_day: financialData.hours_per_day,
+      avg_services_per_day: financialData.avg_services_per_day,
     });
   };
 
@@ -132,6 +140,22 @@ const Financeiro = () => {
       working_days_per_month: days,
       monthly_goal: financialData.monthly_goal,
       use_automatic_goal: financialData.use_automatic_goal,
+      hours_per_day: financialData.hours_per_day,
+      avg_services_per_day: financialData.avg_services_per_day,
+    });
+  };
+
+  const handleSaveHourlyParams = async (hoursPerDay: number, avgServicesPerDay: number) => {
+    if (!financialData) return;
+    
+    await saveFinancialData({
+      fixed_costs: localFixedCosts,
+      variable_costs_percentage: localVariablePercentage,
+      working_days_per_month: financialData.working_days_per_month,
+      monthly_goal: financialData.monthly_goal,
+      use_automatic_goal: financialData.use_automatic_goal,
+      hours_per_day: hoursPerDay,
+      avg_services_per_day: avgServicesPerDay,
     });
   };
 
@@ -306,13 +330,21 @@ const Financeiro = () => {
           </motion.div>
         )}
 
-        {/* Tabs: Visão Geral + Custos + DFC */}
+        {/* Tabs: Visão Geral + Custos + Valor Hora + Precificação + DFC */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="w-full sm:w-auto">
+          <TabsList className="w-full sm:w-auto flex-wrap h-auto gap-1 p-1">
             <TabsTrigger value="overview" className="flex-1 sm:flex-none">Visão Geral</TabsTrigger>
             <TabsTrigger value="custos" className="flex-1 sm:flex-none">
               <TrendingDown className="w-3.5 h-3.5 mr-1.5" />
               Custos
+            </TabsTrigger>
+            <TabsTrigger value="valorhora" className="flex-1 sm:flex-none">
+              <Clock className="w-3.5 h-3.5 mr-1.5" />
+              Valor Hora
+            </TabsTrigger>
+            <TabsTrigger value="precificacao" className="flex-1 sm:flex-none">
+              <Calculator className="w-3.5 h-3.5 mr-1.5" />
+              Precificação
             </TabsTrigger>
             <TabsTrigger value="dfc" className="flex-1 sm:flex-none" disabled={!hasDFCAccess}>
               {!hasDFCAccess && <Lock className="w-3 h-3 mr-1.5" />}
@@ -411,12 +443,55 @@ const Financeiro = () => {
             </motion.div>
           </TabsContent>
 
-          {/* TAB: Custos (New) */}
+          {/* TAB: Custos */}
           <TabsContent value="custos" className="space-y-6">
             <GestaoCompletaCustos
               monthlyRevenue={monthlyRevenue.total}
               onFixedChange={handleFixedCostsChange}
               onVariableChange={handleVariableCostsChange}
+            />
+          </TabsContent>
+
+          {/* TAB: Valor Hora */}
+          <TabsContent value="valorhora" className="space-y-6">
+            <ValorHoraEmpresa
+              fixedCosts={localFixedCosts}
+              variableCostsPercentage={localVariablePercentage}
+              workingDays={financialData?.working_days_per_month || 22}
+              hoursPerDay={financialData?.hours_per_day || 8}
+              avgServicesPerDay={financialData?.avg_services_per_day || 3}
+              monthlyRevenue={monthlyRevenue.total}
+              onSave={handleSaveHourlyParams}
+              isSaving={isSaving}
+            />
+          </TabsContent>
+
+          {/* TAB: Precificação */}
+          <TabsContent value="precificacao" className="space-y-6">
+            <PrecificacaoServicos
+              hourlyRate={
+                (() => {
+                  const hours = (financialData?.hours_per_day || 8);
+                  const days = (financialData?.working_days_per_month || 22);
+                  const totalHours = days * hours;
+                  const varCosts = monthlyRevenue.total * (localVariablePercentage / 100);
+                  const totalCost = localFixedCosts + varCosts;
+                  return totalHours > 0 ? totalCost / totalHours : 0;
+                })()
+              }
+              costPerService={
+                (() => {
+                  const services_per_day = (financialData?.avg_services_per_day || 3);
+                  const days = (financialData?.working_days_per_month || 22);
+                  const totalServices = days * services_per_day;
+                  const varCosts = monthlyRevenue.total * (localVariablePercentage / 100);
+                  const totalCost = localFixedCosts + varCosts;
+                  return totalServices > 0 ? totalCost / totalServices : 0;
+                })()
+              }
+              services={services}
+              onUpdateService={updateService}
+              isUpdating={isUpdatingService}
             />
           </TabsContent>
 

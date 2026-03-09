@@ -45,6 +45,8 @@ export function FinancialForm({ initialData, onSave, isSaving, hideVariableCosts
       working_days_per_month: parseInt(workingDays) || 22,
       monthly_goal: initialData?.monthly_goal ?? null,
       use_automatic_goal: initialData?.use_automatic_goal ?? true,
+      hours_per_day: initialData?.hours_per_day ?? 8,
+      avg_services_per_day: initialData?.avg_services_per_day ?? 3,
     });
   };
 

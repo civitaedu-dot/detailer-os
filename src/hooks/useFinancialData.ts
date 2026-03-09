@@ -10,6 +10,8 @@ export interface FinancialData {
   working_days_per_month: number;
   monthly_goal: number | null;
   use_automatic_goal: boolean;
+  hours_per_day: number;
+  avg_services_per_day: number;
 }
 
 export interface MonthlyRevenue {
@@ -55,6 +57,8 @@ export function useFinancialData(selectedDate?: Date) {
           working_days_per_month: data.working_days_per_month,
           monthly_goal: data.monthly_goal ? Number(data.monthly_goal) : null,
           use_automatic_goal: data.use_automatic_goal ?? true,
+          hours_per_day: Number(data.hours_per_day) || 8,
+          avg_services_per_day: Number(data.avg_services_per_day) || 3,
         });
       } else {
         setFinancialData({
@@ -63,6 +67,8 @@ export function useFinancialData(selectedDate?: Date) {
           working_days_per_month: 22,
           monthly_goal: null,
           use_automatic_goal: true,
+          hours_per_day: 8,
+          avg_services_per_day: 3,
         });
       }
     } catch (error) {
@@ -127,6 +133,8 @@ export function useFinancialData(selectedDate?: Date) {
           working_days_per_month: data.working_days_per_month,
           monthly_goal: data.monthly_goal,
           use_automatic_goal: data.use_automatic_goal,
+          hours_per_day: data.hours_per_day,
+          avg_services_per_day: data.avg_services_per_day,
         }, {
           onConflict: 'user_id',
         });
