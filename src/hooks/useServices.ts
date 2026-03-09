@@ -14,6 +14,11 @@ export interface Service {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // Novos campos para precificação
+  calculated_price: number | null;
+  material_cost: number;
+  additional_cost: number;
+  profit_margin: number;
 }
 
 export interface ServiceFormData {
@@ -23,6 +28,11 @@ export interface ServiceFormData {
   duration_minutes: number;
   estimated_cost?: number;
   is_active?: boolean;
+  // Novos campos para precificação
+  calculated_price?: number | null;
+  material_cost?: number;
+  additional_cost?: number;
+  profit_margin?: number;
 }
 
 export const useServices = () => {
