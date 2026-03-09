@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import TrialExpired from "./pages/TrialExpired";
 import SocioIA from "./pages/SocioIA";
+import Orcamentos from "./pages/Orcamentos";
 
 const queryClient = new QueryClient();
 
@@ -101,6 +102,14 @@ const App = () => (
               } 
             />
             <Route 
+              path="/orcamentos" 
+              element={
+                <ProtectedRoute>
+                  <Orcamentos />
+                </ProtectedRoute>
+              } 
+            />
+            <Route
               path="/socio-ia" 
               element={
                 <ProtectedRoute>

@@ -136,6 +136,57 @@ export type Database = {
         }
         Relationships: []
       }
+      company_settings: {
+        Row: {
+          address: string | null
+          business_name: string | null
+          closing_message: string | null
+          cnpj: string | null
+          created_at: string
+          email: string | null
+          id: string
+          logo_url: string | null
+          phone: string | null
+          primary_color: string | null
+          trade_name: string | null
+          updated_at: string
+          user_id: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          business_name?: string | null
+          closing_message?: string | null
+          cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          phone?: string | null
+          primary_color?: string | null
+          trade_name?: string | null
+          updated_at?: string
+          user_id: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          business_name?: string | null
+          closing_message?: string | null
+          cnpj?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          phone?: string | null
+          primary_color?: string | null
+          trade_name?: string | null
+          updated_at?: string
+          user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       financial_data: {
         Row: {
           created_at: string
@@ -357,6 +408,256 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      quote_history: {
+        Row: {
+          action: string
+          created_at: string
+          field_changed: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          quote_id: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          field_changed?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          quote_id: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          field_changed?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          quote_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_history_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          discount_percentage: number
+          id: string
+          name: string
+          quantity: number
+          quote_id: string
+          service_id: string | null
+          sort_order: number
+          subtotal: number
+          unit: string | null
+          unit_price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          discount_percentage?: number
+          id?: string
+          name: string
+          quantity?: number
+          quote_id: string
+          service_id?: string | null
+          sort_order?: number
+          subtotal?: number
+          unit?: string | null
+          unit_price?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          discount_percentage?: number
+          id?: string
+          name?: string
+          quantity?: number
+          quote_id?: string
+          service_id?: string | null
+          sort_order?: number
+          subtotal?: number
+          unit?: string | null
+          unit_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quote_items_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quote_terms_templates: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      quotes: {
+        Row: {
+          client_address: string | null
+          client_company: string | null
+          client_document: string | null
+          client_email: string | null
+          client_id: string | null
+          client_name: string
+          client_phone: string | null
+          converted_to_appointment: boolean | null
+          converted_to_entry: boolean | null
+          created_at: string
+          created_date: string
+          delivery_deadline: string | null
+          discount_amount: number
+          discount_type: string | null
+          discount_value: number
+          expiry_date: string | null
+          id: string
+          internal_notes: string | null
+          observations: string | null
+          payment_conditions: string | null
+          quote_number: string
+          status: string
+          subtotal: number
+          tax_amount: number
+          tax_percentage: number
+          tax_type: string | null
+          template: string | null
+          terms_conditions: string | null
+          title: string | null
+          total: number
+          total_item_discounts: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_address?: string | null
+          client_company?: string | null
+          client_document?: string | null
+          client_email?: string | null
+          client_id?: string | null
+          client_name: string
+          client_phone?: string | null
+          converted_to_appointment?: boolean | null
+          converted_to_entry?: boolean | null
+          created_at?: string
+          created_date?: string
+          delivery_deadline?: string | null
+          discount_amount?: number
+          discount_type?: string | null
+          discount_value?: number
+          expiry_date?: string | null
+          id?: string
+          internal_notes?: string | null
+          observations?: string | null
+          payment_conditions?: string | null
+          quote_number: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_percentage?: number
+          tax_type?: string | null
+          template?: string | null
+          terms_conditions?: string | null
+          title?: string | null
+          total?: number
+          total_item_discounts?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_address?: string | null
+          client_company?: string | null
+          client_document?: string | null
+          client_email?: string | null
+          client_id?: string | null
+          client_name?: string
+          client_phone?: string | null
+          converted_to_appointment?: boolean | null
+          converted_to_entry?: boolean | null
+          created_at?: string
+          created_date?: string
+          delivery_deadline?: string | null
+          discount_amount?: number
+          discount_type?: string | null
+          discount_value?: number
+          expiry_date?: string | null
+          id?: string
+          internal_notes?: string | null
+          observations?: string | null
+          payment_conditions?: string | null
+          quote_number?: string
+          status?: string
+          subtotal?: number
+          tax_amount?: number
+          tax_percentage?: number
+          tax_type?: string | null
+          template?: string | null
+          terms_conditions?: string | null
+          title?: string | null
+          total?: number
+          total_item_discounts?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       services: {
         Row: {
