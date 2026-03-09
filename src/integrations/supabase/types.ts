@@ -189,8 +189,10 @@ export type Database = {
       }
       financial_data: {
         Row: {
+          avg_services_per_day: number | null
           created_at: string
           fixed_costs: number
+          hours_per_day: number | null
           id: string
           monthly_goal: number | null
           updated_at: string
@@ -200,8 +202,10 @@ export type Database = {
           working_days_per_month: number
         }
         Insert: {
+          avg_services_per_day?: number | null
           created_at?: string
           fixed_costs?: number
+          hours_per_day?: number | null
           id?: string
           monthly_goal?: number | null
           updated_at?: string
@@ -211,8 +215,10 @@ export type Database = {
           working_days_per_month?: number
         }
         Update: {
+          avg_services_per_day?: number | null
           created_at?: string
           fixed_costs?: number
+          hours_per_day?: number | null
           id?: string
           monthly_goal?: number | null
           updated_at?: string
@@ -661,6 +667,8 @@ export type Database = {
       }
       services: {
         Row: {
+          additional_cost: number | null
+          calculated_price: number | null
           created_at: string
           default_price: number
           description: string | null
@@ -668,11 +676,15 @@ export type Database = {
           estimated_cost: number | null
           id: string
           is_active: boolean
+          material_cost: number | null
           name: string
+          profit_margin: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          additional_cost?: number | null
+          calculated_price?: number | null
           created_at?: string
           default_price?: number
           description?: string | null
@@ -680,11 +692,15 @@ export type Database = {
           estimated_cost?: number | null
           id?: string
           is_active?: boolean
+          material_cost?: number | null
           name: string
+          profit_margin?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          additional_cost?: number | null
+          calculated_price?: number | null
           created_at?: string
           default_price?: number
           description?: string | null
@@ -692,7 +708,9 @@ export type Database = {
           estimated_cost?: number | null
           id?: string
           is_active?: boolean
+          material_cost?: number | null
           name?: string
+          profit_margin?: number | null
           updated_at?: string
           user_id?: string
         }
