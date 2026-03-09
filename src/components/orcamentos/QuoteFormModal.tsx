@@ -259,35 +259,6 @@ export const QuoteFormModal = ({
     generateQuotePdf(quoteForPdf, settings, template);
   };
 
-  // kept for backward compat shape (unused path below)
-  const _buildQuoteForPreview = () => {
-    const quoteForPdf = buildQuoteObject();
-    return {
-      ...quoteForPdf,
-      items: quoteForPdf.items.map((item, i) => {
-        const base = item.quantity * item.unit_price;
-        const sub = base - base * ((item.discount_percentage || 0) / 100);
-        return {
-          id: String(i),
-          quote_id: "",
-          user_id: "",
-          service_id: item.service_id || null,
-          sort_order: i,
-          name: item.name,
-          description: item.description || null,
-          unit: item.unit || "un",
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          discount_percentage: item.discount_percentage || 0,
-          subtotal: sub,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-      }),
-    };
-    generateQuotePdf(quoteForPdf, settings, template);
-  };
-
   const handleCopyLink = () => {
     const link = `${window.location.origin}/orcamentos/${initialData?.id || "preview"}`;
     navigator.clipboard.writeText(link);
