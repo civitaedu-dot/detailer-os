@@ -10,6 +10,8 @@ export interface FinancialData {
   working_days_per_month: number;
   monthly_goal: number | null;
   use_automatic_goal: boolean;
+  hours_per_day: number;
+  avg_services_per_day: number;
 }
 
 export interface MonthlyRevenue {
