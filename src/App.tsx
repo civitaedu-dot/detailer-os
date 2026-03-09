@@ -102,6 +102,14 @@ const App = () => (
               } 
             />
             <Route 
+              path="/orcamentos" 
+              element={
+                <ProtectedRoute>
+                  <Orcamentos />
+                </ProtectedRoute>
+              } 
+            />
+            <Route
               path="/socio-ia" 
               element={
                 <ProtectedRoute>
