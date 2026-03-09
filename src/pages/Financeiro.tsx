@@ -6,13 +6,16 @@ import {
   Loader2,
   LogOut,
   Lock,
-  TrendingDown
+  TrendingDown,
+  Clock,
+  Calculator
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth, isTrialActive } from "@/contexts/AuthContext";
 import { useFinancialData } from "@/hooks/useFinancialData";
 import { useFinancialEntries, type FinancialEntry, type FinancialEntryFormData } from "@/hooks/useFinancialEntries";
 import { useClients } from "@/hooks/useClients";
+import { useServices } from "@/hooks/useServices";
 import { FinancialIndicators } from "@/components/financeiro/FinancialIndicators";
 import { DRESimples } from "@/components/financeiro/DRESimples";
 import { DFCReport } from "@/components/financeiro/DFCReport";
@@ -24,6 +27,8 @@ import { FinancialEntriesList } from "@/components/financeiro/FinancialEntriesLi
 import { ManualEntryModal } from "@/components/financeiro/ManualEntryModal";
 import { MonthSelector } from "@/components/financeiro/MonthSelector";
 import { GestaoCompletaCustos } from "@/components/financeiro/GestaoCompletaCustos";
+import { ValorHoraEmpresa } from "@/components/financeiro/ValorHoraEmpresa";
+import { PrecificacaoServicos } from "@/components/financeiro/PrecificacaoServicos";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
 import { useFixedCosts } from "@/hooks/useFixedCosts";
