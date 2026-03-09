@@ -5,7 +5,8 @@ import {
   RefreshCw,
   Loader2,
   LogOut,
-  Lock
+  Lock,
+  TrendingDown
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth, isTrialActive } from "@/contexts/AuthContext";
@@ -18,12 +19,11 @@ import { DFCReport } from "@/components/financeiro/DFCReport";
 import { PaymentFeesManager } from "@/components/financeiro/PaymentFeesManager";
 import { FinancialAnalysis } from "@/components/financeiro/FinancialAnalysis";
 import { DailyGoalTracker } from "@/components/financeiro/DailyGoalTracker";
-import { VariableCostsManager } from "@/components/financeiro/VariableCostsManager";
-import { FixedCostsManager } from "@/components/financeiro/FixedCostsManager";
 import { WorkingDaysConfig } from "@/components/financeiro/WorkingDaysConfig";
 import { FinancialEntriesList } from "@/components/financeiro/FinancialEntriesList";
 import { ManualEntryModal } from "@/components/financeiro/ManualEntryModal";
 import { MonthSelector } from "@/components/financeiro/MonthSelector";
+import { GestaoCompletaCustos } from "@/components/financeiro/GestaoCompletaCustos";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
 import { useFixedCosts } from "@/hooks/useFixedCosts";
@@ -235,6 +235,9 @@ const Financeiro = () => {
             <Button variant="ghost" size="sm" asChild>
               <Link to="/servicos">Serviços</Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/orcamentos">Orçamentos</Link>
+            </Button>
           </nav>
 
           {/* User menu */}
@@ -300,17 +303,21 @@ const Financeiro = () => {
           </motion.div>
         )}
 
-        {/* Tabs: Visão Geral + DFC */}
+        {/* Tabs: Visão Geral + Custos + DFC */}
         <Tabs defaultValue="overview" className="space-y-6">
           <TabsList className="w-full sm:w-auto">
             <TabsTrigger value="overview" className="flex-1 sm:flex-none">Visão Geral</TabsTrigger>
+            <TabsTrigger value="custos" className="flex-1 sm:flex-none">
+              <TrendingDown className="w-3.5 h-3.5 mr-1.5" />
+              Custos
+            </TabsTrigger>
             <TabsTrigger value="dfc" className="flex-1 sm:flex-none" disabled={!hasDFCAccess}>
               {!hasDFCAccess && <Lock className="w-3 h-3 mr-1.5" />}
-              DFC – Fluxo de Caixa
+              DFC
             </TabsTrigger>
           </TabsList>
 
-          {/* TAB: Visão Geral (existing content) */}
+          {/* TAB: Visão Geral */}
           <TabsContent value="overview" className="space-y-6">
             {/* Financial Indicators */}
             <FinancialIndicators
@@ -353,17 +360,8 @@ const Financeiro = () => {
 
             {/* Main Content Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column - Cost Management */}
+              {/* Left Column - Config */}
               <div className="space-y-6">
-                <FixedCostsManager 
-                  onTotalChange={handleFixedCostsChange}
-                />
-                
-                <VariableCostsManager 
-                  monthlyRevenue={monthlyRevenue.total}
-                  onTotalPercentageChange={handleVariableCostsChange}
-                />
-
                 <WorkingDaysConfig
                   workingDays={financialData?.working_days_per_month || 22}
                   onSave={handleSaveWorkingDays}
@@ -408,6 +406,15 @@ const Financeiro = () => {
                   : " Conclua atendimentos na agenda ou adicione entradas manuais para ver o faturamento."}
               </p>
             </motion.div>
+          </TabsContent>
+
+          {/* TAB: Custos (New) */}
+          <TabsContent value="custos" className="space-y-6">
+            <GestaoCompletaCustos
+              monthlyRevenue={monthlyRevenue.total}
+              onFixedChange={handleFixedCostsChange}
+              onVariableChange={handleVariableCostsChange}
+            />
           </TabsContent>
 
           {/* TAB: DFC */}
