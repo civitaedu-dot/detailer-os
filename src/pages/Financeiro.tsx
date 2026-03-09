@@ -120,6 +120,8 @@ const Financeiro = () => {
       working_days_per_month: financialData.working_days_per_month,
       monthly_goal: goal,
       use_automatic_goal: useAuto,
+      hours_per_day: financialData.hours_per_day,
+      avg_services_per_day: financialData.avg_services_per_day,
     });
   };
 
@@ -132,6 +134,22 @@ const Financeiro = () => {
       working_days_per_month: days,
       monthly_goal: financialData.monthly_goal,
       use_automatic_goal: financialData.use_automatic_goal,
+      hours_per_day: financialData.hours_per_day,
+      avg_services_per_day: financialData.avg_services_per_day,
+    });
+  };
+
+  const handleSaveHourlyParams = async (hoursPerDay: number, avgServicesPerDay: number) => {
+    if (!financialData) return;
+    
+    await saveFinancialData({
+      fixed_costs: localFixedCosts,
+      variable_costs_percentage: localVariablePercentage,
+      working_days_per_month: financialData.working_days_per_month,
+      monthly_goal: financialData.monthly_goal,
+      use_automatic_goal: financialData.use_automatic_goal,
+      hours_per_day: hoursPerDay,
+      avg_services_per_day: avgServicesPerDay,
     });
   };
 
