@@ -68,10 +68,12 @@ const Orcamentos = () => {
   const handleSave = async (formData: any) => {
     setIsSaving(true);
     try {
-      const result = editingQuote 
-        ? await updateQuote(editingQuote.id, formData)
-        : await createQuote(formData);
-      return result;
+      if (editingQuote) {
+        const success = await updateQuote(editingQuote.id, formData);
+        return success ? editingQuote : null;
+      } else {
+        return await createQuote(formData);
+      }
     } finally {
       setIsSaving(false);
     }
