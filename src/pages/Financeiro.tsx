@@ -99,7 +99,8 @@ const Financeiro = () => {
   // Clients for manual entry
   const { clients } = useClients();
 
-  // Modal state
+  // Services for pricing
+  const { services, updateService, isUpdating: isUpdatingService } = useServices();
   const [isManualEntryModalOpen, setIsManualEntryModalOpen] = useState(false);
   const [entryToEdit, setEntryToEdit] = useState<FinancialEntry | null>(null);
 
