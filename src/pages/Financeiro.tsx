@@ -443,12 +443,55 @@ const Financeiro = () => {
             </motion.div>
           </TabsContent>
 
-          {/* TAB: Custos (New) */}
+          {/* TAB: Custos */}
           <TabsContent value="custos" className="space-y-6">
             <GestaoCompletaCustos
               monthlyRevenue={monthlyRevenue.total}
               onFixedChange={handleFixedCostsChange}
               onVariableChange={handleVariableCostsChange}
+            />
+          </TabsContent>
+
+          {/* TAB: Valor Hora */}
+          <TabsContent value="valorhora" className="space-y-6">
+            <ValorHoraEmpresa
+              fixedCosts={localFixedCosts}
+              variableCostsPercentage={localVariablePercentage}
+              workingDays={financialData?.working_days_per_month || 22}
+              hoursPerDay={financialData?.hours_per_day || 8}
+              avgServicesPerDay={financialData?.avg_services_per_day || 3}
+              monthlyRevenue={monthlyRevenue.total}
+              onSave={handleSaveHourlyParams}
+              isSaving={isSaving}
+            />
+          </TabsContent>
+
+          {/* TAB: Precificação */}
+          <TabsContent value="precificacao" className="space-y-6">
+            <PrecificacaoServicos
+              hourlyRate={
+                (() => {
+                  const hours = (financialData?.hours_per_day || 8);
+                  const days = (financialData?.working_days_per_month || 22);
+                  const totalHours = days * hours;
+                  const varCosts = monthlyRevenue.total * (localVariablePercentage / 100);
+                  const totalCost = localFixedCosts + varCosts;
+                  return totalHours > 0 ? totalCost / totalHours : 0;
+                })()
+              }
+              costPerService={
+                (() => {
+                  const services_per_day = (financialData?.avg_services_per_day || 3);
+                  const days = (financialData?.working_days_per_month || 22);
+                  const totalServices = days * services_per_day;
+                  const varCosts = monthlyRevenue.total * (localVariablePercentage / 100);
+                  const totalCost = localFixedCosts + varCosts;
+                  return totalServices > 0 ? totalCost / totalServices : 0;
+                })()
+              }
+              services={services}
+              onUpdateService={updateService}
+              isUpdating={isUpdatingService}
             />
           </TabsContent>
 
