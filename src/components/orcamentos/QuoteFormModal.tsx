@@ -195,26 +195,76 @@ export const QuoteFormModal = ({
     if (result) onClose();
   };
 
-  const handleGeneratePDF = () => {
-    const formData = buildFormData();
-    const quoteForPdf = {
-      ...formData,
+  const buildQuoteObject = () => {
+    const baseItems = items.map((item, i) => {
+      const base = item.quantity * item.unit_price;
+      const sub = base - base * ((item.discount_percentage || 0) / 100);
+      return {
+        id: String(i),
+        quote_id: "",
+        user_id: "",
+        service_id: item.service_id || null,
+        sort_order: i,
+        name: item.name,
+        description: item.description || null,
+        unit: item.unit || "un",
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        discount_percentage: item.discount_percentage || 0,
+        subtotal: sub,
+        created_at: "",
+        updated_at: "",
+      };
+    });
+    return {
       id: initialData?.id || "",
       user_id: "",
+      quote_number: quoteNumber,
+      title: title || null,
+      client_id: selectedClientId || null,
+      client_name: clientName,
+      client_company: clientCompany || null,
+      client_email: clientEmail || null,
+      client_phone: clientPhone || null,
+      client_document: clientDocument || null,
+      client_address: clientAddress || null,
       status: "draft" as const,
+      created_date: createdDate,
+      expiry_date: expiryDate || null,
       subtotal: totals.subtotal,
       total_item_discounts: totals.totalItemDiscounts,
+      discount_type: discountType,
+      discount_value: discountValue,
       discount_amount: totals.discountAmount,
+      tax_type: taxType || null,
+      tax_percentage: taxPercentage,
       tax_amount: totals.taxAmount,
       total: totals.total,
-      discount_value: discountValue,
-      tax_percentage: taxPercentage,
+      payment_conditions: paymentConditions || null,
+      delivery_deadline: deliveryDeadline || null,
+      observations: observations || null,
+      terms_conditions: termsConditions || null,
+      internal_notes: null,
       template,
       converted_to_appointment: false,
       converted_to_entry: false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      items: items.map((item, i) => {
+      items: baseItems,
+    };
+  };
+
+  const handleGeneratePDF = () => {
+    const quoteForPdf = buildQuoteObject();
+    generateQuotePdf(quoteForPdf, settings, template);
+  };
+
+  // kept for backward compat shape (unused path below)
+  const _buildQuoteForPreview = () => {
+    const quoteForPdf = buildQuoteObject();
+    return {
+      ...quoteForPdf,
+      items: quoteForPdf.items.map((item, i) => {
         const base = item.quantity * item.unit_price;
         const sub = base - base * ((item.discount_percentage || 0) / 100);
         return {
