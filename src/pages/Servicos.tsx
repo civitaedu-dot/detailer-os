@@ -157,6 +157,12 @@ const Servicos = () => {
             <Button variant="default" size="sm" asChild>
               <Link to="/servicos">Serviços</Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/orcamentos">Orçamentos</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/configuracoes">Config.</Link>
+            </Button>
           </nav>
 
           <DropdownMenu>
