@@ -133,6 +133,8 @@ export function useFinancialData(selectedDate?: Date) {
           working_days_per_month: data.working_days_per_month,
           monthly_goal: data.monthly_goal,
           use_automatic_goal: data.use_automatic_goal,
+          hours_per_day: data.hours_per_day,
+          avg_services_per_day: data.avg_services_per_day,
         }, {
           onConflict: 'user_id',
         });
