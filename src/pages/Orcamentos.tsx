@@ -136,6 +136,9 @@ const Orcamentos = () => {
             <Button variant="ghost" size="sm" asChild>
               <Link to="/servicos">Serviços</Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/configuracoes">Config.</Link>
+            </Button>
           </nav>
 
           {/* User menu */}

@@ -19,6 +19,7 @@ import Admin from "./pages/Admin";
 import TrialExpired from "./pages/TrialExpired";
 import SocioIA from "./pages/SocioIA";
 import Orcamentos from "./pages/Orcamentos";
+import ConfiguracaoEmpresa from "./pages/ConfiguracaoEmpresa";
 
 const queryClient = new QueryClient();
 
@@ -124,6 +125,15 @@ const App = () => (
               element={
                 <ProtectedRoute requirePlan={false}>
                   <Admin />
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/configuracoes" 
+              element={
+                <ProtectedRoute>
+                  <ConfiguracaoEmpresa />
                 </ProtectedRoute>
               } 
             />

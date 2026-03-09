@@ -252,12 +252,14 @@ const SocioIA = () => {
             <Button variant="ghost" size="sm" asChild><Link to="/agenda">Agenda</Link></Button>
             <Button variant="ghost" size="sm" asChild><Link to="/clientes">Clientes</Link></Button>
             <Button variant="ghost" size="sm" asChild><Link to="/servicos">Serviços</Link></Button>
+            <Button variant="ghost" size="sm" asChild><Link to="/orcamentos">Orçamentos</Link></Button>
             <Button variant="default" size="sm" asChild>
               <Link to="/socio-ia">
                 <Bot className="w-4 h-4 mr-1" />
                 Sócio IA
               </Link>
             </Button>
+            <Button variant="ghost" size="sm" asChild><Link to="/configuracoes">Config.</Link></Button>
             {isAdmin && (
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/admin" className="text-primary">
