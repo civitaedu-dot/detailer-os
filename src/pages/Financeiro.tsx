@@ -332,25 +332,27 @@ const Financeiro = () => {
 
         {/* Tabs: Visão Geral + Custos + Valor Hora + Precificação + DFC */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="w-full sm:w-auto flex-wrap h-auto gap-1 p-1">
-            <TabsTrigger value="overview" className="flex-1 sm:flex-none">Visão Geral</TabsTrigger>
-            <TabsTrigger value="custos" className="flex-1 sm:flex-none">
-              <TrendingDown className="w-3.5 h-3.5 mr-1.5" />
-              Custos
-            </TabsTrigger>
-            <TabsTrigger value="valorhora" className="flex-1 sm:flex-none">
-              <Clock className="w-3.5 h-3.5 mr-1.5" />
-              Valor Hora
-            </TabsTrigger>
-            <TabsTrigger value="precificacao" className="flex-1 sm:flex-none">
-              <Calculator className="w-3.5 h-3.5 mr-1.5" />
-              Precificação
-            </TabsTrigger>
-            <TabsTrigger value="dfc" className="flex-1 sm:flex-none" disabled={!hasDFCAccess}>
-              {!hasDFCAccess && <Lock className="w-3 h-3 mr-1.5" />}
-              DFC
-            </TabsTrigger>
-          </TabsList>
+          <div className="w-full overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <TabsList className="w-max sm:w-auto h-auto gap-1 p-1">
+              <TabsTrigger value="overview" className="text-xs sm:text-sm px-2.5 sm:px-3">Visão Geral</TabsTrigger>
+              <TabsTrigger value="custos" className="text-xs sm:text-sm px-2.5 sm:px-3">
+                <TrendingDown className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+                Custos
+              </TabsTrigger>
+              <TabsTrigger value="valorhora" className="text-xs sm:text-sm px-2.5 sm:px-3">
+                <Clock className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+                Valor Hora
+              </TabsTrigger>
+              <TabsTrigger value="precificacao" className="text-xs sm:text-sm px-2.5 sm:px-3">
+                <Calculator className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+                Precificação
+              </TabsTrigger>
+              <TabsTrigger value="dfc" className="text-xs sm:text-sm px-2.5 sm:px-3" disabled={!hasDFCAccess}>
+                {!hasDFCAccess && <Lock className="w-3 h-3 mr-1 sm:mr-1.5" />}
+                DFC
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* TAB: Visão Geral */}
           <TabsContent value="overview" className="space-y-6">

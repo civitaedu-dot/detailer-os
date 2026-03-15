@@ -155,12 +155,12 @@ export function PrecificacaoServicos({
         animate={{ opacity: 1, y: 0 }}
         className="bg-card border border-border rounded-xl p-6"
       >
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
-            <Calculator className="w-6 h-6 text-success" />
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+            <Calculator className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
           </div>
           <div className="flex-1">
-            <h2 className="font-display text-xl font-bold mb-2">Precificação Profissional</h2>
+            <h2 className="font-display text-lg sm:text-xl font-bold mb-2">Precificação Profissional</h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Calcule o preço ideal de cada serviço com base no seu valor hora, custos de materiais e margem de lucro 
               desejada. Esta ferramenta garante que você não trabalhe no prejuízo e mantenha uma operação lucrativa.
@@ -359,11 +359,11 @@ export function PrecificacaoServicos({
             <div className="text-center">
               <Sparkles className="w-8 h-8 text-success mx-auto mb-3" />
               <p className="text-sm text-muted-foreground mb-2">Preço Recomendado</p>
-              <p className="text-4xl font-bold text-success mb-4">
+              <p className="text-3xl sm:text-4xl font-bold text-success mb-4">
                 {formatCurrency(pricing.priceWithMargin)}
               </p>
 
-              <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4">
                 <div className="p-3 rounded-lg bg-card border border-border">
                   <p className="text-xs text-muted-foreground">Preço Mínimo</p>
                   <p className="text-lg font-semibold text-warning">{formatCurrency(pricing.minimumPrice)}</p>
@@ -424,10 +424,10 @@ export function PrecificacaoServicos({
 
           {/* Botões de Ação */}
           {selectedServiceId && (
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Button
                 variant="outline"
-                className="flex-1"
+                className="flex-1 text-xs sm:text-sm"
                 onClick={handleSaveToService}
                 disabled={isUpdating}
               >
@@ -439,7 +439,7 @@ export function PrecificacaoServicos({
                 Salvar Cálculo
               </Button>
               <Button
-                className="flex-1"
+                className="flex-1 text-xs sm:text-sm"
                 onClick={handleApplyCalculatedPrice}
                 disabled={isUpdating}
               >

@@ -310,47 +310,47 @@ export function ValorHoraEmpresa({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-gradient-to-br from-primary/10 via-card to-card border border-primary/30 rounded-xl p-8"
+        className="bg-gradient-to-br from-primary/10 via-card to-card border border-primary/30 rounded-xl p-5 sm:p-8"
       >
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4">
-            <Calculator className="w-8 h-8 text-primary" />
+        <div className="text-center mb-4 sm:mb-6">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <Calculator className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
           </div>
-          <h3 className="font-display text-2xl font-bold mb-2">Seu Valor Hora</h3>
+          <h3 className="font-display text-xl sm:text-2xl font-bold mb-2">Seu Valor Hora</h3>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">
             Este é o valor mínimo que sua empresa precisa faturar por hora para cobrir todos os custos operacionais
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-6 rounded-xl bg-card border border-border">
-            <DollarSign className="w-8 h-8 text-primary mx-auto mb-3" />
-            <p className="text-3xl font-bold text-primary mb-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="text-center p-4 sm:p-6 rounded-xl bg-card border border-border">
+            <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-primary mx-auto mb-2 sm:mb-3" />
+            <p className="text-2xl sm:text-3xl font-bold text-primary mb-1">
               {formatCurrency(calculations.hourlyRate)}
             </p>
-            <p className="text-sm font-medium">Custo por Hora</p>
+            <p className="text-xs sm:text-sm font-medium">Custo por Hora</p>
             <p className="text-xs text-muted-foreground mt-1">
               Mínimo para não ter prejuízo
             </p>
           </div>
 
-          <div className="text-center p-6 rounded-xl bg-card border border-border">
-            <Clock className="w-8 h-8 text-amber-500 mx-auto mb-3" />
-            <p className="text-3xl font-bold text-amber-500 mb-1">
+          <div className="text-center p-4 sm:p-6 rounded-xl bg-card border border-border">
+            <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500 mx-auto mb-2 sm:mb-3" />
+            <p className="text-2xl sm:text-3xl font-bold text-amber-500 mb-1">
               {formatCurrency(calculations.costPerService)}
             </p>
-            <p className="text-sm font-medium">Custo por Serviço</p>
+            <p className="text-xs sm:text-sm font-medium">Custo por Serviço</p>
             <p className="text-xs text-muted-foreground mt-1">
               Base para precificação
             </p>
           </div>
 
-          <div className="text-center p-6 rounded-xl bg-card border border-border">
-            <TrendingUp className="w-8 h-8 text-success mx-auto mb-3" />
-            <p className="text-3xl font-bold text-success mb-1">
+          <div className="text-center p-4 sm:p-6 rounded-xl bg-card border border-border">
+            <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-success mx-auto mb-2 sm:mb-3" />
+            <p className="text-2xl sm:text-3xl font-bold text-success mb-1">
               {formatCurrency(calculations.revenuePerHour)}
             </p>
-            <p className="text-sm font-medium">Faturamento/Hora Atual</p>
+            <p className="text-xs sm:text-sm font-medium">Faturamento/Hora Atual</p>
             <p className="text-xs text-muted-foreground mt-1">
               Baseado no seu faturamento
             </p>
