@@ -20,6 +20,7 @@ import TrialExpired from "./pages/TrialExpired";
 import SocioIA from "./pages/SocioIA";
 import Orcamentos from "./pages/Orcamentos";
 import ConfiguracaoEmpresa from "./pages/ConfiguracaoEmpresa";
+import RelatorioServicos from "./pages/RelatorioServicos";
 
 const queryClient = new QueryClient();
 
@@ -107,6 +108,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Orcamentos />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/relatorio-servicos" 
+              element={
+                <ProtectedRoute>
+                  <RelatorioServicos />
                 </ProtectedRoute>
               } 
             />

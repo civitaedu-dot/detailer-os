@@ -158,6 +158,9 @@ const Servicos = () => {
               <Link to="/servicos">Serviços</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
+              <Link to="/relatorio-servicos">Relatórios</Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
               <Link to="/orcamentos">Orçamentos</Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
