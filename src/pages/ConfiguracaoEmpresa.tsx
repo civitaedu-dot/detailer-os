@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
