@@ -288,7 +288,7 @@ const ImportarDados = () => {
           continue;
         }
 
-        const { error } = await supabase.from("clients").insert(record);
+        const { error } = await supabase.from("clients").insert(record as any);
         if (error) {
           errors.push({ row: i + 2, field: "geral", message: error.message });
         } else {
