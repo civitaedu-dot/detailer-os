@@ -335,7 +335,7 @@ const ImportarDados = () => {
 
         if (!record.entry_type) record.entry_type = "service";
 
-        const { error } = await supabase.from("financial_entries").insert(record);
+        const { error } = await supabase.from("financial_entries").insert(record as any);
         if (error) {
           errors.push({ row: i + 2, field: "geral", message: error.message });
         } else {
