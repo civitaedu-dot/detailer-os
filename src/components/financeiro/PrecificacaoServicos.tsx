@@ -424,10 +424,10 @@ export function PrecificacaoServicos({
 
           {/* Botões de Ação */}
           {selectedServiceId && (
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <Button
                 variant="outline"
-                className="flex-1"
+                className="flex-1 text-xs sm:text-sm"
                 onClick={handleSaveToService}
                 disabled={isUpdating}
               >
@@ -439,7 +439,7 @@ export function PrecificacaoServicos({
                 Salvar Cálculo
               </Button>
               <Button
-                className="flex-1"
+                className="flex-1 text-xs sm:text-sm"
                 onClick={handleApplyCalculatedPrice}
                 disabled={isUpdating}
               >
