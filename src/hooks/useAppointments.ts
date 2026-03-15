@@ -32,11 +32,25 @@ export interface AppointmentFormData {
   payment_method?: string;
 }
 
-export const useAppointments = (selectedDate?: Date) => {
+interface UseAppointmentsOptions {
+  selectedDate?: Date;
+  dateRange?: { start: string; end: string };
+}
+
+export const useAppointments = (selectedDateOrOptions?: Date | UseAppointmentsOptions) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Normalize options
+  const selectedDate = selectedDateOrOptions instanceof Date ? selectedDateOrOptions : undefined;
+  const dateRange = selectedDateOrOptions && !(selectedDateOrOptions instanceof Date)
+    ? (selectedDateOrOptions as UseAppointmentsOptions).dateRange
+    : undefined;
+  const selectedDateFromOptions = selectedDateOrOptions && !(selectedDateOrOptions instanceof Date)
+    ? (selectedDateOrOptions as UseAppointmentsOptions).selectedDate
+    : selectedDate;
 
   const fetchAppointments = useCallback(async () => {
     if (!user) return;
@@ -49,8 +63,10 @@ export const useAppointments = (selectedDate?: Date) => {
         .order('appointment_date', { ascending: true })
         .order('appointment_time', { ascending: true });
 
-      if (selectedDate) {
-        const dateStr = selectedDate.toISOString().split('T')[0];
+      if (dateRange) {
+        query = query.gte('appointment_date', dateRange.start).lte('appointment_date', dateRange.end);
+      } else if (selectedDateFromOptions) {
+        const dateStr = selectedDateFromOptions.toISOString().split('T')[0];
         query = query.eq('appointment_date', dateStr);
       }
 
@@ -68,7 +84,7 @@ export const useAppointments = (selectedDate?: Date) => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, selectedDate, toast]);
+  }, [user, selectedDateFromOptions, dateRange?.start, dateRange?.end, toast]);
 
   const createAppointment = async (data: AppointmentFormData): Promise<Appointment | null> => {
     if (!user) return null;
@@ -147,12 +163,10 @@ export const useAppointments = (selectedDate?: Date) => {
     }
   };
 
-  // Create financial entry when appointment is completed
   const createFinancialEntryForAppointment = async (appointment: Appointment): Promise<void> => {
     if (!user) return;
 
     try {
-      // Check if entry already exists for this appointment
       const { data: existingEntry } = await supabase
         .from('financial_entries')
         .select('id')
@@ -160,12 +174,8 @@ export const useAppointments = (selectedDate?: Date) => {
         .eq('appointment_id', appointment.id)
         .maybeSingle();
 
-      if (existingEntry) {
-        console.log('Financial entry already exists for appointment:', appointment.id);
-        return;
-      }
+      if (existingEntry) return;
 
-      // Create financial entry
       const { error } = await supabase
         .from('financial_entries')
         .insert({
@@ -183,13 +193,11 @@ export const useAppointments = (selectedDate?: Date) => {
         });
 
       if (error) throw error;
-      console.log('Financial entry created for appointment:', appointment.id);
     } catch (error) {
       console.error('Error creating financial entry:', error);
     }
   };
 
-  // Delete financial entry when appointment status changes from completed
   const deleteFinancialEntryForAppointment = async (appointmentId: string): Promise<void> => {
     if (!user) return;
 
@@ -201,7 +209,6 @@ export const useAppointments = (selectedDate?: Date) => {
         .eq('appointment_id', appointmentId);
 
       if (error) throw error;
-      console.log('Financial entry deleted for appointment:', appointmentId);
     } catch (error) {
       console.error('Error deleting financial entry:', error);
     }
@@ -209,7 +216,6 @@ export const useAppointments = (selectedDate?: Date) => {
 
   const updateStatus = async (id: string, newStatus: string): Promise<boolean> => {
     try {
-      // Get current appointment to check previous status
       const currentAppointment = appointments.find((apt) => apt.id === id);
       const previousStatus = currentAppointment?.status;
 
@@ -220,16 +226,10 @@ export const useAppointments = (selectedDate?: Date) => {
 
       if (error) throw error;
 
-      // Handle financial entry based on status change
       if (currentAppointment) {
         if (newStatus === 'completed' && previousStatus !== 'completed') {
-          // Status changed TO completed - create financial entry
-          await createFinancialEntryForAppointment({
-            ...currentAppointment,
-            status: newStatus,
-          });
+          await createFinancialEntryForAppointment({ ...currentAppointment, status: newStatus });
         } else if (previousStatus === 'completed' && newStatus !== 'completed') {
-          // Status changed FROM completed - delete financial entry
           await deleteFinancialEntryForAppointment(id);
         }
       }
@@ -265,7 +265,6 @@ export const useAppointments = (selectedDate?: Date) => {
 
   const deleteAppointment = async (id: string): Promise<boolean> => {
     try {
-      // Check if appointment was completed - if so, delete financial entry first
       const appointment = appointments.find((apt) => apt.id === id);
       if (appointment?.status === 'completed') {
         await deleteFinancialEntryForAppointment(id);
