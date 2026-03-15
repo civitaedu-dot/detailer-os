@@ -111,6 +111,14 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+            <Route 
+              path="/relatorio-servicos" 
+              element={
+                <ProtectedRoute>
+                  <RelatorioServicos />
+                </ProtectedRoute>
+              } 
+            />
             <Route
               path="/socio-ia" 
               element={
