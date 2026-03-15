@@ -155,12 +155,12 @@ export function PrecificacaoServicos({
         animate={{ opacity: 1, y: 0 }}
         className="bg-card border border-border rounded-xl p-6"
       >
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
-            <Calculator className="w-6 h-6 text-success" />
+        <div className="flex items-start gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-success/10 flex items-center justify-center shrink-0">
+            <Calculator className="w-5 h-5 sm:w-6 sm:h-6 text-success" />
           </div>
           <div className="flex-1">
-            <h2 className="font-display text-xl font-bold mb-2">Precificação Profissional</h2>
+            <h2 className="font-display text-lg sm:text-xl font-bold mb-2">Precificação Profissional</h2>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Calcule o preço ideal de cada serviço com base no seu valor hora, custos de materiais e margem de lucro 
               desejada. Esta ferramenta garante que você não trabalhe no prejuízo e mantenha uma operação lucrativa.
