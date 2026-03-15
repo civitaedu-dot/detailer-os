@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -168,6 +169,8 @@ const Servicos = () => {
             </Button>
           </nav>
 
+          <div className="flex items-center gap-1">
+          <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
@@ -191,6 +194,7 @@ const Servicos = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </header>
 

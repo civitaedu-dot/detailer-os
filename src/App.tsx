@@ -21,6 +21,7 @@ import SocioIA from "./pages/SocioIA";
 import Orcamentos from "./pages/Orcamentos";
 import ConfiguracaoEmpresa from "./pages/ConfiguracaoEmpresa";
 import RelatorioServicos from "./pages/RelatorioServicos";
+import Notificacoes from "./pages/Notificacoes";
 
 const queryClient = new QueryClient();
 
@@ -120,7 +121,15 @@ const App = () => (
               } 
             />
             <Route
-              path="/socio-ia" 
+              path="/notificacoes"
+              element={
+                <ProtectedRoute>
+                  <Notificacoes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/socio-ia"
               element={
                 <ProtectedRoute>
                   <SocioIA />

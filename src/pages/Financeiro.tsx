@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { 
@@ -267,7 +268,9 @@ const Financeiro = () => {
             </Button>
           </nav>
 
-          {/* User menu */}
+          {/* Notifications + User menu */}
+          <div className="flex items-center gap-1">
+          <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
@@ -296,6 +299,7 @@ const Financeiro = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </header>
 

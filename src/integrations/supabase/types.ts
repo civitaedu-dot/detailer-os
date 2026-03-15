@@ -328,6 +328,104 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_settings: {
+        Row: {
+          appointment_status: boolean
+          birthdays: boolean
+          created_at: string
+          first_visit: boolean
+          id: string
+          loyalty_milestones: boolean
+          no_future_booking: boolean
+          retention_15_days: boolean
+          retention_30_days: boolean
+          retention_45_days: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          appointment_status?: boolean
+          birthdays?: boolean
+          created_at?: string
+          first_visit?: boolean
+          id?: string
+          loyalty_milestones?: boolean
+          no_future_booking?: boolean
+          retention_15_days?: boolean
+          retention_30_days?: boolean
+          retention_45_days?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          appointment_status?: boolean
+          birthdays?: boolean
+          created_at?: string
+          first_visit?: boolean
+          id?: string
+          loyalty_milestones?: boolean
+          no_future_booking?: boolean
+          retention_15_days?: boolean
+          retention_30_days?: boolean
+          retention_45_days?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          category: string
+          client_id: string | null
+          client_name: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          read_at?: string | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_method_fees: {
         Row: {
           created_at: string

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
@@ -236,6 +237,8 @@ const RelatorioServicos = () => {
             <Button variant="default" size="sm" asChild><Link to="/relatorio-servicos">Relatórios</Link></Button>
             <Button variant="ghost" size="sm" asChild><Link to="/orcamentos">Orçamentos</Link></Button>
           </nav>
+          <div className="flex items-center gap-1">
+          <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
@@ -256,6 +259,7 @@ const RelatorioServicos = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </header>
 

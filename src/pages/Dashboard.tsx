@@ -25,6 +25,7 @@ import { useFinancialData } from "@/hooks/useFinancialData";
 import { useFixedCosts } from "@/hooks/useFixedCosts";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
 import logo from "@/assets/logo.jpeg";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -186,7 +187,9 @@ const Dashboard = () => {
             )}
           </nav>
 
-          {/* User menu */}
+          {/* Notifications + User menu */}
+          <div className="flex items-center gap-1">
+          <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
@@ -223,6 +226,7 @@ const Dashboard = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </header>
 
