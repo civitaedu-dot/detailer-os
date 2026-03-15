@@ -121,7 +121,15 @@ const App = () => (
               } 
             />
             <Route
-              path="/socio-ia" 
+              path="/notificacoes"
+              element={
+                <ProtectedRoute>
+                  <Notificacoes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/socio-ia"
               element={
                 <ProtectedRoute>
                   <SocioIA />
