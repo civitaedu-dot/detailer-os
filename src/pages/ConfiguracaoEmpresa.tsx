@@ -246,6 +246,7 @@ const ConfiguracaoEmpresa = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </header>
 

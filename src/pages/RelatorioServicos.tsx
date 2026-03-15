@@ -259,6 +259,7 @@ const RelatorioServicos = () => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          </div>
         </div>
       </header>
 
