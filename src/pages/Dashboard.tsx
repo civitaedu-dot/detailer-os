@@ -25,6 +25,7 @@ import { useFinancialData } from "@/hooks/useFinancialData";
 import { useFixedCosts } from "@/hooks/useFixedCosts";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
 import logo from "@/assets/logo.jpeg";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
