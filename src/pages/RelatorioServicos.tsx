@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
