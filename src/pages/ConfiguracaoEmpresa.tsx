@@ -214,6 +214,8 @@ const ConfiguracaoEmpresa = () => {
             </Button>
           </nav>
 
+          <div className="flex items-center gap-1">
+          <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
