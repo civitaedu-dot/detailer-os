@@ -172,6 +172,12 @@ const Dashboard = () => {
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>
+              <Link to="/importar-dados">
+                <Upload className="w-4 h-4 mr-1" />
+                Importar
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
               <Link to="/configuracoes">
                 <Wrench className="w-4 h-4 mr-1" />
                 Config.
