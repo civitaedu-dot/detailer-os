@@ -237,6 +237,8 @@ const RelatorioServicos = () => {
             <Button variant="default" size="sm" asChild><Link to="/relatorio-servicos">Relatórios</Link></Button>
             <Button variant="ghost" size="sm" asChild><Link to="/orcamentos">Orçamentos</Link></Button>
           </nav>
+          <div className="flex items-center gap-1">
+          <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
