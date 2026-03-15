@@ -12,7 +12,8 @@ import {
   CreditCard,
   Loader2,
   RefreshCw,
-  Wrench
+  Wrench,
+  Upload
 } from "lucide-react";
 import { Shield } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
@@ -169,6 +170,12 @@ const Dashboard = () => {
               <Link to="/socio-ia">
                 <Bot className="w-4 h-4 mr-1" />
                 Sócio IA
+              </Link>
+            </Button>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/importar-dados">
+                <Upload className="w-4 h-4 mr-1" />
+                Importar
               </Link>
             </Button>
             <Button variant="ghost" size="sm" asChild>

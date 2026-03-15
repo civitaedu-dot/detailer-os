@@ -328,6 +328,48 @@ export type Database = {
         }
         Relationships: []
       }
+      import_history: {
+        Row: {
+          created_at: string
+          duplicates_found: number
+          error_details: Json | null
+          errors_found: number
+          file_name: string
+          id: string
+          import_type: string
+          imported_records: number
+          status: string
+          total_records: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duplicates_found?: number
+          error_details?: Json | null
+          errors_found?: number
+          file_name: string
+          id?: string
+          import_type?: string
+          imported_records?: number
+          status?: string
+          total_records?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duplicates_found?: number
+          error_details?: Json | null
+          errors_found?: number
+          file_name?: string
+          id?: string
+          import_type?: string
+          imported_records?: number
+          status?: string
+          total_records?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_settings: {
         Row: {
           appointment_status: boolean
