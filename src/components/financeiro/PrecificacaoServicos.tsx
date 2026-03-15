@@ -359,11 +359,11 @@ export function PrecificacaoServicos({
             <div className="text-center">
               <Sparkles className="w-8 h-8 text-success mx-auto mb-3" />
               <p className="text-sm text-muted-foreground mb-2">Preço Recomendado</p>
-              <p className="text-4xl font-bold text-success mb-4">
+              <p className="text-3xl sm:text-4xl font-bold text-success mb-4">
                 {formatCurrency(pricing.priceWithMargin)}
               </p>
 
-              <div className="grid grid-cols-2 gap-4 mt-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 mt-4">
                 <div className="p-3 rounded-lg bg-card border border-border">
                   <p className="text-xs text-muted-foreground">Preço Mínimo</p>
                   <p className="text-lg font-semibold text-warning">{formatCurrency(pricing.minimumPrice)}</p>
