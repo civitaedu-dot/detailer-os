@@ -21,6 +21,7 @@ import SocioIA from "./pages/SocioIA";
 import Orcamentos from "./pages/Orcamentos";
 import ConfiguracaoEmpresa from "./pages/ConfiguracaoEmpresa";
 import RelatorioServicos from "./pages/RelatorioServicos";
+import Notificacoes from "./pages/Notificacoes";
 
 const queryClient = new QueryClient();
 
