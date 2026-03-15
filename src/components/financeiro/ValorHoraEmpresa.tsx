@@ -322,35 +322,35 @@ export function ValorHoraEmpresa({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-6 rounded-xl bg-card border border-border">
-            <DollarSign className="w-8 h-8 text-primary mx-auto mb-3" />
-            <p className="text-3xl font-bold text-primary mb-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+          <div className="text-center p-4 sm:p-6 rounded-xl bg-card border border-border">
+            <DollarSign className="w-6 h-6 sm:w-8 sm:h-8 text-primary mx-auto mb-2 sm:mb-3" />
+            <p className="text-2xl sm:text-3xl font-bold text-primary mb-1">
               {formatCurrency(calculations.hourlyRate)}
             </p>
-            <p className="text-sm font-medium">Custo por Hora</p>
+            <p className="text-xs sm:text-sm font-medium">Custo por Hora</p>
             <p className="text-xs text-muted-foreground mt-1">
               Mínimo para não ter prejuízo
             </p>
           </div>
 
-          <div className="text-center p-6 rounded-xl bg-card border border-border">
-            <Clock className="w-8 h-8 text-amber-500 mx-auto mb-3" />
-            <p className="text-3xl font-bold text-amber-500 mb-1">
+          <div className="text-center p-4 sm:p-6 rounded-xl bg-card border border-border">
+            <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500 mx-auto mb-2 sm:mb-3" />
+            <p className="text-2xl sm:text-3xl font-bold text-amber-500 mb-1">
               {formatCurrency(calculations.costPerService)}
             </p>
-            <p className="text-sm font-medium">Custo por Serviço</p>
+            <p className="text-xs sm:text-sm font-medium">Custo por Serviço</p>
             <p className="text-xs text-muted-foreground mt-1">
               Base para precificação
             </p>
           </div>
 
-          <div className="text-center p-6 rounded-xl bg-card border border-border">
-            <TrendingUp className="w-8 h-8 text-success mx-auto mb-3" />
-            <p className="text-3xl font-bold text-success mb-1">
+          <div className="text-center p-4 sm:p-6 rounded-xl bg-card border border-border">
+            <TrendingUp className="w-6 h-6 sm:w-8 sm:h-8 text-success mx-auto mb-2 sm:mb-3" />
+            <p className="text-2xl sm:text-3xl font-bold text-success mb-1">
               {formatCurrency(calculations.revenuePerHour)}
             </p>
-            <p className="text-sm font-medium">Faturamento/Hora Atual</p>
+            <p className="text-xs sm:text-sm font-medium">Faturamento/Hora Atual</p>
             <p className="text-xs text-muted-foreground mt-1">
               Baseado no seu faturamento
             </p>
