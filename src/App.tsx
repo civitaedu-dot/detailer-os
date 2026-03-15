@@ -130,6 +130,14 @@ const App = () => (
               }
             />
             <Route
+              path="/importar-dados"
+              element={
+                <ProtectedRoute>
+                  <ImportarDados />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/socio-ia"
               element={
                 <ProtectedRoute>
