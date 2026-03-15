@@ -358,8 +358,8 @@ const ImportarDados = () => {
       duplicates_found: duplicates,
       errors_found: errors.length,
       status: errors.length > 0 ? "partial" : "completed",
-      error_details: errors.slice(0, 100),
-    });
+      error_details: JSON.stringify(errors.slice(0, 100)),
+    } as any);
 
     fetchHistory();
     setStep("result");
