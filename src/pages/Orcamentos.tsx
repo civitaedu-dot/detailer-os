@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Loader2, LogOut, RefreshCw, FileText } from "lucide-react";
