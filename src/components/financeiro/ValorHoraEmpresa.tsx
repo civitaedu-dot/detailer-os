@@ -310,13 +310,13 @@ export function ValorHoraEmpresa({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-gradient-to-br from-primary/10 via-card to-card border border-primary/30 rounded-xl p-8"
+        className="bg-gradient-to-br from-primary/10 via-card to-card border border-primary/30 rounded-xl p-5 sm:p-8"
       >
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-4">
-            <Calculator className="w-8 h-8 text-primary" />
+        <div className="text-center mb-4 sm:mb-6">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl bg-primary/20 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <Calculator className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
           </div>
-          <h3 className="font-display text-2xl font-bold mb-2">Seu Valor Hora</h3>
+          <h3 className="font-display text-xl sm:text-2xl font-bold mb-2">Seu Valor Hora</h3>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">
             Este é o valor mínimo que sua empresa precisa faturar por hora para cobrir todos os custos operacionais
           </p>
