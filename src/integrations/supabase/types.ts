@@ -73,6 +73,121 @@ export type Database = {
           },
         ]
       }
+      campaign_recipients: {
+        Row: {
+          campaign_id: string
+          client_id: string | null
+          client_name: string
+          client_phone: string
+          id: string
+          message_sent: string
+          return_appointment_id: string | null
+          return_date: string | null
+          returned: boolean
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          campaign_id: string
+          client_id?: string | null
+          client_name: string
+          client_phone: string
+          id?: string
+          message_sent: string
+          return_appointment_id?: string | null
+          return_date?: string | null
+          returned?: boolean
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          campaign_id?: string
+          client_id?: string | null
+          client_name?: string
+          client_phone?: string
+          id?: string
+          message_sent?: string
+          return_appointment_id?: string | null
+          return_date?: string | null
+          returned?: boolean
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_recipients_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaign_recipients_return_appointment_id_fkey"
+            columns: ["return_appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          created_at: string
+          filters: Json
+          id: string
+          message_template: string
+          name: string
+          objective: string
+          scheduled_date: string | null
+          scheduled_time: string | null
+          sent_at: string | null
+          sent_count: number
+          status: string
+          target_count: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          message_template: string
+          name: string
+          objective?: string
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          target_count?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          filters?: Json
+          id?: string
+          message_template?: string
+          name?: string
+          objective?: string
+          scheduled_date?: string | null
+          scheduled_time?: string | null
+          sent_at?: string | null
+          sent_count?: number
+          status?: string
+          target_count?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string

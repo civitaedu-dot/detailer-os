@@ -24,6 +24,7 @@ import RelatorioServicos from "./pages/RelatorioServicos";
 import Notificacoes from "./pages/Notificacoes";
 import ImportarDados from "./pages/ImportarDados";
 import Vendas from "./pages/Vendas";
+import Campanhas from "./pages/Campanhas";
 
 const queryClient = new QueryClient();
 
@@ -143,6 +144,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Vendas />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/campanhas"
+              element={
+                <ProtectedRoute>
+                  <Campanhas />
                 </ProtectedRoute>
               }
             />
