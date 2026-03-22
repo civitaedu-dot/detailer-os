@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute, PublicRoute, PlanRoute } from "@/components/auth/ProtectedRoute";
+import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
@@ -39,168 +40,37 @@ const App = () => (
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
-            <Route 
-              path="/login" 
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              } 
-            />
-            <Route 
-              path="/cadastro" 
-              element={
-                <PublicRoute>
-                  <Cadastro />
-                </PublicRoute>
-              } 
-            />
+            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route path="/cadastro" element={<PublicRoute><Cadastro /></PublicRoute>} />
             
             {/* Plans page - requires auth but not active plan */}
-            <Route 
-              path="/planos" 
-              element={
-                <PlanRoute>
-                  <Planos />
-                </PlanRoute>
-              } 
-            />
+            <Route path="/planos" element={<PlanRoute><Planos /></PlanRoute>} />
             
-            {/* Protected routes - require auth AND active plan */}
-            <Route 
-              path="/dashboard" 
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/financeiro" 
-              element={
-                <ProtectedRoute>
-                  <Financeiro />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/agenda" 
-              element={
-                <ProtectedRoute>
-                  <Agenda />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/clientes" 
-              element={
-                <ProtectedRoute>
-                  <Clientes />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/servicos" 
-              element={
-                <ProtectedRoute>
-                  <Servicos />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/orcamentos" 
-              element={
-                <ProtectedRoute>
-                  <Orcamentos />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/relatorio-servicos" 
-              element={
-                <ProtectedRoute>
-                  <RelatorioServicos />
-                </ProtectedRoute>
-              } 
-            />
-            <Route
-              path="/notificacoes"
-              element={
-                <ProtectedRoute>
-                  <Notificacoes />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/importar-dados"
-              element={
-                <ProtectedRoute>
-                  <ImportarDados />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/vendas"
-              element={
-                <ProtectedRoute>
-                  <Vendas />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/campanhas"
-              element={
-                <ProtectedRoute>
-                  <Campanhas />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/estoque"
-              element={
-                <ProtectedRoute>
-                  <Estoque />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/socio-ia"
-              element={
-                <ProtectedRoute>
-                  <SocioIA />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Admin route - requires auth + admin role (checked inside component) */}
-            <Route 
-              path="/admin" 
-              element={
-                <ProtectedRoute requirePlan={false}>
-                  <Admin />
-                </ProtectedRoute>
-              } 
-            />
+            {/* Protected routes with sidebar layout */}
+            <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/financeiro" element={<Financeiro />} />
+              <Route path="/agenda" element={<Agenda />} />
+              <Route path="/clientes" element={<Clientes />} />
+              <Route path="/servicos" element={<Servicos />} />
+              <Route path="/orcamentos" element={<Orcamentos />} />
+              <Route path="/relatorio-servicos" element={<RelatorioServicos />} />
+              <Route path="/notificacoes" element={<Notificacoes />} />
+              <Route path="/importar-dados" element={<ImportarDados />} />
+              <Route path="/vendas" element={<Vendas />} />
+              <Route path="/campanhas" element={<Campanhas />} />
+              <Route path="/estoque" element={<Estoque />} />
+              <Route path="/socio-ia" element={<SocioIA />} />
+              <Route path="/configuracoes" element={<ConfiguracaoEmpresa />} />
+            </Route>
 
-            <Route 
-              path="/configuracoes" 
-              element={
-                <ProtectedRoute>
-                  <ConfiguracaoEmpresa />
-                </ProtectedRoute>
-              } 
-            />
+            {/* Admin - requires auth but checked inside */}
+            <Route element={<ProtectedRoute requirePlan={false}><AppLayout /></ProtectedRoute>}>
+              <Route path="/admin" element={<Admin />} />
+            </Route>
             
             {/* Trial expired */}
-            <Route 
-              path="/trial-expirado" 
-              element={
-                <ProtectedRoute requirePlan={false}>
-                  <TrialExpired />
-                </ProtectedRoute>
-              } 
-            />
+            <Route path="/trial-expirado" element={<ProtectedRoute requirePlan={false}><TrialExpired /></ProtectedRoute>} />
 
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />

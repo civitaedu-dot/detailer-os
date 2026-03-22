@@ -21,12 +21,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClients } from "@/hooks/useClients";
 import { useToast } from "@/hooks/use-toast";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
-import logo from "@/assets/logo.jpeg";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { LogOut, CreditCard, Loader2, Wrench, Upload, Bot, Shield } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import {
@@ -333,99 +327,16 @@ const Vendas = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleLogout = async () => { await signOut(); };
-  const handleManageSubscription = async () => {
-    if (!session?.access_token) return;
-    setIsOpeningPortal(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (error) throw error;
-      if (data?.url) window.open(data.url, "_blank");
-    } catch { toast({ title: "Erro", variant: "destructive" }); }
-    finally { setIsOpeningPortal(false); }
-  };
-
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center h-full">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <img src={logo} alt="DetailerOS" className="w-8 h-8 rounded-lg object-contain" />
-            <span className="font-display font-semibold hidden sm:block">Detailer<span className="text-primary">OS</span></span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-1">
-            {[
-              { to: "/dashboard", label: "Dashboard" },
-              { to: "/financeiro", label: "Financeiro" },
-              { to: "/agenda", label: "Agenda" },
-              { to: "/clientes", label: "Clientes" },
-              { to: "/servicos", label: "Serviços" },
-              { to: "/orcamentos", label: "Orçamentos" },
-            ].map((l) => (
-              <Button key={l.to} variant="ghost" size="sm" asChild><Link to={l.to}>{l.label}</Link></Button>
-            ))}
-            <Button variant="default" size="sm" asChild><Link to="/vendas">Vendas</Link></Button>
-            <Button variant="ghost" size="sm" asChild><Link to="/campanhas"><Megaphone className="w-4 h-4 mr-1" />Campanhas</Link></Button>
-            <Button variant="ghost" size="sm" asChild><Link to="/socio-ia"><Bot className="w-4 h-4 mr-1" />Sócio IA</Link></Button>
-            {isAdmin && <Button variant="ghost" size="sm" asChild><Link to="/admin" className="text-primary"><Shield className="w-4 h-4 mr-1" />Admin</Link></Button>}
-          </nav>
-          <div className="flex items-center gap-1">
-            <NotificationBell />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-2">
-                    <span className="text-xs font-semibold text-primary">{profile?.name?.charAt(0).toUpperCase() || "U"}</span>
-                  </div>
-                  <span className="hidden sm:block">{profile?.name || "Usuário"}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{profile?.name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.email}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleManageSubscription} disabled={isOpeningPortal}>
-                  {isOpeningPortal ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CreditCard className="w-4 h-4 mr-2" />}
-                  Gerenciar assinatura
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive"><LogOut className="w-4 h-4 mr-2" />Sair</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-        {/* Mobile tabs */}
-        <div className="md:hidden overflow-x-auto border-t border-border">
-          <div className="flex items-center gap-1 px-4 py-2">
-            {[
-              { to: "/dashboard", label: "Dashboard" },
-              { to: "/financeiro", label: "Financeiro" },
-              { to: "/agenda", label: "Agenda" },
-              { to: "/clientes", label: "Clientes" },
-              { to: "/vendas", label: "Vendas", active: true },
-            ].map((l) => (
-              <Button key={l.to} variant={l.active ? "default" : "ghost"} size="sm" className="shrink-0" asChild>
-                <Link to={l.to}>{l.label}</Link>
-              </Button>
-            ))}
-          </div>
-        </div>
-      </header>
-
-      <main className="container px-4 sm:px-6 py-6 sm:py-8">
+    <div className="p-4 sm:p-6 lg:p-8">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
             <div>
@@ -997,8 +908,6 @@ const Vendas = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </main>
-
       <BulkWhatsAppModal
         open={bulkModalOpen}
         onOpenChange={setBulkModalOpen}

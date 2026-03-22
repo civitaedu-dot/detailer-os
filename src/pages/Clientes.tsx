@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { LogOut, Users, Plus, Search, Phone, Car, Calendar, Pencil, Trash2, MessageCircle } from 'lucide-react';
 import { WhatsAppButton } from '@/components/whatsapp/WhatsAppButton';
-import logo from '@/assets/logo.jpeg';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useClients, Client, ClientFormData } from '@/hooks/useClients';
@@ -14,13 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,12 +39,6 @@ const Clientes = () => {
     vehicle: '',
     notes: '',
   });
-
-  const handleLogout = async () => {
-    await signOut();
-    navigate('/');
-  };
-
   const filteredClients = clients.filter(
     (client) =>
       client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -116,73 +101,7 @@ const Clientes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard" className="flex items-center gap-2">
-              <img src={logo} alt="DetailerOS Logo" className="w-8 h-8 rounded-lg object-contain" />
-              <span className="font-display font-semibold hidden sm:block">
-                Detailer<span className="text-primary">OS</span>
-              </span>
-            </Link>
-          </div>
-
-          <nav className="hidden md:flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/dashboard">Dashboard</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/financeiro">Financeiro</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/agenda">Agenda</Link>
-            </Button>
-            <Button variant="default" size="sm" asChild>
-              <Link to="/clientes">Clientes</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/servicos">Serviços</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/orcamentos">Orçamentos</Link>
-            </Button>
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/configuracoes">Config.</Link>
-            </Button>
-          </nav>
-
-          <div className="flex items-center gap-1">
-          <NotificationBell />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-2">
-                  <span className="text-xs font-semibold text-primary">
-                    {profile?.name?.charAt(0).toUpperCase() || 'U'}
-                  </span>
-                </div>
-                <span className="hidden sm:block">{profile?.name || 'Usuário'}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-medium">{profile?.name}</p>
-                <p className="text-xs text-muted-foreground">{user?.email}</p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                <LogOut className="w-4 h-4 mr-2" />
-                Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          </div>
-        </div>
-      </header>
-
-      <main className="container px-4 sm:px-6 py-8">
+    <div className="p-4 sm:p-6 lg:p-8">
         {/* Page Title */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -316,8 +235,6 @@ const Clientes = () => {
             ))}
           </div>
         )}
-      </main>
-
       {/* Client Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-md">

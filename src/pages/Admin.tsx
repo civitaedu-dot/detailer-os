@@ -32,8 +32,6 @@ import {
   Shield,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import logo from "@/assets/logo.jpeg";
-
 interface UserProfile {
   id: string;
   user_id: string;
@@ -167,32 +165,7 @@ const Admin = () => {
   if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard" className="flex items-center gap-2">
-              <img src={logo} alt="Logo" className="w-8 h-8 rounded-lg object-contain" />
-              <span className="font-display font-semibold hidden sm:block">
-                Detailer<span className="text-primary">OS</span>
-              </span>
-            </Link>
-            <div className="flex items-center gap-2 ml-4">
-              <Shield className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold text-primary">Painel do Gestor</span>
-            </div>
-          </div>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/dashboard">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
-            </Link>
-          </Button>
-        </div>
-      </header>
-
-      <main className="container px-4 sm:px-6 py-8">
+    <div className="p-4 sm:p-6 lg:p-8">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <h1 className="font-display text-2xl sm:text-3xl font-bold mb-2">Painel do Gestor</h1>
           <p className="text-muted-foreground">Visão geral da plataforma e gestão de usuários.</p>
@@ -320,7 +293,6 @@ const Admin = () => {
             </div>
           )}
         </motion.div>
-      </main>
     </div>
   );
 };

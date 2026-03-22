@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,14 +28,6 @@ import {
   Hash,
 } from "lucide-react";
 import logo from "@/assets/logo.jpeg";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
 const COLOR_PRESETS = [
   { label: "Verde Padrão", value: "#22c55e" },
   { label: "Azul Profissional", value: "#3b82f6" },
@@ -177,80 +168,10 @@ const ConfiguracaoEmpresa = () => {
       setIsSaving(false);
     }
   };
-
-  const handleLogout = async () => {
-    await signOut();
-    navigate("/");
-  };
-
   const displayName = form.trade_name || form.business_name || "Minha Empresa";
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard" className="flex items-center gap-2">
-              <img src={logo} alt="Logo" className="w-8 h-8 rounded-lg object-contain" />
-              <span className="font-display font-semibold hidden sm:block">
-                Detailer<span className="text-primary">OS</span>
-              </span>
-            </Link>
-          </div>
-
-          <nav className="hidden md:flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild><Link to="/dashboard">Dashboard</Link></Button>
-            <Button variant="ghost" size="sm" asChild><Link to="/financeiro">Financeiro</Link></Button>
-            <Button variant="ghost" size="sm" asChild><Link to="/agenda">Agenda</Link></Button>
-            <Button variant="ghost" size="sm" asChild><Link to="/clientes">Clientes</Link></Button>
-            <Button variant="ghost" size="sm" asChild><Link to="/servicos">Serviços</Link></Button>
-            <Button variant="ghost" size="sm" asChild><Link to="/orcamentos">Orçamentos</Link></Button>
-            <Button variant="default" size="sm" asChild>
-              <Link to="/configuracoes">
-                <Settings className="w-4 h-4 mr-1" />
-                Configurações
-              </Link>
-            </Button>
-          </nav>
-
-          <div className="flex items-center gap-1">
-          <NotificationBell />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-2">
-                  <span className="text-xs font-semibold text-primary">
-                    {profile?.name?.charAt(0).toUpperCase() || "U"}
-                  </span>
-                </div>
-                <span className="hidden sm:block">{profile?.name || "Usuário"}</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="px-2 py-1.5">
-                <p className="text-sm font-medium">{profile?.name}</p>
-                <p className="text-xs text-muted-foreground">{user?.email}</p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to="/configuracoes">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Configurações da Empresa
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                <LogOut className="w-4 h-4 mr-2" />
-                Sair
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          </div>
-        </div>
-      </header>
-
-      <main className="container px-4 sm:px-6 py-8 max-w-5xl">
+    <div className="p-4 sm:p-6 lg:p-8">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <div className="flex items-center gap-3 mb-1">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -573,7 +494,6 @@ const ConfiguracaoEmpresa = () => {
             </div>
           </div>
         )}
-      </main>
     </div>
   );
 };
