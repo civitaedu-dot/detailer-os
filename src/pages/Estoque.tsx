@@ -703,7 +703,7 @@ const Estoque = () => {
                 <div><Label>Contato</Label><Input value={sContact} onChange={(e) => setSContact(e.target.value)} /></div>
                 <div><Label>Telefone</Label><Input value={sPhone} onChange={(e) => setSPhone(e.target.value)} /></div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><Label>E-mail</Label><Input value={sEmail} onChange={(e) => setSEmail(e.target.value)} /></div>
                 <div><Label>Prazo Entrega (dias)</Label><Input type="number" value={sDeliveryDays} onChange={(e) => setSDeliveryDays(e.target.value)} /></div>
               </div>
