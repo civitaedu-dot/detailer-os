@@ -613,7 +613,7 @@ const Estoque = () => {
                 <div><Label>Nome *</Label><Input value={pName} onChange={(e) => setPName(e.target.value)} placeholder="Ex: Cera Carnaúba" /></div>
                 <div><Label>Marca</Label><Input value={pBrand} onChange={(e) => setPBrand(e.target.value)} placeholder="Ex: Meguiar's" /></div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Categoria</Label>
                   <Select value={pCategory} onValueChange={setPCategory}>
