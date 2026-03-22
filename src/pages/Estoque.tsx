@@ -86,6 +86,7 @@ const Estoque = () => {
   const [pStock, setPStock] = useState("");
   const [pMinStock, setPMinStock] = useState("");
   const [pCost, setPCost] = useState("");
+  const [pYields, setPYields] = useState("1");
   const [pSupplier, setPSupplier] = useState<string>("");
 
   // Movement form
@@ -106,16 +107,22 @@ const Estoque = () => {
 
   const resetProductForm = () => {
     setPName(""); setPBrand(""); setPCategory("outros"); setPUnit("un");
-    setPStock(""); setPMinStock(""); setPCost(""); setPSupplier("");
+    setPStock(""); setPMinStock(""); setPCost(""); setPYields("1"); setPSupplier("");
     setEditingProduct(null); setShowProductForm(false);
   };
+
+  const calculatedCostPerUse = useMemo(() => {
+    const cost = parseFloat(pCost) || 0;
+    const yields = parseFloat(pYields) || 1;
+    return yields > 0 ? cost / yields : 0;
+  }, [pCost, pYields]);
 
   const handleSaveProduct = async () => {
     if (!pName) return;
     const data = {
       name: pName, brand: pBrand || null, category: pCategory, unit: pUnit,
       current_stock: parseFloat(pStock) || 0, min_stock: parseFloat(pMinStock) || 0,
-      unit_cost: parseFloat(pCost) || 0, supplier_id: pSupplier || null,
+      unit_cost: parseFloat(pCost) || 0, yields_per_unit: parseFloat(pYields) || 1, supplier_id: pSupplier || null,
     };
     if (editingProduct) {
       await updateProduct(editingProduct.id, data);
@@ -129,7 +136,7 @@ const Estoque = () => {
     setEditingProduct(p);
     setPName(p.name); setPBrand(p.brand || ""); setPCategory(p.category);
     setPUnit(p.unit); setPStock(String(p.current_stock)); setPMinStock(String(p.min_stock));
-    setPCost(String(p.unit_cost)); setPSupplier(p.supplier_id || "");
+    setPCost(String(p.unit_cost)); setPYields(String(p.yields_per_unit || 1)); setPSupplier(p.supplier_id || "");
     setShowProductForm(true);
   };
 
@@ -423,13 +430,14 @@ const Estoque = () => {
                         <TableHead className="hidden sm:table-cell">Categoria</TableHead>
                         <TableHead>Estoque</TableHead>
                         <TableHead className="hidden sm:table-cell">Custo Un.</TableHead>
-                        <TableHead className="hidden md:table-cell">Valor Total</TableHead>
+                        <TableHead className="hidden md:table-cell">Custo/Uso</TableHead>
+                        <TableHead className="hidden lg:table-cell">Valor Total</TableHead>
                         <TableHead className="w-20">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredProducts.length === 0 ? (
-                        <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum produto encontrado</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum produto encontrado</TableCell></TableRow>
                       ) : filteredProducts.map((p) => (
                         <TableRow key={p.id}>
                           <TableCell>
@@ -450,7 +458,11 @@ const Estoque = () => {
                             </div>
                           </TableCell>
                           <TableCell className="hidden sm:table-cell">{formatCurrency(p.unit_cost)}</TableCell>
-                          <TableCell className="hidden md:table-cell">{formatCurrency(p.current_stock * p.unit_cost)}</TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <span className="text-primary font-medium">{formatCurrency(p.cost_per_use)}</span>
+                            <span className="text-xs text-muted-foreground ml-1">({p.yields_per_unit}x)</span>
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">{formatCurrency(p.current_stock * p.unit_cost)}</TableCell>
                           <TableCell>
                             <div className="flex gap-1">
                               <Button variant="ghost" size="icon" onClick={() => startEdit(p)}><Edit className="w-4 h-4" /></Button>
@@ -583,11 +595,22 @@ const Estoque = () => {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div><Label>Estoque Atual</Label><Input type="number" value={pStock} onChange={(e) => setPStock(e.target.value)} /></div>
                 <div><Label>Estoque Mínimo</Label><Input type="number" value={pMinStock} onChange={(e) => setPMinStock(e.target.value)} /></div>
-                <div><Label>Custo Unitário</Label><Input type="number" step="0.01" value={pCost} onChange={(e) => setPCost(e.target.value)} /></div>
+                <div><Label>Custo Unitário (R$)</Label><Input type="number" step="0.01" value={pCost} onChange={(e) => setPCost(e.target.value)} /></div>
+                <div><Label>Rendimento (usos)</Label><Input type="number" min="1" value={pYields} onChange={(e) => setPYields(e.target.value)} placeholder="Ex: 20" /></div>
               </div>
+              {(parseFloat(pCost) > 0 && parseFloat(pYields) > 0) && (
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <p className="text-sm font-medium text-primary">
+                    💰 Custo por uso: {formatCurrency(calculatedCostPerUse)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formatCurrency(parseFloat(pCost) || 0)} ÷ {parseFloat(pYields) || 1} usos = {formatCurrency(calculatedCostPerUse)} por aplicação
+                  </p>
+                </div>
+              )}
               {suppliers.length > 0 && (
                 <div>
                   <Label>Fornecedor</Label>
