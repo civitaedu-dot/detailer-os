@@ -229,10 +229,15 @@ const Estoque = () => {
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <img src={logo} alt="DetailerOS" className="w-8 h-8 rounded-lg object-contain" />
-            <span className="font-display font-semibold hidden sm:block">Detailer<span className="text-primary">OS</span></span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+            <Link to="/dashboard" className="flex items-center gap-2">
+              <img src={logo} alt="DetailerOS" className="w-8 h-8 rounded-lg object-contain" />
+              <span className="font-display font-semibold hidden sm:block">Detailer<span className="text-primary">OS</span></span>
+            </Link>
+          </div>
           <nav className="hidden md:flex items-center gap-1">
             {[
               { to: "/dashboard", label: "Dashboard" },
@@ -253,7 +258,7 @@ const Estoque = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center sm:mr-2">
                     <span className="text-xs font-semibold text-primary">{profile?.name?.charAt(0).toUpperCase() || "U"}</span>
                   </div>
                   <span className="hidden sm:block">{profile?.name || "Usuário"}</span>
@@ -277,6 +282,32 @@ const Estoque = () => {
             </DropdownMenu>
           </div>
         </div>
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="md:hidden border-t border-border bg-card">
+            <nav className="container px-4 py-3 flex flex-col gap-1">
+              {[
+                { to: "/dashboard", label: "Dashboard" },
+                { to: "/financeiro", label: "Financeiro" },
+                { to: "/agenda", label: "Agenda" },
+                { to: "/clientes", label: "Clientes" },
+                { to: "/servicos", label: "Serviços" },
+                { to: "/vendas", label: "Vendas" },
+                { to: "/campanhas", label: "Campanhas" },
+                { to: "/estoque", label: "Estoque", active: true },
+              ].map((l) => (
+                <Button key={l.to} variant={l.active ? "default" : "ghost"} size="sm" className="justify-start" asChild onClick={() => setMobileMenuOpen(false)}>
+                  <Link to={l.to}>{l.label}</Link>
+                </Button>
+              ))}
+              {isAdmin && (
+                <Button variant="ghost" size="sm" className="justify-start text-primary" asChild onClick={() => setMobileMenuOpen(false)}>
+                  <Link to="/admin"><Shield className="w-4 h-4 mr-1" />Admin</Link>
+                </Button>
+              )}
+            </nav>
+          </motion.div>
+        )}
       </header>
 
       <main className="container px-4 sm:px-6 py-6 sm:py-8">
