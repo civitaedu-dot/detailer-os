@@ -23,6 +23,7 @@ import ConfiguracaoEmpresa from "./pages/ConfiguracaoEmpresa";
 import RelatorioServicos from "./pages/RelatorioServicos";
 import Notificacoes from "./pages/Notificacoes";
 import ImportarDados from "./pages/ImportarDados";
+import Vendas from "./pages/Vendas";
 
 const queryClient = new QueryClient();
 
@@ -134,6 +135,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ImportarDados />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vendas"
+              element={
+                <ProtectedRoute>
+                  <Vendas />
                 </ProtectedRoute>
               }
             />
