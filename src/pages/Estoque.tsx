@@ -699,7 +699,7 @@ const Estoque = () => {
             <DialogHeader><DialogTitle>Novo Fornecedor</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div><Label>Nome *</Label><Input value={sName} onChange={(e) => setSName(e.target.value)} /></div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><Label>Contato</Label><Input value={sContact} onChange={(e) => setSContact(e.target.value)} /></div>
                 <div><Label>Telefone</Label><Input value={sPhone} onChange={(e) => setSPhone(e.target.value)} /></div>
               </div>
