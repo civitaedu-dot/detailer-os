@@ -402,27 +402,7 @@ const ImportarDados = () => {
   const previewData = step === "preview" ? getMappedPreview() : [];
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link to="/dashboard" className="flex items-center gap-2">
-              <img src={logo} alt="DetailerOS Logo" className="w-8 h-8 rounded-lg object-contain" />
-              <span className="font-display font-semibold hidden sm:block">
-                Detailer<span className="text-primary">OS</span>
-              </span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/dashboard"><ArrowLeft className="w-4 h-4 mr-1" /> Voltar</Link>
-            </Button>
-            <NotificationBell />
-          </div>
-        </div>
-      </header>
-
-      <main className="container px-4 sm:px-6 py-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-bold mb-1">Importar Dados</h1>
           <p className="text-muted-foreground mb-6">Importe clientes ou dados financeiros a partir de planilhas</p>
@@ -751,7 +731,6 @@ const ImportarDados = () => {
             </TabsContent>
           </Tabs>
         </motion.div>
-      </main>
     </div>
   );
 };

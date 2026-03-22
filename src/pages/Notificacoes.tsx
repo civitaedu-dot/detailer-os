@@ -139,25 +139,7 @@ const Notificacoes = () => {
   }, [filteredNotifications]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container px-4 sm:px-6 h-16 flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link to="/dashboard"><ArrowLeft className="w-5 h-5" /></Link>
-          </Button>
-          <div className="flex items-center gap-2">
-            <Bell className="w-5 h-5 text-primary" />
-            <h1 className="font-display font-semibold text-lg">Central de Notificações</h1>
-          </div>
-          {unreadCount > 0 && (
-            <span className="bg-destructive text-destructive-foreground text-xs font-bold px-2 py-0.5 rounded-full">
-              {unreadCount} não lida{unreadCount > 1 ? "s" : ""}
-            </span>
-          )}
-        </div>
-      </header>
-
-      <main className="container px-4 sm:px-6 py-6">
+    <div className="p-4 sm:p-6 lg:p-8">
         <Tabs defaultValue="notifications">
           <TabsList className="mb-6 w-full sm:w-auto overflow-x-auto">
             <TabsTrigger value="notifications" className="flex-1 sm:flex-none">
@@ -344,7 +326,6 @@ const Notificacoes = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </main>
     </div>
   );
 };

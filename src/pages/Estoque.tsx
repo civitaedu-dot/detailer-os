@@ -207,110 +207,12 @@ const Estoque = () => {
   };
 
   const handleLogout = async () => { await signOut(); };
-  const handleManageSubscription = async () => {
-    if (!session?.access_token) return;
-    setIsOpeningPortal(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (error) throw error;
-      if (data?.url) window.open(data.url, "_blank");
-    } catch { toast({ title: "Erro", variant: "destructive" }); }
-    finally { setIsOpeningPortal(false); }
-  };
-
   if (isLoading) {
     return <div className="min-h-screen bg-background flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>;
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </Button>
-            <Link to="/dashboard" className="flex items-center gap-2">
-              <img src={logo} alt="DetailerOS" className="w-8 h-8 rounded-lg object-contain" />
-              <span className="font-display font-semibold hidden sm:block">Detailer<span className="text-primary">OS</span></span>
-            </Link>
-          </div>
-          <nav className="hidden md:flex items-center gap-1">
-            {[
-              { to: "/dashboard", label: "Dashboard" },
-              { to: "/financeiro", label: "Financeiro" },
-              { to: "/agenda", label: "Agenda" },
-              { to: "/clientes", label: "Clientes" },
-              { to: "/servicos", label: "Serviços" },
-              { to: "/vendas", label: "Vendas" },
-              { to: "/campanhas", label: "Campanhas" },
-            ].map((l) => (
-              <Button key={l.to} variant="ghost" size="sm" asChild><Link to={l.to}>{l.label}</Link></Button>
-            ))}
-            <Button variant="default" size="sm" asChild><Link to="/estoque"><Package className="w-4 h-4 mr-1" />Estoque</Link></Button>
-            {isAdmin && <Button variant="ghost" size="sm" asChild><Link to="/admin" className="text-primary"><Shield className="w-4 h-4 mr-1" />Admin</Link></Button>}
-          </nav>
-          <div className="flex items-center gap-1">
-            <NotificationBell />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center sm:mr-2">
-                    <span className="text-xs font-semibold text-primary">{profile?.name?.charAt(0).toUpperCase() || "U"}</span>
-                  </div>
-                  <span className="hidden sm:block">{profile?.name || "Usuário"}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{profile?.name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.email}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleManageSubscription} disabled={isOpeningPortal}>
-                  {isOpeningPortal ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CreditCard className="w-4 h-4 mr-2" />}
-                  Gerenciar assinatura
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                  <LogOut className="w-4 h-4 mr-2" />Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="md:hidden border-t border-border bg-card">
-            <nav className="container px-4 py-3 flex flex-col gap-1">
-              {[
-                { to: "/dashboard", label: "Dashboard" },
-                { to: "/financeiro", label: "Financeiro" },
-                { to: "/agenda", label: "Agenda" },
-                { to: "/clientes", label: "Clientes" },
-                { to: "/servicos", label: "Serviços" },
-                { to: "/vendas", label: "Vendas" },
-                { to: "/campanhas", label: "Campanhas" },
-                { to: "/estoque", label: "Estoque", active: true },
-              ].map((l) => (
-                <Button key={l.to} variant={l.active ? "default" : "ghost"} size="sm" className="justify-start" asChild onClick={() => setMobileMenuOpen(false)}>
-                  <Link to={l.to}>{l.label}</Link>
-                </Button>
-              ))}
-              {isAdmin && (
-                <Button variant="ghost" size="sm" className="justify-start text-primary" asChild onClick={() => setMobileMenuOpen(false)}>
-                  <Link to="/admin"><Shield className="w-4 h-4 mr-1" />Admin</Link>
-                </Button>
-              )}
-            </nav>
-          </motion.div>
-        )}
-      </header>
-
-      <main className="container px-4 sm:px-6 py-6 sm:py-8">
+    <div className="p-4 sm:p-6 lg:p-8">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -712,7 +614,6 @@ const Estoque = () => {
             </div>
           </DialogContent>
         </Dialog>
-      </main>
     </div>
   );
 };

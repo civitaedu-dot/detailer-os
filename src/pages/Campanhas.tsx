@@ -280,19 +280,6 @@ const Campanhas = () => {
   };
 
   const handleLogout = async () => { await signOut(); };
-  const handleManageSubscription = async () => {
-    if (!session?.access_token) return;
-    setIsOpeningPortal(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("customer-portal", {
-        headers: { Authorization: `Bearer ${session.access_token}` },
-      });
-      if (error) throw error;
-      if (data?.url) window.open(data.url, "_blank");
-    } catch { toast({ title: "Erro", variant: "destructive" }); }
-    finally { setIsOpeningPortal(false); }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -302,61 +289,7 @@ const Campanhas = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <img src={logo} alt="DetailerOS" className="w-8 h-8 rounded-lg object-contain" />
-            <span className="font-display font-semibold hidden sm:block">Detailer<span className="text-primary">OS</span></span>
-          </Link>
-          <nav className="hidden md:flex items-center gap-1">
-            {[
-              { to: "/dashboard", label: "Dashboard" },
-              { to: "/financeiro", label: "Financeiro" },
-              { to: "/agenda", label: "Agenda" },
-              { to: "/clientes", label: "Clientes" },
-              { to: "/servicos", label: "Serviços" },
-              { to: "/vendas", label: "Vendas" },
-            ].map((l) => (
-              <Button key={l.to} variant="ghost" size="sm" asChild><Link to={l.to}>{l.label}</Link></Button>
-            ))}
-            <Button variant="default" size="sm" asChild><Link to="/campanhas"><Megaphone className="w-4 h-4 mr-1" />Campanhas</Link></Button>
-            <Button variant="ghost" size="sm" asChild><Link to="/socio-ia"><Bot className="w-4 h-4 mr-1" />Sócio IA</Link></Button>
-            {isAdmin && <Button variant="ghost" size="sm" asChild><Link to="/admin" className="text-primary"><Shield className="w-4 h-4 mr-1" />Admin</Link></Button>}
-          </nav>
-          <div className="flex items-center gap-1">
-            <NotificationBell />
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-2">
-                    <span className="text-xs font-semibold text-primary">{profile?.name?.charAt(0).toUpperCase() || "U"}</span>
-                  </div>
-                  <span className="hidden sm:block">{profile?.name || "Usuário"}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{profile?.name}</p>
-                  <p className="text-xs text-muted-foreground">{user?.email}</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleManageSubscription} disabled={isOpeningPortal}>
-                  {isOpeningPortal ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CreditCard className="w-4 h-4 mr-2" />}
-                  Gerenciar assinatura
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                  <LogOut className="w-4 h-4 mr-2" />Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </header>
-
-      <main className="container px-4 sm:px-6 py-6 sm:py-8">
+    <div className="p-4 sm:p-6 lg:p-8">
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
             <Megaphone className="w-7 h-7 text-primary" />
@@ -738,7 +671,6 @@ const Campanhas = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </main>
     </div>
   );
 };
