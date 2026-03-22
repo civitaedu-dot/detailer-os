@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import {
   Package, Plus, ArrowDownCircle, ArrowUpCircle, AlertTriangle, Search,
   Trash2, Edit, Download, Truck, BarChart3, Filter, Eye,
-  Bot, Shield, LogOut, CreditCard, Loader2, Wrench, Upload, Megaphone
+  Bot, Shield, LogOut, CreditCard, Loader2, Wrench, Upload, Megaphone, Menu, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
