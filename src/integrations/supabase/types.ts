@@ -646,6 +646,62 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          brand: string | null
+          category: string
+          created_at: string
+          current_stock: number
+          id: string
+          is_active: boolean
+          min_stock: number
+          name: string
+          supplier_id: string | null
+          unit: string
+          unit_cost: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          brand?: string | null
+          category?: string
+          created_at?: string
+          current_stock?: number
+          id?: string
+          is_active?: boolean
+          min_stock?: number
+          name: string
+          supplier_id?: string | null
+          unit?: string
+          unit_cost?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string
+          created_at?: string
+          current_stock?: number
+          id?: string
+          is_active?: boolean
+          min_stock?: number
+          name?: string
+          supplier_id?: string | null
+          unit?: string
+          unit_cost?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           ai_interactions_limit: number | null
@@ -999,6 +1055,93 @@ export type Database = {
           material_cost?: number | null
           name?: string
           profit_margin?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stock_movements: {
+        Row: {
+          appointment_id: string | null
+          created_at: string
+          id: string
+          movement_type: string
+          product_id: string
+          quantity: number
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          movement_type?: string
+          product_id: string
+          quantity: number
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          appointment_id?: string | null
+          created_at?: string
+          id?: string
+          movement_type?: string
+          product_id?: string
+          quantity?: number
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_movements_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          avg_delivery_days: number | null
+          contact_name: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_delivery_days?: number | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_delivery_days?: number | null
+          contact_name?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
           updated_at?: string
           user_id?: string
         }
