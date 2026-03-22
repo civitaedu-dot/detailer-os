@@ -122,7 +122,7 @@ const Estoque = () => {
     const data = {
       name: pName, brand: pBrand || null, category: pCategory, unit: pUnit,
       current_stock: parseFloat(pStock) || 0, min_stock: parseFloat(pMinStock) || 0,
-      unit_cost: parseFloat(pCost) || 0, supplier_id: pSupplier || null,
+      unit_cost: parseFloat(pCost) || 0, yields_per_unit: parseFloat(pYields) || 1, supplier_id: pSupplier || null,
     };
     if (editingProduct) {
       await updateProduct(editingProduct.id, data);
