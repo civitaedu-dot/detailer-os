@@ -136,7 +136,7 @@ const Estoque = () => {
     setEditingProduct(p);
     setPName(p.name); setPBrand(p.brand || ""); setPCategory(p.category);
     setPUnit(p.unit); setPStock(String(p.current_stock)); setPMinStock(String(p.min_stock));
-    setPCost(String(p.unit_cost)); setPSupplier(p.supplier_id || "");
+    setPCost(String(p.unit_cost)); setPYields(String(p.yields_per_unit || 1)); setPSupplier(p.supplier_id || "");
     setShowProductForm(true);
   };
 
