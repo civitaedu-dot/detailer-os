@@ -370,6 +370,39 @@ export type Database = {
         }
         Relationships: []
       }
+      message_templates: {
+        Row: {
+          category: string
+          content: string
+          created_at: string
+          id: string
+          is_default: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          content: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_default?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_settings: {
         Row: {
           appointment_status: boolean
@@ -909,6 +942,50 @@ export type Database = {
           value?: number
         }
         Relationships: []
+      }
+      whatsapp_contact_history: {
+        Row: {
+          category: string
+          client_id: string | null
+          client_name: string
+          contact_result: string | null
+          created_at: string
+          id: string
+          message_sent: string
+          template_used: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          client_id?: string | null
+          client_name: string
+          contact_result?: string | null
+          created_at?: string
+          id?: string
+          message_sent: string
+          template_used?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          client_id?: string | null
+          client_name?: string
+          contact_result?: string | null
+          created_at?: string
+          id?: string
+          message_sent?: string
+          template_used?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_contact_history_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
