@@ -4,7 +4,8 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
-import { LogOut, Users, Plus, Search, Phone, Car, Calendar, Pencil, Trash2 } from 'lucide-react';
+import { LogOut, Users, Plus, Search, Phone, Car, Calendar, Pencil, Trash2, MessageCircle } from 'lucide-react';
+import { WhatsAppButton } from '@/components/whatsapp/WhatsAppButton';
 import logo from '@/assets/logo.jpeg';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -272,6 +273,14 @@ const Clientes = () => {
                     </div>
                   </div>
                   <div className="flex gap-1">
+                    <WhatsAppButton
+                      clientName={client.name}
+                      clientPhone={client.phone}
+                      clientId={client.id}
+                      size="icon"
+                      variant="ghost"
+                      showLabel={false}
+                    />
                     <Button variant="ghost" size="icon" onClick={() => openEditClientModal(client)}>
                       <Pencil className="w-4 h-4" />
                     </Button>

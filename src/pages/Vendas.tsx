@@ -5,8 +5,10 @@ import {
   Users, UserPlus, UserCheck, UserX, TrendingUp, DollarSign, Target,
   AlertTriangle, Clock, Phone, MessageSquare, Download, ChevronRight,
   BarChart3, Calendar, Star, Lightbulb, ArrowUpRight, ArrowDownRight,
-  Filter, Search, RefreshCw, Eye
+  Filter, Search, RefreshCw, Eye, Send
 } from "lucide-react";
+import { WhatsAppButton } from "@/components/whatsapp/WhatsAppButton";
+import { BulkWhatsAppModal } from "@/components/whatsapp/BulkWhatsAppModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -101,6 +103,9 @@ const Vendas = () => {
 
   // Reconquest notes
   const [reconquestNotes, setReconquestNotes] = useState<Record<string, string>>({});
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [bulkClients, setBulkClients] = useState<{id:string;name:string;phone:string}[]>([]);
+  const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
 
   // Fetch all appointments (no date filter)
   const fetchAllAppointments = useCallback(async () => {
@@ -680,6 +685,15 @@ const Vendas = () => {
                               Freq: {client.avgFrequencyDays}d
                             </div>
                           )}
+                          <WhatsAppButton
+                            clientName={client.name}
+                            clientPhone={client.phone}
+                            clientId={client.id}
+                            daysSinceLastVisit={client.daysSinceLastVisit}
+                            totalVisits={client.totalVisits}
+                            context={client.status === 'lost' ? 'reconquista' : client.status === 'at_risk' ? 'reconquista' : 'geral'}
+                            size="sm"
+                          />
                           <Button variant="ghost" size="sm" asChild>
                             <Link to="/clientes"><Eye className="w-4 h-4" /></Link>
                           </Button>
@@ -699,12 +713,22 @@ const Vendas = () => {
                 <h2 className="font-display text-lg font-bold">Clientes que Sumiram</h2>
                 <p className="text-sm text-muted-foreground">{lostClientsList.length} cliente(s) sem retornar há mais de 15 dias</p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => exportCSV(
-                lostClientsList.map((c) => ({ nome: c.name, telefone: c.phone, dias_ausente: c.daysSinceLastVisit, ultima_visita: c.lastVisit })),
-                "clientes-sumiram"
-              )}>
-                <Download className="w-4 h-4 mr-1" /> Exportar
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => exportCSV(
+                  lostClientsList.map((c) => ({ nome: c.name, telefone: c.phone, dias_ausente: c.daysSinceLastVisit, ultima_visita: c.lastVisit })),
+                  "clientes-sumiram"
+                )}>
+                  <Download className="w-4 h-4 mr-1" /> Exportar
+                </Button>
+                {lostClientsList.length > 0 && (
+                  <Button size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => {
+                    setBulkClients(lostClientsList.map((c) => ({ id: c.id, name: c.name, phone: c.phone })));
+                    setBulkModalOpen(true);
+                  }}>
+                    <Send className="w-4 h-4" /> Disparo em Lote
+                  </Button>
+                )}
+              </div>
             </div>
 
             {lostClientsList.length === 0 ? (
@@ -751,13 +775,15 @@ const Vendas = () => {
                           onChange={(e) => setReconquestNotes((prev) => ({ ...prev, [client.id]: e.target.value }))}
                         />
                         <div className="flex sm:flex-col gap-2">
-                          <Button size="sm" variant="outline" className="flex-1" onClick={() => {
-                            if (client.phone) {
-                              window.open(`https://wa.me/55${client.phone.replace(/\D/g, "")}`, "_blank");
-                            }
-                          }}>
-                            <Phone className="w-4 h-4 mr-1" /> Contatar
-                          </Button>
+                          <WhatsAppButton
+                            clientName={client.name}
+                            clientPhone={client.phone}
+                            clientId={client.id}
+                            context="reconquista"
+                            daysSinceLastVisit={client.daysSinceLastVisit}
+                            totalVisits={client.totalVisits}
+                            size="sm"
+                          />
                           <Button size="sm" variant="default" className="flex-1" onClick={() => {
                             toast({ title: "Nota salva", description: `Anotação registrada para ${client.name}` });
                           }}>
@@ -971,6 +997,13 @@ const Vendas = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <BulkWhatsAppModal
+        open={bulkModalOpen}
+        onOpenChange={setBulkModalOpen}
+        clients={bulkClients}
+        category="reconquista"
+      />
     </div>
   );
 };
