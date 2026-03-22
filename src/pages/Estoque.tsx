@@ -86,6 +86,7 @@ const Estoque = () => {
   const [pStock, setPStock] = useState("");
   const [pMinStock, setPMinStock] = useState("");
   const [pCost, setPCost] = useState("");
+  const [pYields, setPYields] = useState("1");
   const [pSupplier, setPSupplier] = useState<string>("");
 
   // Movement form
