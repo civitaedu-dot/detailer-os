@@ -685,6 +685,15 @@ const Vendas = () => {
                               Freq: {client.avgFrequencyDays}d
                             </div>
                           )}
+                          <WhatsAppButton
+                            clientName={client.name}
+                            clientPhone={client.phone}
+                            clientId={client.id}
+                            daysSinceLastVisit={client.daysSinceLastVisit}
+                            totalVisits={client.totalVisits}
+                            context={client.status === 'lost' ? 'reconquista' : client.status === 'at_risk' ? 'reconquista' : 'geral'}
+                            size="sm"
+                          />
                           <Button variant="ghost" size="sm" asChild>
                             <Link to="/clientes"><Eye className="w-4 h-4" /></Link>
                           </Button>
