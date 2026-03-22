@@ -674,7 +674,7 @@ const Estoque = () => {
                   <SelectContent>{products.map((p) => <SelectItem key={p.id} value={p.id}>{p.name} ({p.current_stock} {p.unit})</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Tipo</Label>
                   <Select value={mType} onValueChange={setMType}>
