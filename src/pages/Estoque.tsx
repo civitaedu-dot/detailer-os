@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import {
   Package, Plus, ArrowDownCircle, ArrowUpCircle, AlertTriangle, Search,
   Trash2, Edit, Download, Truck, BarChart3, Filter, Eye,
-  Bot, Shield, LogOut, CreditCard, Loader2, Wrench, Upload, Megaphone
+  Bot, Shield, LogOut, CreditCard, Loader2, Wrench, Upload, Megaphone, Menu, X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -75,6 +75,7 @@ const Estoque = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Product form
   const [showProductForm, setShowProductForm] = useState(false);
@@ -228,10 +229,15 @@ const Estoque = () => {
       {/* Header */}
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
         <div className="container px-4 sm:px-6 h-16 flex items-center justify-between">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <img src={logo} alt="DetailerOS" className="w-8 h-8 rounded-lg object-contain" />
-            <span className="font-display font-semibold hidden sm:block">Detailer<span className="text-primary">OS</span></span>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+            <Link to="/dashboard" className="flex items-center gap-2">
+              <img src={logo} alt="DetailerOS" className="w-8 h-8 rounded-lg object-contain" />
+              <span className="font-display font-semibold hidden sm:block">Detailer<span className="text-primary">OS</span></span>
+            </Link>
+          </div>
           <nav className="hidden md:flex items-center gap-1">
             {[
               { to: "/dashboard", label: "Dashboard" },
@@ -252,7 +258,7 @@ const Estoque = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center mr-2">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center sm:mr-2">
                     <span className="text-xs font-semibold text-primary">{profile?.name?.charAt(0).toUpperCase() || "U"}</span>
                   </div>
                   <span className="hidden sm:block">{profile?.name || "Usuário"}</span>
@@ -276,6 +282,32 @@ const Estoque = () => {
             </DropdownMenu>
           </div>
         </div>
+        {/* Mobile menu */}
+        {mobileMenuOpen && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="md:hidden border-t border-border bg-card">
+            <nav className="container px-4 py-3 flex flex-col gap-1">
+              {[
+                { to: "/dashboard", label: "Dashboard" },
+                { to: "/financeiro", label: "Financeiro" },
+                { to: "/agenda", label: "Agenda" },
+                { to: "/clientes", label: "Clientes" },
+                { to: "/servicos", label: "Serviços" },
+                { to: "/vendas", label: "Vendas" },
+                { to: "/campanhas", label: "Campanhas" },
+                { to: "/estoque", label: "Estoque", active: true },
+              ].map((l) => (
+                <Button key={l.to} variant={l.active ? "default" : "ghost"} size="sm" className="justify-start" asChild onClick={() => setMobileMenuOpen(false)}>
+                  <Link to={l.to}>{l.label}</Link>
+                </Button>
+              ))}
+              {isAdmin && (
+                <Button variant="ghost" size="sm" className="justify-start text-primary" asChild onClick={() => setMobileMenuOpen(false)}>
+                  <Link to="/admin"><Shield className="w-4 h-4 mr-1" />Admin</Link>
+                </Button>
+              )}
+            </nav>
+          </motion.div>
+        )}
       </header>
 
       <main className="container px-4 sm:px-6 py-6 sm:py-8">
@@ -353,12 +385,14 @@ const Estoque = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="painel" className="text-xs sm:text-sm">Painel</TabsTrigger>
-            <TabsTrigger value="produtos" className="text-xs sm:text-sm">Produtos</TabsTrigger>
-            <TabsTrigger value="movimentacoes" className="text-xs sm:text-sm">Movimentações</TabsTrigger>
-            <TabsTrigger value="fornecedores" className="text-xs sm:text-sm">Fornecedores</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 mb-6">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-4 sm:w-full">
+              <TabsTrigger value="painel" className="text-xs sm:text-sm whitespace-nowrap">Painel</TabsTrigger>
+              <TabsTrigger value="produtos" className="text-xs sm:text-sm whitespace-nowrap">Produtos</TabsTrigger>
+              <TabsTrigger value="movimentacoes" className="text-xs sm:text-sm whitespace-nowrap">Movimentações</TabsTrigger>
+              <TabsTrigger value="fornecedores" className="text-xs sm:text-sm whitespace-nowrap">Fornecedores</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* ===== PAINEL ===== */}
           <TabsContent value="painel">
@@ -572,14 +606,14 @@ const Estoque = () => {
 
         {/* Product Dialog */}
         <Dialog open={showProductForm} onOpenChange={setShowProductForm}>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto mx-4 sm:mx-auto">
             <DialogHeader><DialogTitle>{editingProduct ? "Editar Produto" : "Novo Produto"}</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><Label>Nome *</Label><Input value={pName} onChange={(e) => setPName(e.target.value)} placeholder="Ex: Cera Carnaúba" /></div>
                 <div><Label>Marca</Label><Input value={pBrand} onChange={(e) => setPBrand(e.target.value)} placeholder="Ex: Meguiar's" /></div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Categoria</Label>
                   <Select value={pCategory} onValueChange={setPCategory}>
@@ -595,7 +629,7 @@ const Estoque = () => {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div><Label>Estoque Atual</Label><Input type="number" value={pStock} onChange={(e) => setPStock(e.target.value)} /></div>
                 <div><Label>Estoque Mínimo</Label><Input type="number" value={pMinStock} onChange={(e) => setPMinStock(e.target.value)} /></div>
                 <div><Label>Custo Unitário (R$)</Label><Input type="number" step="0.01" value={pCost} onChange={(e) => setPCost(e.target.value)} /></div>
@@ -630,7 +664,7 @@ const Estoque = () => {
 
         {/* Movement Dialog */}
         <Dialog open={showMovementForm} onOpenChange={setShowMovementForm}>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto mx-4 sm:mx-auto">
             <DialogHeader><DialogTitle>Registrar Movimentação</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div>
@@ -640,7 +674,7 @@ const Estoque = () => {
                   <SelectContent>{products.map((p) => <SelectItem key={p.id} value={p.id}>{p.name} ({p.current_stock} {p.unit})</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <Label>Tipo</Label>
                   <Select value={mType} onValueChange={setMType}>
@@ -661,15 +695,15 @@ const Estoque = () => {
 
         {/* Supplier Dialog */}
         <Dialog open={showSupplierForm} onOpenChange={setShowSupplierForm}>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto mx-4 sm:mx-auto">
             <DialogHeader><DialogTitle>Novo Fornecedor</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div><Label>Nome *</Label><Input value={sName} onChange={(e) => setSName(e.target.value)} /></div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><Label>Contato</Label><Input value={sContact} onChange={(e) => setSContact(e.target.value)} /></div>
                 <div><Label>Telefone</Label><Input value={sPhone} onChange={(e) => setSPhone(e.target.value)} /></div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><Label>E-mail</Label><Input value={sEmail} onChange={(e) => setSEmail(e.target.value)} /></div>
                 <div><Label>Prazo Entrega (dias)</Label><Input type="number" value={sDeliveryDays} onChange={(e) => setSDeliveryDays(e.target.value)} /></div>
               </div>
