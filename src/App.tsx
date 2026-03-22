@@ -148,6 +148,14 @@ const App = () => (
               }
             />
             <Route
+              path="/campanhas"
+              element={
+                <ProtectedRoute>
+                  <Campanhas />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/socio-ia"
               element={
                 <ProtectedRoute>
