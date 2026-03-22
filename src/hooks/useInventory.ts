@@ -12,6 +12,8 @@ export interface Product {
   current_stock: number;
   min_stock: number;
   unit_cost: number;
+  yields_per_unit: number;
+  cost_per_use: number;
   supplier_id: string | null;
   is_active: boolean;
   created_at: string;
