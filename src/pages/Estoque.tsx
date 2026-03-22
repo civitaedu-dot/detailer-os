@@ -52,7 +52,6 @@ const COLORS = [
 
 const Estoque = () => {
   const { toast } = useToast();
-  const { toast } = useToast();
   const {
     products, movements, suppliers, isLoading,
     addProduct, updateProduct, deleteProduct,
