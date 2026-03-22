@@ -664,7 +664,7 @@ const Estoque = () => {
 
         {/* Movement Dialog */}
         <Dialog open={showMovementForm} onOpenChange={setShowMovementForm}>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto mx-4 sm:mx-auto">
             <DialogHeader><DialogTitle>Registrar Movimentação</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div>
