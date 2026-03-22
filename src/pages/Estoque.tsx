@@ -629,7 +629,7 @@ const Estoque = () => {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div><Label>Estoque Atual</Label><Input type="number" value={pStock} onChange={(e) => setPStock(e.target.value)} /></div>
                 <div><Label>Estoque Mínimo</Label><Input type="number" value={pMinStock} onChange={(e) => setPMinStock(e.target.value)} /></div>
                 <div><Label>Custo Unitário (R$)</Label><Input type="number" step="0.01" value={pCost} onChange={(e) => setPCost(e.target.value)} /></div>
