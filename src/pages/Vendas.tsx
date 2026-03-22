@@ -997,6 +997,13 @@ const Vendas = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      <BulkWhatsAppModal
+        open={bulkModalOpen}
+        onOpenChange={setBulkModalOpen}
+        clients={bulkClients}
+        category="reconquista"
+      />
     </div>
   );
 };
