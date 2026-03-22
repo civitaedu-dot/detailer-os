@@ -175,7 +175,6 @@ const Dashboard = () => {
             <Button variant="ghost" size="sm" asChild>
               <Link to="/estoque">Estoque</Link>
             </Button>
-            </Button>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/socio-ia">
                 <Bot className="w-4 h-4 mr-1" />
