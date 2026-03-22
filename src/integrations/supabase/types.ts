@@ -650,6 +650,7 @@ export type Database = {
         Row: {
           brand: string | null
           category: string
+          cost_per_use: number | null
           created_at: string
           current_stock: number
           id: string
@@ -661,10 +662,12 @@ export type Database = {
           unit_cost: number
           updated_at: string
           user_id: string
+          yields_per_unit: number
         }
         Insert: {
           brand?: string | null
           category?: string
+          cost_per_use?: number | null
           created_at?: string
           current_stock?: number
           id?: string
@@ -676,10 +679,12 @@ export type Database = {
           unit_cost?: number
           updated_at?: string
           user_id: string
+          yields_per_unit?: number
         }
         Update: {
           brand?: string | null
           category?: string
+          cost_per_use?: number | null
           created_at?: string
           current_stock?: number
           id?: string
@@ -691,6 +696,7 @@ export type Database = {
           unit_cost?: number
           updated_at?: string
           user_id?: string
+          yields_per_unit?: number
         }
         Relationships: [
           {
