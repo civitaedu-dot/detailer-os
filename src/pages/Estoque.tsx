@@ -695,7 +695,7 @@ const Estoque = () => {
 
         {/* Supplier Dialog */}
         <Dialog open={showSupplierForm} onOpenChange={setShowSupplierForm}>
-          <DialogContent>
+          <DialogContent className="max-h-[85vh] overflow-y-auto mx-4 sm:mx-auto">
             <DialogHeader><DialogTitle>Novo Fornecedor</DialogTitle></DialogHeader>
             <div className="space-y-4">
               <div><Label>Nome *</Label><Input value={sName} onChange={(e) => setSName(e.target.value)} /></div>
