@@ -273,6 +273,14 @@ const Clientes = () => {
                     </div>
                   </div>
                   <div className="flex gap-1">
+                    <WhatsAppButton
+                      clientName={client.name}
+                      clientPhone={client.phone}
+                      clientId={client.id}
+                      size="icon"
+                      variant="ghost"
+                      showLabel={false}
+                    />
                     <Button variant="ghost" size="icon" onClick={() => openEditClientModal(client)}>
                       <Pencil className="w-4 h-4" />
                     </Button>
