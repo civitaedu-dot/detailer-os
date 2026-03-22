@@ -606,10 +606,10 @@ const Estoque = () => {
 
         {/* Product Dialog */}
         <Dialog open={showProductForm} onOpenChange={setShowProductForm}>
-          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto mx-4 sm:mx-auto">
             <DialogHeader><DialogTitle>{editingProduct ? "Editar Produto" : "Novo Produto"}</DialogTitle></DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div><Label>Nome *</Label><Input value={pName} onChange={(e) => setPName(e.target.value)} placeholder="Ex: Cera Carnaúba" /></div>
                 <div><Label>Marca</Label><Input value={pBrand} onChange={(e) => setPBrand(e.target.value)} placeholder="Ex: Meguiar's" /></div>
               </div>
