@@ -103,6 +103,9 @@ const Vendas = () => {
 
   // Reconquest notes
   const [reconquestNotes, setReconquestNotes] = useState<Record<string, string>>({});
+  const [bulkModalOpen, setBulkModalOpen] = useState(false);
+  const [bulkClients, setBulkClients] = useState<{id:string;name:string;phone:string}[]>([]);
+  const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set());
 
   // Fetch all appointments (no date filter)
   const fetchAllAppointments = useCallback(async () => {
