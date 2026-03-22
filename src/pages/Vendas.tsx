@@ -5,7 +5,7 @@ import {
   Users, UserPlus, UserCheck, UserX, TrendingUp, DollarSign, Target,
   AlertTriangle, Clock, Phone, MessageSquare, Download, ChevronRight,
   BarChart3, Calendar, Star, Lightbulb, ArrowUpRight, ArrowDownRight,
-  Filter, Search, RefreshCw, Eye, Send
+  Filter, Search, RefreshCw, Eye, Send, Megaphone
 } from "lucide-react";
 import { WhatsAppButton } from "@/components/whatsapp/WhatsAppButton";
 import { BulkWhatsAppModal } from "@/components/whatsapp/BulkWhatsAppModal";
