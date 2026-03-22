@@ -107,9 +107,15 @@ const Estoque = () => {
 
   const resetProductForm = () => {
     setPName(""); setPBrand(""); setPCategory("outros"); setPUnit("un");
-    setPStock(""); setPMinStock(""); setPCost(""); setPSupplier("");
+    setPStock(""); setPMinStock(""); setPCost(""); setPYields("1"); setPSupplier("");
     setEditingProduct(null); setShowProductForm(false);
   };
+
+  const calculatedCostPerUse = useMemo(() => {
+    const cost = parseFloat(pCost) || 0;
+    const yields = parseFloat(pYields) || 1;
+    return yields > 0 ? cost / yields : 0;
+  }, [pCost, pYields]);
 
   const handleSaveProduct = async () => {
     if (!pName) return;
