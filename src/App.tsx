@@ -24,6 +24,7 @@ import RelatorioServicos from "./pages/RelatorioServicos";
 import Notificacoes from "./pages/Notificacoes";
 import ImportarDados from "./pages/ImportarDados";
 import Vendas from "./pages/Vendas";
+import Campanhas from "./pages/Campanhas";
 
 const queryClient = new QueryClient();
 
