@@ -376,6 +376,7 @@ const Vendas = () => {
               <Button key={l.to} variant="ghost" size="sm" asChild><Link to={l.to}>{l.label}</Link></Button>
             ))}
             <Button variant="default" size="sm" asChild><Link to="/vendas">Vendas</Link></Button>
+            <Button variant="ghost" size="sm" asChild><Link to="/campanhas"><Megaphone className="w-4 h-4 mr-1" />Campanhas</Link></Button>
             <Button variant="ghost" size="sm" asChild><Link to="/socio-ia"><Bot className="w-4 h-4 mr-1" />Sócio IA</Link></Button>
             {isAdmin && <Button variant="ghost" size="sm" asChild><Link to="/admin" className="text-primary"><Shield className="w-4 h-4 mr-1" />Admin</Link></Button>}
           </nav>
