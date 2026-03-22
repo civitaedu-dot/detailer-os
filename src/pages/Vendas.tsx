@@ -713,12 +713,22 @@ const Vendas = () => {
                 <h2 className="font-display text-lg font-bold">Clientes que Sumiram</h2>
                 <p className="text-sm text-muted-foreground">{lostClientsList.length} cliente(s) sem retornar há mais de 15 dias</p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => exportCSV(
-                lostClientsList.map((c) => ({ nome: c.name, telefone: c.phone, dias_ausente: c.daysSinceLastVisit, ultima_visita: c.lastVisit })),
-                "clientes-sumiram"
-              )}>
-                <Download className="w-4 h-4 mr-1" /> Exportar
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => exportCSV(
+                  lostClientsList.map((c) => ({ nome: c.name, telefone: c.phone, dias_ausente: c.daysSinceLastVisit, ultima_visita: c.lastVisit })),
+                  "clientes-sumiram"
+                )}>
+                  <Download className="w-4 h-4 mr-1" /> Exportar
+                </Button>
+                {lostClientsList.length > 0 && (
+                  <Button size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => {
+                    setBulkClients(lostClientsList.map((c) => ({ id: c.id, name: c.name, phone: c.phone })));
+                    setBulkModalOpen(true);
+                  }}>
+                    <Send className="w-4 h-4" /> Disparo em Lote
+                  </Button>
+                )}
+              </div>
             </div>
 
             {lostClientsList.length === 0 ? (
