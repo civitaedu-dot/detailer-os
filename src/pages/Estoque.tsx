@@ -75,6 +75,7 @@ const Estoque = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Product form
   const [showProductForm, setShowProductForm] = useState(false);
