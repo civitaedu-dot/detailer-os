@@ -775,13 +775,15 @@ const Vendas = () => {
                           onChange={(e) => setReconquestNotes((prev) => ({ ...prev, [client.id]: e.target.value }))}
                         />
                         <div className="flex sm:flex-col gap-2">
-                          <Button size="sm" variant="outline" className="flex-1" onClick={() => {
-                            if (client.phone) {
-                              window.open(`https://wa.me/55${client.phone.replace(/\D/g, "")}`, "_blank");
-                            }
-                          }}>
-                            <Phone className="w-4 h-4 mr-1" /> Contatar
-                          </Button>
+                          <WhatsAppButton
+                            clientName={client.name}
+                            clientPhone={client.phone}
+                            clientId={client.id}
+                            context="reconquista"
+                            daysSinceLastVisit={client.daysSinceLastVisit}
+                            totalVisits={client.totalVisits}
+                            size="sm"
+                          />
                           <Button size="sm" variant="default" className="flex-1" onClick={() => {
                             toast({ title: "Nota salva", description: `Anotação registrada para ${client.name}` });
                           }}>
