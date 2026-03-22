@@ -327,7 +327,6 @@ const Vendas = () => {
     URL.revokeObjectURL(url);
   };
 
-  const handleLogout = async () => { await signOut(); };
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
