@@ -590,11 +590,22 @@ const Estoque = () => {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div><Label>Estoque Atual</Label><Input type="number" value={pStock} onChange={(e) => setPStock(e.target.value)} /></div>
                 <div><Label>Estoque Mínimo</Label><Input type="number" value={pMinStock} onChange={(e) => setPMinStock(e.target.value)} /></div>
-                <div><Label>Custo Unitário</Label><Input type="number" step="0.01" value={pCost} onChange={(e) => setPCost(e.target.value)} /></div>
+                <div><Label>Custo Unitário (R$)</Label><Input type="number" step="0.01" value={pCost} onChange={(e) => setPCost(e.target.value)} /></div>
+                <div><Label>Rendimento (usos)</Label><Input type="number" min="1" value={pYields} onChange={(e) => setPYields(e.target.value)} placeholder="Ex: 20" /></div>
               </div>
+              {(parseFloat(pCost) > 0 && parseFloat(pYields) > 0) && (
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <p className="text-sm font-medium text-primary">
+                    💰 Custo por uso: {formatCurrency(calculatedCostPerUse)}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formatCurrency(parseFloat(pCost) || 0)} ÷ {parseFloat(pYields) || 1} usos = {formatCurrency(calculatedCostPerUse)} por aplicação
+                  </p>
+                </div>
+              )}
               {suppliers.length > 0 && (
                 <div>
                   <Label>Fornecedor</Label>
