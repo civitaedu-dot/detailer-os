@@ -25,6 +25,7 @@ import Notificacoes from "./pages/Notificacoes";
 import ImportarDados from "./pages/ImportarDados";
 import Vendas from "./pages/Vendas";
 import Campanhas from "./pages/Campanhas";
+import Estoque from "./pages/Estoque";
 
 const queryClient = new QueryClient();
 
