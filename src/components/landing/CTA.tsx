@@ -1,50 +1,44 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Bot } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const CTA = () => {
   return (
-    <section className="py-24 bg-background relative overflow-hidden">
-      {/* Background effect */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-3xl" />
-      </div>
+    <section className="py-24 lg:py-32 relative overflow-hidden" style={{ background: '#0F0F0F' }}>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/8 rounded-full blur-[120px]" />
 
-      <div className="container relative z-10 px-4 sm:px-6">
+      <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <motion.h2
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold mb-6"
+        >
+          Seu negócio organizado, seus clientes{" "}
+          <span className="text-gradient-primary">voltando.</span>
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.1 }}
+          className="text-lg text-muted-foreground mb-10 max-w-xl mx-auto"
+        >
+          Pare de perder dinheiro no escuro. Comece agora e tenha clareza total sobre sua estética automotiva.
+        </motion.p>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="max-w-4xl mx-auto text-center"
+          transition={{ delay: 0.2 }}
         >
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-primary mb-8 shadow-accent-glow">
-            <Bot className="w-8 h-8 text-primary-foreground" />
-          </div>
-
-          <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-bold mb-6">
-            Pronto para ter um{" "}
-            <span className="text-gradient-primary">sócio inteligente</span>?
-          </h2>
-
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-10">
-            Comece agora e tenha clareza total sobre seu negócio. 
-            O Sócio IA está pronto para ajudar você a faturar mais e lucrar melhor.
-          </p>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button asChild variant="hero" size="xl">
-              <Link to="/cadastro">
-                Começar agora
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </Button>
-            <Button asChild variant="outlinePrimary" size="xl">
-              <Link to="/login">
-                Já tenho conta
-              </Link>
-            </Button>
-          </div>
+          <Button asChild size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-base h-14 px-10 rounded-xl">
+            <Link to="/cadastro">
+              Começar agora gratuitamente
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Link>
+          </Button>
         </motion.div>
       </div>
     </section>
