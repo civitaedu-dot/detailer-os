@@ -5,8 +5,10 @@ import {
   Users, UserPlus, UserCheck, UserX, TrendingUp, DollarSign, Target,
   AlertTriangle, Clock, Phone, MessageSquare, Download, ChevronRight,
   BarChart3, Calendar, Star, Lightbulb, ArrowUpRight, ArrowDownRight,
-  Filter, Search, RefreshCw, Eye
+  Filter, Search, RefreshCw, Eye, Send
 } from "lucide-react";
+import { WhatsAppButton } from "@/components/whatsapp/WhatsAppButton";
+import { BulkWhatsAppModal } from "@/components/whatsapp/BulkWhatsAppModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
