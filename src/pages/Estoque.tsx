@@ -430,13 +430,14 @@ const Estoque = () => {
                         <TableHead className="hidden sm:table-cell">Categoria</TableHead>
                         <TableHead>Estoque</TableHead>
                         <TableHead className="hidden sm:table-cell">Custo Un.</TableHead>
-                        <TableHead className="hidden md:table-cell">Valor Total</TableHead>
+                        <TableHead className="hidden md:table-cell">Custo/Uso</TableHead>
+                        <TableHead className="hidden lg:table-cell">Valor Total</TableHead>
                         <TableHead className="w-20">Ações</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredProducts.length === 0 ? (
-                        <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum produto encontrado</TableCell></TableRow>
+                        <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum produto encontrado</TableCell></TableRow>
                       ) : filteredProducts.map((p) => (
                         <TableRow key={p.id}>
                           <TableCell>
@@ -457,7 +458,11 @@ const Estoque = () => {
                             </div>
                           </TableCell>
                           <TableCell className="hidden sm:table-cell">{formatCurrency(p.unit_cost)}</TableCell>
-                          <TableCell className="hidden md:table-cell">{formatCurrency(p.current_stock * p.unit_cost)}</TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <span className="text-primary font-medium">{formatCurrency(p.cost_per_use)}</span>
+                            <span className="text-xs text-muted-foreground ml-1">({p.yields_per_unit}x)</span>
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">{formatCurrency(p.current_stock * p.unit_cost)}</TableCell>
                           <TableCell>
                             <div className="flex gap-1">
                               <Button variant="ghost" size="icon" onClick={() => startEdit(p)}><Edit className="w-4 h-4" /></Button>
