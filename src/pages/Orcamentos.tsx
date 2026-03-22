@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Loader2, LogOut, RefreshCw, FileText } from "lucide-react";
@@ -12,12 +11,6 @@ import { QuotesDashboard } from "@/components/orcamentos/QuotesDashboard";
 import { QuoteFormModal } from "@/components/orcamentos/QuoteFormModal";
 import type { Quote } from "@/hooks/useQuotes";
 import type { QuoteStatus } from "@/components/orcamentos/QuoteStatusBadge";
-import logo from "@/assets/logo.jpeg";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
 const Orcamentos = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();

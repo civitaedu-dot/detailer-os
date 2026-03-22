@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -29,14 +28,6 @@ import {
   Hash,
 } from "lucide-react";
 import logo from "@/assets/logo.jpeg";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
 const COLOR_PRESETS = [
   { label: "Verde Padrão", value: "#22c55e" },
   { label: "Azul Profissional", value: "#3b82f6" },

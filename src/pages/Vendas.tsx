@@ -21,12 +21,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClients } from "@/hooks/useClients";
 import { useToast } from "@/hooks/use-toast";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
-import logo from "@/assets/logo.jpeg";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { LogOut, CreditCard, Loader2, Wrench, Upload, Bot, Shield } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import {

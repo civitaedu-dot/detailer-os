@@ -1,12 +1,10 @@
 import { useState } from 'react';
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { LogOut, Users, Plus, Search, Phone, Car, Calendar, Pencil, Trash2, MessageCircle } from 'lucide-react';
 import { WhatsAppButton } from '@/components/whatsapp/WhatsAppButton';
-import logo from '@/assets/logo.jpeg';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useClients, Client, ClientFormData } from '@/hooks/useClients';
@@ -14,13 +12,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,

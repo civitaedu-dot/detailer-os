@@ -32,8 +32,6 @@ import {
   Shield,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import logo from "@/assets/logo.jpeg";
-
 interface UserProfile {
   id: string;
   user_id: string;

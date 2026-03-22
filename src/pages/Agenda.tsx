@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -16,16 +15,8 @@ import { ThreeMonthView } from '@/components/agenda/ThreeMonthView';
 import { AppointmentModal } from '@/components/agenda/AppointmentModal';
 import type { Appointment, AppointmentFormData } from '@/hooks/useAppointments';
 import type { ClientFormData } from '@/hooks/useClients';
-import logo from '@/assets/logo.jpeg';
 import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays, startOfWeek, startOfMonth, endOfMonth, endOfWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 type ViewMode = 'day' | 'week' | 'month' | '3months';

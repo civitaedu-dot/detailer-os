@@ -19,13 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { useInventory } from "@/hooks/useInventory";
 import { useToast } from "@/hooks/use-toast";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useUserRole } from "@/hooks/useUserRole";
-import logo from "@/assets/logo.jpeg";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";

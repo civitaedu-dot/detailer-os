@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from "react";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { 
@@ -33,15 +32,6 @@ import { PrecificacaoServicos } from "@/components/financeiro/PrecificacaoServic
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
 import { useFixedCosts } from "@/hooks/useFixedCosts";
-import logo from "@/assets/logo.jpeg";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
 const Financeiro = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();

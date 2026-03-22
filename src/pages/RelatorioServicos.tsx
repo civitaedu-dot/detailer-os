@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
@@ -26,8 +25,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import logo from '@/assets/logo.jpeg';
-
 type SortKey = 'date' | 'service' | 'client' | 'status' | 'value';
 type SortDir = 'asc' | 'desc';
 type PeriodPreset = 'today' | 'week' | 'month' | 'custom';

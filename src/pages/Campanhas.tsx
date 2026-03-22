@@ -21,13 +21,7 @@ import { useClients } from "@/hooks/useClients";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useCampaigns } from "@/hooks/useCampaigns";
 import { useToast } from "@/hooks/use-toast";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { useUserRole } from "@/hooks/useUserRole";
-import logo from "@/assets/logo.jpeg";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { format, differenceInDays, parseISO, startOfMonth, endOfMonth, subMonths, addMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
