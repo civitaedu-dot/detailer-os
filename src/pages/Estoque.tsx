@@ -385,12 +385,14 @@ const Estoque = () => {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="painel" className="text-xs sm:text-sm">Painel</TabsTrigger>
-            <TabsTrigger value="produtos" className="text-xs sm:text-sm">Produtos</TabsTrigger>
-            <TabsTrigger value="movimentacoes" className="text-xs sm:text-sm">Movimentações</TabsTrigger>
-            <TabsTrigger value="fornecedores" className="text-xs sm:text-sm">Fornecedores</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 mb-6">
+            <TabsList className="inline-flex w-auto min-w-full sm:grid sm:grid-cols-4 sm:w-full">
+              <TabsTrigger value="painel" className="text-xs sm:text-sm whitespace-nowrap">Painel</TabsTrigger>
+              <TabsTrigger value="produtos" className="text-xs sm:text-sm whitespace-nowrap">Produtos</TabsTrigger>
+              <TabsTrigger value="movimentacoes" className="text-xs sm:text-sm whitespace-nowrap">Movimentações</TabsTrigger>
+              <TabsTrigger value="fornecedores" className="text-xs sm:text-sm whitespace-nowrap">Fornecedores</TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* ===== PAINEL ===== */}
           <TabsContent value="painel">
