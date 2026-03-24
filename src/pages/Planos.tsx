@@ -42,7 +42,7 @@ const plans = [
     id: "escala" as PlanId,
     name: "Escala",
     icon: Crown,
-    price: "297",
+    price: "247",
     description: "Máxima clareza para escalar seu negócio",
     features: [
       "Tudo dos planos anteriores",

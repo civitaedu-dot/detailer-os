@@ -37,7 +37,7 @@ const plans = [
   {
     name: "Escala",
     icon: Crown,
-    price: "297",
+    price: "247",
     description: "Máxima clareza para escalar",
     features: [
       "Tudo dos planos anteriores",

@@ -19,9 +19,9 @@ export const STRIPE_PLANS = {
   escala: {
     id: "escala",
     name: "Escala",
-    priceId: "price_1SqmpRQgltCrbsp3hixy6H8b",
-    productId: "prod_ToPeE6xN70O7B0",
-    price: 297,
+    priceId: "price_1TEJiqQgltCrbsp3mNU5Giiy",
+    productId: "prod_UCjBcp6Oy6QqXO",
+    price: 247,
     aiLimit: -1, // Unlimited
   },
 } as const;
