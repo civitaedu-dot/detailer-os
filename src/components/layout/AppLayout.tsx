@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LogOut, CreditCard, Loader2, Search, LayoutDashboard, Calendar, Users, TrendingUp, Plus, Wrench, FileText, DollarSign, Package, Megaphone, Upload, Settings, Bot } from "lucide-react";
+import { LogOut, CreditCard, Loader2, Search, LayoutDashboard, Calendar, Users, TrendingUp, Plus, Wrench, FileText, DollarSign, Package, Megaphone, Upload, Settings, Bot, Eye, EyeOff } from "lucide-react";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
