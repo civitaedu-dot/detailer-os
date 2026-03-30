@@ -20,6 +20,7 @@ import {
   FileText,
 } from 'lucide-react';
 import type { FinancialEntry } from '@/hooks/useFinancialEntries';
+import { usePrivacyMode } from '@/contexts/PrivacyModeContext';
 
 interface FinancialEntriesListProps {
   entries: FinancialEntry[];
