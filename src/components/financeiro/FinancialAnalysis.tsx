@@ -7,6 +7,7 @@ import {
   Target,
   Calendar
 } from "lucide-react";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 
 interface FinancialAnalysisProps {
   revenue: number;
