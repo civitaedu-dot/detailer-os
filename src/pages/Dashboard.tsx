@@ -201,13 +201,15 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                   <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${
-                    stat.trend >= 0 ? "text-emerald-400" : "text-red-400"
+                    isPrivate ? "text-muted-foreground" : stat.trend >= 0 ? "text-emerald-400" : "text-red-400"
                   }`}>
-                    {stat.trend >= 0
-                      ? <ArrowUpRight className="w-3.5 h-3.5" />
-                      : <ArrowDownRight className="w-3.5 h-3.5" />
-                    }
-                    {Math.abs(stat.trend).toFixed(1)}%
+                    {isPrivate ? (
+                      "•••"
+                    ) : stat.trend >= 0 ? (
+                      <><ArrowUpRight className="w-3.5 h-3.5" />{Math.abs(stat.trend).toFixed(1)}%</>
+                    ) : (
+                      <><ArrowDownRight className="w-3.5 h-3.5" />{Math.abs(stat.trend).toFixed(1)}%</>
+                    )}
                   </span>
                 </div>
               </CardContent>
