@@ -274,7 +274,7 @@ const Dashboard = () => {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-semibold text-primary">{apt.appointment_time?.slice(0, 5) || '--:--'}</p>
-                        <p className="text-[11px] text-muted-foreground">{formatCurrency(apt.service_value)}</p>
+                        <p className="text-[11px] text-muted-foreground">{maskCurrency(apt.service_value)}</p>
                       </div>
                     </div>
                   ))}
