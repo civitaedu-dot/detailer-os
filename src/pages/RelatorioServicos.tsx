@@ -140,7 +140,8 @@ const RelatorioServicos = () => {
   const uniqueClients = useMemo(() => [...new Set((appointments || []).map((a) => a.client_name))], [appointments]);
   const uniqueStatuses = useMemo(() => [...new Set((appointments || []).map((a) => a.status))], [appointments]);
 
-  const formatCurrency = (v: number) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (v: number) => maskCurrency(v);
 
   const exportCSV = () => {
     const headers = ['Data', 'Serviço', 'Cliente', 'Status', 'Valor'];

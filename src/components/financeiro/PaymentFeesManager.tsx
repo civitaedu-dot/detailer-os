@@ -25,8 +25,8 @@ export function PaymentFeesManager() {
     setNewPercentage('');
   };
 
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
 
   return (
     <motion.div

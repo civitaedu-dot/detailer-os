@@ -62,8 +62,8 @@ export const ThreeMonthView = ({ startMonth, appointments, onDayClick, monthlyGo
     return days;
   };
 
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
 
   return (
     <div className="space-y-6">
