@@ -46,11 +46,10 @@ interface UserProfile {
   stripe_subscription_id: string | null;
 }
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-
 const Admin = () => {
   const { user, profile } = useAuth();
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
   const { isAdmin, isLoading: isLoadingRole } = useUserRole();
   const navigate = useNavigate();
   const { toast } = useToast();
