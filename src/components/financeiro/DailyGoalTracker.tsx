@@ -16,6 +16,7 @@ import {
   Edit3,
   X
 } from "lucide-react";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 
 interface DailyGoalTrackerProps {
   monthlyGoal: number;
