@@ -30,8 +30,7 @@ import {
 import { format, subMonths, differenceInDays, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-const formatCurrency = (v: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+// formatCurrency defined inside component with privacy mode
 
 // Retention tips database
 const RETENTION_TIPS = {
