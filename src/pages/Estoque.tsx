@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import {
   Package, Plus, ArrowDownCircle, ArrowUpCircle, AlertTriangle, Search,
   Trash2, Edit, Download, Truck, BarChart3, Loader2
