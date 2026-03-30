@@ -43,16 +43,14 @@ const UNITS = [
   { value: "m2", label: "m²" },
 ];
 
-const Estoque = () => {
-  const { maskCurrency } = usePrivacyMode();
-  const formatCurrency = (v: number) => maskCurrency(v);
-
 const COLORS = [
   "hsl(var(--primary))", "hsl(152,60%,45%)", "hsl(38,92%,50%)",
   "hsl(200,80%,50%)", "hsl(340,70%,50%)", "hsl(270,60%,50%)", "hsl(20,80%,50%)", "hsl(100,50%,45%)"
 ];
 
 const Estoque = () => {
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (v: number) => maskCurrency(v);
   const { toast } = useToast();
   const {
     products, movements, suppliers, isLoading,
