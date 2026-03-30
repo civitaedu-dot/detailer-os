@@ -8,6 +8,7 @@ import {
   TrendingUp, DollarSign, BarChart3, Filter, X
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePrivacyMode } from '@/contexts/PrivacyModeContext';
 import { useNavigate } from 'react-router-dom';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useClients } from '@/hooks/useClients';
