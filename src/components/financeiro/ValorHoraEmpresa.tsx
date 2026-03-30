@@ -29,12 +29,7 @@ interface ValorHoraEmpresaProps {
   isSaving: boolean;
 }
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
-};
+// formatCurrency now uses privacy mode - will be defined inside component
 
 export function ValorHoraEmpresa({
   fixedCosts,
