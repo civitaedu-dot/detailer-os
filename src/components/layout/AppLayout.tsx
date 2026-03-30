@@ -40,6 +40,7 @@ export function AppLayout() {
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { isPrivate, togglePrivacy } = usePrivacyMode();
 
   const handleLogout = async () => {
     await signOut();
