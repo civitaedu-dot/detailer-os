@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -123,12 +124,8 @@ export function VariableCostsManager({ monthlyRevenue, onTotalPercentageChange }
     handleTotalChange();
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { 
-      style: 'currency', 
-      currency: 'BRL' 
-    }).format(value);
-  };
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
 
   if (isLoading) {
     return (

@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { LogOut, Wrench, Plus, Search, Pencil, Trash2, Clock, DollarSign, Package } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePrivacyMode } from '@/contexts/PrivacyModeContext';
 import { useNavigate } from 'react-router-dom';
 import { useServices, Service, ServiceFormData } from '@/hooks/useServices';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -100,12 +101,8 @@ const Servicos = () => {
     return `${hours}h${mins}min`;
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
 
   const calculateProfit = (price: number, cost: number) => {
     if (price <= 0) return 0;

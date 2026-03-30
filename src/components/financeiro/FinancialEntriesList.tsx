@@ -20,6 +20,7 @@ import {
   FileText,
 } from 'lucide-react';
 import type { FinancialEntry } from '@/hooks/useFinancialEntries';
+import { usePrivacyMode } from '@/contexts/PrivacyModeContext';
 
 interface FinancialEntriesListProps {
   entries: FinancialEntry[];
@@ -42,12 +43,8 @@ export function FinancialEntriesList({
   onEdit,
   onDelete,
 }: FinancialEntriesListProps) {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
 
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr + 'T00:00:00');

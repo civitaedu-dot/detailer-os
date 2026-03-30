@@ -19,6 +19,7 @@ import { useServices } from "@/hooks/useServices";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
@@ -27,6 +28,7 @@ const Dashboard = () => {
   const { profile, checkSubscription, isCheckingSubscription } = useAuth();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const { maskCurrency, maskValue, isPrivate } = usePrivacyMode();
 
   const { monthlyRevenue, isLoading: isLoadingFinancial, calculateMetrics, refetch } = useFinancialData();
   const { calculateTotalFixedCosts } = useFixedCosts();
@@ -65,7 +67,7 @@ const Dashboard = () => {
   const stats = useMemo(() => [
     {
       label: "Faturamento",
-      value: formatCurrency(metrics.revenue),
+      value: maskCurrency(metrics.revenue),
       icon: DollarSign,
       trend: trendData.revenueTrend,
       iconBg: "bg-emerald-500/15",
@@ -73,7 +75,7 @@ const Dashboard = () => {
     },
     {
       label: "Ticket Médio",
-      value: formatCurrency(metrics.completedAppointments > 0 ? metrics.revenue / metrics.completedAppointments : 0),
+      value: maskCurrency(metrics.completedAppointments > 0 ? metrics.revenue / metrics.completedAppointments : 0),
       icon: TrendingUp,
       trend: trendData.ticketTrend,
       iconBg: "bg-sky-500/15",
@@ -89,13 +91,13 @@ const Dashboard = () => {
     },
     {
       label: "Lucro Estimado",
-      value: formatCurrency(metrics.netProfit),
+      value: maskCurrency(metrics.netProfit),
       icon: TrendingUp,
       trend: trendData.profitTrend,
       iconBg: "bg-violet-500/15",
       iconColor: "text-violet-400",
     },
-  ], [metrics, trendData]);
+  ], [metrics, trendData, maskCurrency]);
 
   const todayAppointments = useMemo(() => {
     const today = format(new Date(), 'yyyy-MM-dd');
@@ -199,13 +201,15 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between mt-2">
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
                   <span className={`inline-flex items-center gap-0.5 text-xs font-semibold ${
-                    stat.trend >= 0 ? "text-emerald-400" : "text-red-400"
+                    isPrivate ? "text-muted-foreground" : stat.trend >= 0 ? "text-emerald-400" : "text-red-400"
                   }`}>
-                    {stat.trend >= 0
-                      ? <ArrowUpRight className="w-3.5 h-3.5" />
-                      : <ArrowDownRight className="w-3.5 h-3.5" />
-                    }
-                    {Math.abs(stat.trend).toFixed(1)}%
+                    {isPrivate ? (
+                      "•••"
+                    ) : stat.trend >= 0 ? (
+                      <><ArrowUpRight className="w-3.5 h-3.5" />{Math.abs(stat.trend).toFixed(1)}%</>
+                    ) : (
+                      <><ArrowDownRight className="w-3.5 h-3.5" />{Math.abs(stat.trend).toFixed(1)}%</>
+                    )}
                   </span>
                 </div>
               </CardContent>
@@ -270,7 +274,7 @@ const Dashboard = () => {
                       </div>
                       <div className="text-right shrink-0">
                         <p className="text-sm font-semibold text-primary">{apt.appointment_time?.slice(0, 5) || '--:--'}</p>
-                        <p className="text-[11px] text-muted-foreground">{formatCurrency(apt.service_value)}</p>
+                        <p className="text-[11px] text-muted-foreground">{maskCurrency(apt.service_value)}</p>
                       </div>
                     </div>
                   ))}

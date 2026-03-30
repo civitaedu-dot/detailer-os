@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,13 +39,6 @@ interface PrecificacaoServicosProps {
   isUpdating: boolean;
 }
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
-};
-
 export function PrecificacaoServicos({
   hourlyRate,
   costPerService,
@@ -52,6 +46,8 @@ export function PrecificacaoServicos({
   onUpdateService,
   isUpdating,
 }: PrecificacaoServicosProps) {
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
   const [durationMinutes, setDurationMinutes] = useState(60);
   const [materialCost, setMaterialCost] = useState(0);

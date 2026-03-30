@@ -16,6 +16,7 @@ import {
   Edit3,
   X
 } from "lucide-react";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 
 interface DailyGoalTrackerProps {
   monthlyGoal: number;
@@ -36,12 +37,6 @@ interface DailyGoalTrackerProps {
   isSaving: boolean;
 }
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
-};
 
 export function DailyGoalTracker({
   monthlyGoal,
@@ -61,6 +56,8 @@ export function DailyGoalTracker({
   onSaveGoal,
   isSaving,
 }: DailyGoalTrackerProps) {
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
   const [isEditing, setIsEditing] = useState(false);
   const [localUseAuto, setLocalUseAuto] = useState(useAutoGoal);
   const [localGoal, setLocalGoal] = useState(manualGoal?.toString() || "");

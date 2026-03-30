@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { ArrowDown, Equal, TrendingUp } from "lucide-react";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 
 interface DRESimplesProps {
   revenue: number;
@@ -8,14 +9,9 @@ interface DRESimplesProps {
   netProfit: number;
 }
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
-};
-
 export function DRESimples({ revenue, variableCosts, fixedCosts, netProfit }: DRESimplesProps) {
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
   const hasData = revenue > 0 || fixedCosts > 0;
   
   // Calculate contribution margin

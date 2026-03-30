@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,12 +30,7 @@ interface ValorHoraEmpresaProps {
   isSaving: boolean;
 }
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
-};
+// formatCurrency now uses privacy mode - will be defined inside component
 
 export function ValorHoraEmpresa({
   fixedCosts,
@@ -46,6 +42,8 @@ export function ValorHoraEmpresa({
   onSave,
   isSaving,
 }: ValorHoraEmpresaProps) {
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
   const [hoursPerDay, setHoursPerDay] = useState(initialHoursPerDay.toString());
   const [avgServicesPerDay, setAvgServicesPerDay] = useState(initialAvgServicesPerDay.toString());
 

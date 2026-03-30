@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import { Clock, User, Check, X, Pencil, MoreVertical, Phone, CreditCard } from 'lucide-react';
+import { usePrivacyMode } from '@/contexts/PrivacyModeContext';
 import { getPaymentMethodLabel } from '@/hooks/usePaymentMethodFees';
 import { Button } from '@/components/ui/button';
 import {
@@ -47,12 +48,8 @@ export const AppointmentCard = ({
     return time.substring(0, 5);
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
 
   return (
     <motion.div

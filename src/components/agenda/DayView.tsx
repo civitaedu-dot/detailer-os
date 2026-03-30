@@ -5,6 +5,7 @@ import { AppointmentCard } from './AppointmentCard';
 import type { Appointment } from '@/hooks/useAppointments';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { usePrivacyMode } from '@/contexts/PrivacyModeContext';
 
 interface DayViewProps {
   selectedDate: Date;
@@ -25,6 +26,7 @@ export const DayView = ({
   onDeleteAppointment,
   isLoading,
 }: DayViewProps) => {
+  const { maskCurrency } = usePrivacyMode();
   const formattedDate = format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR });
 
   const sortedAppointments = [...appointments].sort((a, b) => {
@@ -39,12 +41,7 @@ export const DayView = ({
       .reduce((sum, apt) => sum + apt.service_value, 0);
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
+  const formatCurrency = (value: number) => maskCurrency(value);
 
   if (isLoading) {
     return (

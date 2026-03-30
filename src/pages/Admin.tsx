@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -45,11 +46,10 @@ interface UserProfile {
   stripe_subscription_id: string | null;
 }
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-
 const Admin = () => {
   const { user, profile } = useAuth();
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
   const { isAdmin, isLoading: isLoadingRole } = useUserRole();
   const navigate = useNavigate();
   const { toast } = useToast();

@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClients } from "@/hooks/useClients";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, CreditCard, Loader2, Wrench, Upload, Bot, Shield } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -30,8 +31,7 @@ import {
 import { format, subMonths, differenceInDays, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-const formatCurrency = (v: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+// formatCurrency defined inside component with privacy mode
 
 // Retention tips database
 const RETENTION_TIPS = {
@@ -78,6 +78,8 @@ const Vendas = () => {
   const { user, profile, session, signOut } = useAuth();
   const { isAdmin } = useUserRole();
   const { clients } = useClients();
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (v: number) => maskCurrency(v);
   const { toast } = useToast();
 
   const [appointments, setAppointments] = useState<any[]>([]);

@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LogOut, CreditCard, Loader2, Search, LayoutDashboard, Calendar, Users, TrendingUp, Plus, Wrench, FileText, DollarSign, Package, Megaphone, Upload, Settings, Bot } from "lucide-react";
+import { LogOut, CreditCard, Loader2, Search, LayoutDashboard, Calendar, Users, TrendingUp, Plus, Wrench, FileText, DollarSign, Package, Megaphone, Upload, Settings, Bot, Eye, EyeOff } from "lucide-react";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +40,7 @@ export function AppLayout() {
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { isPrivate, togglePrivacy } = usePrivacyMode();
 
   const handleLogout = async () => {
     await signOut();
@@ -112,6 +114,15 @@ export function AppLayout() {
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={togglePrivacy}
+                className="text-muted-foreground hover:text-foreground"
+                title={isPrivate ? "Mostrar valores" : "Ocultar valores"}
+              >
+                {isPrivate ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </Button>
               <NotificationBell />
 
               <DropdownMenu>

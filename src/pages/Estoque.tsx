@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import {
   Package, Plus, ArrowDownCircle, ArrowUpCircle, AlertTriangle, Search,
   Trash2, Edit, Download, Truck, BarChart3, Loader2
@@ -42,15 +43,14 @@ const UNITS = [
   { value: "m2", label: "m²" },
 ];
 
-const formatCurrency = (v: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
-
 const COLORS = [
   "hsl(var(--primary))", "hsl(152,60%,45%)", "hsl(38,92%,50%)",
   "hsl(200,80%,50%)", "hsl(340,70%,50%)", "hsl(270,60%,50%)", "hsl(20,80%,50%)", "hsl(100,50%,45%)"
 ];
 
 const Estoque = () => {
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (v: number) => maskCurrency(v);
   const { toast } = useToast();
   const {
     products, movements, suppliers, isLoading,

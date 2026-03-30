@@ -4,6 +4,7 @@ import { ArrowUpCircle, ArrowDownCircle, Wallet, TrendingUp, TrendingDown, Info 
 import { type FinancialEntry } from "@/hooks/useFinancialEntries";
 import { type FixedCost } from "@/hooks/useFixedCosts";
 import { type VariableCost } from "@/hooks/useVariableCosts";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 
 interface DFCReportProps {
   entries: FinancialEntry[];
@@ -12,10 +13,9 @@ interface DFCReportProps {
   monthlyRevenue: number;
 }
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-
 export function DFCReport({ entries, fixedCosts, variableCosts, monthlyRevenue }: DFCReportProps) {
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
   const data = useMemo(() => {
     // --- ENTRADAS ---
     const cashInItems = entries.map((e) => ({
@@ -244,6 +244,7 @@ function SummaryCard({
   colorClass: string;
   bgClass: string;
 }) {
+  const { maskCurrency } = usePrivacyMode();
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -254,7 +255,7 @@ function SummaryCard({
         <Icon className={`w-5 h-5 ${colorClass}`} />
         <span className="text-sm font-medium text-muted-foreground">{label}</span>
       </div>
-      <p className={`font-display font-bold text-xl ${colorClass}`}>{formatCurrency(value)}</p>
+      <p className={`font-display font-bold text-xl ${colorClass}`}>{maskCurrency(value)}</p>
     </motion.div>
   );
 }

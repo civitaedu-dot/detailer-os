@@ -7,6 +7,7 @@ import {
   PiggyBank,
   Calculator
 } from "lucide-react";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 
 interface FinancialIndicatorsProps {
   revenue: number;
@@ -17,13 +18,6 @@ interface FinancialIndicatorsProps {
   dailyTarget: number;
 }
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
-};
-
 export function FinancialIndicators({
   revenue,
   totalCosts,
@@ -32,45 +26,47 @@ export function FinancialIndicators({
   breakEven,
   dailyTarget,
 }: FinancialIndicatorsProps) {
+  const { maskCurrency, maskValue } = usePrivacyMode();
+  
   const indicators = [
     {
       label: "Faturamento do Mês",
-      value: formatCurrency(revenue),
+      value: maskCurrency(revenue),
       icon: DollarSign,
       color: "text-primary",
       bgColor: "bg-primary/10",
     },
     {
       label: "Custos Totais",
-      value: formatCurrency(totalCosts),
+      value: maskCurrency(totalCosts),
       icon: TrendingDown,
       color: "text-warning",
       bgColor: "bg-warning/10",
     },
     {
       label: "Lucro Estimado",
-      value: formatCurrency(netProfit),
+      value: maskCurrency(netProfit),
       icon: netProfit >= 0 ? TrendingUp : TrendingDown,
       color: netProfit >= 0 ? "text-success" : "text-destructive",
       bgColor: netProfit >= 0 ? "bg-success/10" : "bg-destructive/10",
     },
     {
       label: "Margem de Lucro",
-      value: `${profitMargin.toFixed(1)}%`,
+      value: maskValue(`${profitMargin.toFixed(1)}%`),
       icon: PiggyBank,
       color: profitMargin >= 20 ? "text-success" : profitMargin >= 0 ? "text-warning" : "text-destructive",
       bgColor: profitMargin >= 20 ? "bg-success/10" : profitMargin >= 0 ? "bg-warning/10" : "bg-destructive/10",
     },
     {
       label: "Ponto de Equilíbrio",
-      value: formatCurrency(breakEven),
+      value: maskCurrency(breakEven),
       icon: Target,
       color: "text-info",
       bgColor: "bg-info/10",
     },
     {
       label: "Meta Diária",
-      value: formatCurrency(dailyTarget),
+      value: maskCurrency(dailyTarget),
       icon: Calculator,
       color: "text-primary",
       bgColor: "bg-primary/10",
