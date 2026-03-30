@@ -9,6 +9,15 @@ import {
 } from "lucide-react";
 import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 
+interface FinancialIndicatorsProps {
+  revenue: number;
+  totalCosts: number;
+  netProfit: number;
+  profitMargin: number;
+  breakEven: number;
+  dailyTarget: number;
+}
+
 export function FinancialIndicators({
   revenue,
   totalCosts,
