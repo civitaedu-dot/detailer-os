@@ -42,6 +42,8 @@ export function ValorHoraEmpresa({
   onSave,
   isSaving,
 }: ValorHoraEmpresaProps) {
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
   const [hoursPerDay, setHoursPerDay] = useState(initialHoursPerDay.toString());
   const [avgServicesPerDay, setAvgServicesPerDay] = useState(initialAvgServicesPerDay.toString());
 
