@@ -19,13 +19,6 @@ interface FinancialAnalysisProps {
   workingDays: number;
 }
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
-};
-
 export function FinancialAnalysis({
   revenue,
   costsPercentage,
@@ -35,6 +28,8 @@ export function FinancialAnalysis({
   dailyTarget,
   workingDays,
 }: FinancialAnalysisProps) {
+  const { maskCurrency, maskValue } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
   const hasData = revenue > 0 || breakEven > 0;
 
   if (!hasData) {
