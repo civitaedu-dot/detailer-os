@@ -7,22 +7,7 @@ import {
   PiggyBank,
   Calculator
 } from "lucide-react";
-
-interface FinancialIndicatorsProps {
-  revenue: number;
-  totalCosts: number;
-  netProfit: number;
-  profitMargin: number;
-  breakEven: number;
-  dailyTarget: number;
-}
-
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(value);
-};
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 
 export function FinancialIndicators({
   revenue,
