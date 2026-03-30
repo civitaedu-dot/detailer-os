@@ -47,11 +47,11 @@ interface Props {
   isSaving: boolean;
 }
 
-const today = () => new Date().toISOString().split("T")[0];
+const today = () => toLocalDateString(new Date());
 const in30days = () => {
   const d = new Date();
   d.setDate(d.getDate() + 30);
-  return d.toISOString().split("T")[0];
+  return toLocalDateString(d);
 };
 
 export const QuoteFormModal = ({

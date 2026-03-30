@@ -67,7 +67,7 @@ export const useAppointments = (selectedDateOrOptions?: Date | UseAppointmentsOp
       if (dateRange) {
         query = query.gte('appointment_date', dateRange.start).lte('appointment_date', dateRange.end);
       } else if (selectedDateFromOptions) {
-        const dateStr = selectedDateFromOptions.toISOString().split('T')[0];
+        const dateStr = toLocalDateString(selectedDateFromOptions);
         query = query.eq('appointment_date', dateStr);
       }
 

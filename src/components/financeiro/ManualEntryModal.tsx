@@ -73,7 +73,7 @@ export function ManualEntryModal({
           entry_type: 'service',
           description: '',
           value: 0,
-          entry_date: new Date().toISOString().split('T')[0],
+          entry_date: toLocalDateString(new Date()),
           client_id: null,
           client_name: null,
           notes: null,
