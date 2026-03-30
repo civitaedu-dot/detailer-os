@@ -77,6 +77,8 @@ const Vendas = () => {
   const { user, profile, session, signOut } = useAuth();
   const { isAdmin } = useUserRole();
   const { clients } = useClients();
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (v: number) => maskCurrency(v);
   const { toast } = useToast();
 
   const [appointments, setAppointments] = useState<any[]>([]);
