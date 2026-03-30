@@ -114,6 +114,15 @@ export function AppLayout() {
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={togglePrivacy}
+                className="text-muted-foreground hover:text-foreground"
+                title={isPrivate ? "Mostrar valores" : "Ocultar valores"}
+              >
+                {isPrivate ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </Button>
               <NotificationBell />
 
               <DropdownMenu>
