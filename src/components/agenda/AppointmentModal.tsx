@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Plus, User, Wrench, CreditCard } from 'lucide-react';
 import { ClientForm } from './ClientForm';
+import { toLocalDateString } from '@/lib/utils';
 import { PAYMENT_METHODS } from '@/hooks/usePaymentMethodFees';
 import type { Client, ClientFormData } from '@/hooks/useClients';
 import type { Appointment, AppointmentFormData } from '@/hooks/useAppointments';
@@ -79,7 +80,7 @@ export const AppointmentModal = ({
           client_name: '',
           service_name: '',
           service_value: 0,
-          appointment_date: selectedDate.toISOString().split('T')[0],
+          appointment_date: toLocalDateString(selectedDate),
           appointment_time: '',
           duration_minutes: 60,
           notes: '',

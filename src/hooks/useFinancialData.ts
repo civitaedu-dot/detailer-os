@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toLocalDateString } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -88,8 +89,8 @@ export function useFinancialData(selectedDate?: Date) {
         .from('financial_entries')
         .select('value, entry_date, is_automatic')
         .eq('user_id', user.id)
-        .gte('entry_date', firstDay.toISOString().split('T')[0])
-        .lte('entry_date', lastDay.toISOString().split('T')[0]);
+        .gte('entry_date', toLocalDateString(firstDay))
+        .lte('entry_date', toLocalDateString(lastDay));
 
       if (error) throw error;
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toLocalDateString } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -48,11 +49,11 @@ export function useFinancialEntries(startDate?: Date, endDate?: Date) {
         .order('entry_date', { ascending: false });
 
       if (startDate) {
-        query = query.gte('entry_date', startDate.toISOString().split('T')[0]);
+        query = query.gte('entry_date', toLocalDateString(startDate));
       }
 
       if (endDate) {
-        query = query.lte('entry_date', endDate.toISOString().split('T')[0]);
+        query = query.lte('entry_date', toLocalDateString(endDate));
       }
 
       const { data, error } = await query;

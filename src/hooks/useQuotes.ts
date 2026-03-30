@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toLocalDateString } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -400,8 +401,8 @@ export const useQuotes = () => {
       client_document: quote.client_document || undefined,
       client_address: quote.client_address || undefined,
       status: 'draft',
-      created_date: new Date().toISOString().split('T')[0],
-      expiry_date: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString().split('T')[0],
+      created_date: toLocalDateString(new Date()),
+      expiry_date: toLocalDateString(new Date(Date.now() + 30 * 24 * 3600 * 1000)),
       discount_type: quote.discount_type,
       discount_value: quote.discount_value,
       tax_type: quote.tax_type || undefined,

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { toLocalDateString } from '@/lib/utils';
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, ChevronRight, ChevronLeft, FileText, User, List,
@@ -47,11 +48,11 @@ interface Props {
   isSaving: boolean;
 }
 
-const today = () => new Date().toISOString().split("T")[0];
+const today = () => toLocalDateString(new Date());
 const in30days = () => {
   const d = new Date();
   d.setDate(d.getDate() + 30);
-  return d.toISOString().split("T")[0];
+  return toLocalDateString(d);
 };
 
 export const QuoteFormModal = ({

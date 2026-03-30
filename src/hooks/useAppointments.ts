@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { toLocalDateString } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -66,7 +67,7 @@ export const useAppointments = (selectedDateOrOptions?: Date | UseAppointmentsOp
       if (dateRange) {
         query = query.gte('appointment_date', dateRange.start).lte('appointment_date', dateRange.end);
       } else if (selectedDateFromOptions) {
-        const dateStr = selectedDateFromOptions.toISOString().split('T')[0];
+        const dateStr = toLocalDateString(selectedDateFromOptions);
         query = query.eq('appointment_date', dateStr);
       }
 
