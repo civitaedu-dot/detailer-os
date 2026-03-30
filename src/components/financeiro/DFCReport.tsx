@@ -244,6 +244,7 @@ function SummaryCard({
   colorClass: string;
   bgClass: string;
 }) {
+  const { maskCurrency } = usePrivacyMode();
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -254,7 +255,7 @@ function SummaryCard({
         <Icon className={`w-5 h-5 ${colorClass}`} />
         <span className="text-sm font-medium text-muted-foreground">{label}</span>
       </div>
-      <p className={`font-display font-bold text-xl ${colorClass}`}>{formatCurrency(value)}</p>
+      <p className={`font-display font-bold text-xl ${colorClass}`}>{maskCurrency(value)}</p>
     </motion.div>
   );
 }
