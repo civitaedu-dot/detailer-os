@@ -124,12 +124,8 @@ export function VariableCostsManager({ monthlyRevenue, onTotalPercentageChange }
     handleTotalChange();
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { 
-      style: 'currency', 
-      currency: 'BRL' 
-    }).format(value);
-  };
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
 
   if (isLoading) {
     return (

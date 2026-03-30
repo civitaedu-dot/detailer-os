@@ -101,12 +101,8 @@ const Servicos = () => {
     return `${hours}h${mins}min`;
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
 
   const calculateProfit = (price: number, cost: number) => {
     if (price <= 0) return 0;

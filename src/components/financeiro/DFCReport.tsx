@@ -4,6 +4,7 @@ import { ArrowUpCircle, ArrowDownCircle, Wallet, TrendingUp, TrendingDown, Info 
 import { type FinancialEntry } from "@/hooks/useFinancialEntries";
 import { type FixedCost } from "@/hooks/useFixedCosts";
 import { type VariableCost } from "@/hooks/useVariableCosts";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 
 interface DFCReportProps {
   entries: FinancialEntry[];
@@ -12,10 +13,9 @@ interface DFCReportProps {
   monthlyRevenue: number;
 }
 
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-
 export function DFCReport({ entries, fixedCosts, variableCosts, monthlyRevenue }: DFCReportProps) {
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
   const data = useMemo(() => {
     // --- ENTRADAS ---
     const cashInItems = entries.map((e) => ({

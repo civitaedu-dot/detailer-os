@@ -43,8 +43,9 @@ const UNITS = [
   { value: "m2", label: "m²" },
 ];
 
-const formatCurrency = (v: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+const Estoque = () => {
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (v: number) => maskCurrency(v);
 
 const COLORS = [
   "hsl(var(--primary))", "hsl(152,60%,45%)", "hsl(38,92%,50%)",

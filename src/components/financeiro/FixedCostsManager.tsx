@@ -123,12 +123,8 @@ export function FixedCostsManager({ onTotalChange }: FixedCostsManagerProps) {
     handleTotalChange();
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', { 
-      style: 'currency', 
-      currency: 'BRL' 
-    }).format(value);
-  };
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
 
   if (isLoading) {
     return (
