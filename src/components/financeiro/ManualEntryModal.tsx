@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Loader2, DollarSign } from 'lucide-react';
+import { toLocalDateString } from '@/lib/utils';
 import type { FinancialEntry, FinancialEntryFormData } from '@/hooks/useFinancialEntries';
 
 interface Client {
