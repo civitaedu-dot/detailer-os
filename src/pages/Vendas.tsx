@@ -20,6 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClients } from "@/hooks/useClients";
+import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import { useToast } from "@/hooks/use-toast";
 import { LogOut, CreditCard, Loader2, Wrench, Upload, Bot, Shield } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
