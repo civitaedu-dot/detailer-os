@@ -28,6 +28,7 @@ const Dashboard = () => {
   const { profile, checkSubscription, isCheckingSubscription } = useAuth();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
+  const { maskCurrency, maskValue, isPrivate } = usePrivacyMode();
 
   const { monthlyRevenue, isLoading: isLoadingFinancial, calculateMetrics, refetch } = useFinancialData();
   const { calculateTotalFixedCosts } = useFixedCosts();
