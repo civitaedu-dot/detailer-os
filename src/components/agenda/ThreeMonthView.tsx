@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalendarDays, TrendingUp, CheckCircle } from 'lucide-react';
 import type { Appointment } from '@/hooks/useAppointments';
+import { usePrivacyMode } from '@/contexts/PrivacyModeContext';
 
 interface ThreeMonthViewProps {
   startMonth: Date;
