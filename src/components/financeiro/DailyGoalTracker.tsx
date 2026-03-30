@@ -61,6 +61,8 @@ export function DailyGoalTracker({
   onSaveGoal,
   isSaving,
 }: DailyGoalTrackerProps) {
+  const { maskCurrency } = usePrivacyMode();
+  const formatCurrency = (value: number) => maskCurrency(value);
   const [isEditing, setIsEditing] = useState(false);
   const [localUseAuto, setLocalUseAuto] = useState(useAutoGoal);
   const [localGoal, setLocalGoal] = useState(manualGoal?.toString() || "");
