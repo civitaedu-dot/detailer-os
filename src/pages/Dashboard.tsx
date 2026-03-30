@@ -67,7 +67,7 @@ const Dashboard = () => {
   const stats = useMemo(() => [
     {
       label: "Faturamento",
-      value: formatCurrency(metrics.revenue),
+      value: maskCurrency(metrics.revenue),
       icon: DollarSign,
       trend: trendData.revenueTrend,
       iconBg: "bg-emerald-500/15",
@@ -75,7 +75,7 @@ const Dashboard = () => {
     },
     {
       label: "Ticket Médio",
-      value: formatCurrency(metrics.completedAppointments > 0 ? metrics.revenue / metrics.completedAppointments : 0),
+      value: maskCurrency(metrics.completedAppointments > 0 ? metrics.revenue / metrics.completedAppointments : 0),
       icon: TrendingUp,
       trend: trendData.ticketTrend,
       iconBg: "bg-sky-500/15",
@@ -91,13 +91,13 @@ const Dashboard = () => {
     },
     {
       label: "Lucro Estimado",
-      value: formatCurrency(metrics.netProfit),
+      value: maskCurrency(metrics.netProfit),
       icon: TrendingUp,
       trend: trendData.profitTrend,
       iconBg: "bg-violet-500/15",
       iconColor: "text-violet-400",
     },
-  ], [metrics, trendData]);
+  ], [metrics, trendData, maskCurrency]);
 
   const todayAppointments = useMemo(() => {
     const today = format(new Date(), 'yyyy-MM-dd');
