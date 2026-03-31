@@ -17,12 +17,17 @@ export function MonthSelector({ selectedDate, onMonthChange }: MonthSelectorProp
     selectedDate.getFullYear() === now.getFullYear() &&
     selectedDate.getMonth() === now.getMonth();
 
+  const maxDate = new Date(now.getFullYear(), now.getMonth() + 12, 1);
+  const isAtMax =
+    selectedDate.getFullYear() === maxDate.getFullYear() &&
+    selectedDate.getMonth() === maxDate.getMonth();
+
   const goToPreviousMonth = () => {
     onMonthChange(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1));
   };
 
   const goToNextMonth = () => {
-    if (!isCurrentMonth) {
+    if (!isAtMax) {
       onMonthChange(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1));
     }
   };
@@ -32,6 +37,10 @@ export function MonthSelector({ selectedDate, onMonthChange }: MonthSelectorProp
   };
 
   const label = `${MONTH_NAMES[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`;
+
+  const isFuture =
+    selectedDate.getFullYear() > now.getFullYear() ||
+    (selectedDate.getFullYear() === now.getFullYear() && selectedDate.getMonth() > now.getMonth());
 
   return (
     <div className="flex items-center gap-2">
@@ -43,7 +52,9 @@ export function MonthSelector({ selectedDate, onMonthChange }: MonthSelectorProp
         className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
           isCurrentMonth
             ? "bg-primary/10 text-primary"
-            : "bg-secondary text-muted-foreground hover:text-foreground"
+            : isFuture
+              ? "bg-accent/50 text-accent-foreground hover:text-foreground"
+              : "bg-secondary text-muted-foreground hover:text-foreground"
         }`}
       >
         <Calendar className="h-3.5 w-3.5" />
@@ -54,7 +65,7 @@ export function MonthSelector({ selectedDate, onMonthChange }: MonthSelectorProp
         size="icon"
         className="h-8 w-8"
         onClick={goToNextMonth}
-        disabled={isCurrentMonth}
+        disabled={isAtMax}
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
