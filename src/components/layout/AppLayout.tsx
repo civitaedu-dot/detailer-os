@@ -167,7 +167,7 @@ export function AppLayout() {
 
           {/* Mobile bottom navigation */}
           {isMobile && (
-            <nav className="fixed bottom-0 left-0 right-0 z-50 h-16 bg-card/95 backdrop-blur-lg border-t border-border flex items-center justify-around px-2">
+            <nav className="fixed bottom-0 left-0 right-0 z-40 h-16 bg-card/95 backdrop-blur-lg border-t border-border flex items-center justify-around px-2">
               {bottomNavItems.map((item) => (
                 <Link
                   key={item.url}
