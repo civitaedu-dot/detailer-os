@@ -616,6 +616,74 @@ export type Database = {
           },
         ]
       }
+      ordens_servico: {
+        Row: {
+          ano_veiculo: string | null
+          cliente_id: string | null
+          cliente_nome: string
+          cor: string | null
+          created_at: string
+          descricao_servico: string
+          id: string
+          modelo_veiculo: string | null
+          observacoes: string | null
+          placa: string | null
+          prioridade: Database["public"]["Enums"]["ordem_prioridade"]
+          quilometragem: string | null
+          responsavel_id: string | null
+          responsavel_nome: string | null
+          status: Database["public"]["Enums"]["ordem_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ano_veiculo?: string | null
+          cliente_id?: string | null
+          cliente_nome: string
+          cor?: string | null
+          created_at?: string
+          descricao_servico: string
+          id?: string
+          modelo_veiculo?: string | null
+          observacoes?: string | null
+          placa?: string | null
+          prioridade?: Database["public"]["Enums"]["ordem_prioridade"]
+          quilometragem?: string | null
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          status?: Database["public"]["Enums"]["ordem_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ano_veiculo?: string | null
+          cliente_id?: string | null
+          cliente_nome?: string
+          cor?: string | null
+          created_at?: string
+          descricao_servico?: string
+          id?: string
+          modelo_veiculo?: string | null
+          observacoes?: string | null
+          placa?: string | null
+          prioridade?: Database["public"]["Enums"]["ordem_prioridade"]
+          quilometragem?: string | null
+          responsavel_id?: string | null
+          responsavel_nome?: string | null
+          status?: Database["public"]["Enums"]["ordem_status"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ordens_servico_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_method_fees: {
         Row: {
           created_at: string
@@ -1266,6 +1334,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      ordem_prioridade: "normal" | "urgente"
+      ordem_status: "aguardando" | "em_andamento" | "concluido"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1394,6 +1464,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      ordem_prioridade: ["normal", "urgente"],
+      ordem_status: ["aguardando", "em_andamento", "concluido"],
     },
   },
 } as const
