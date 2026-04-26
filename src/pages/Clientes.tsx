@@ -12,6 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useOrdensServico } from '@/hooks/useOrdensServico';
+import { OrdemServicoCard } from '@/components/ordens/OrdemServicoCard';
+import { OrdemServicoModal } from '@/components/ordens/OrdemServicoModal';
+import { ClipboardList, Plus } from 'lucide-react';
+import { useState as useReactState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +28,54 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+
+const ClientOrdensTab = ({ clientId }: { clientId: string }) => {
+  const { ordens, isLoading, deleteOrdem } = useOrdensServico(clientId);
+  const [ordemModalOpen, setOrdemModalOpen] = useReactState(false);
+  const [editingOrdem, setEditingOrdem] = useReactState<any>(null);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex justify-end">
+        <Button
+          size="sm"
+          onClick={() => { setEditingOrdem(null); setOrdemModalOpen(true); }}
+          className="gap-2"
+        >
+          <Plus className="w-4 h-4" />
+          Nova ordem
+        </Button>
+      </div>
+      {isLoading ? (
+        <div className="flex justify-center py-6">
+          <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+        </div>
+      ) : ordens.length === 0 ? (
+        <div className="text-center py-8 text-sm text-muted-foreground">
+          <ClipboardList className="w-10 h-10 mx-auto mb-2 opacity-40" />
+          Nenhuma ordem de serviço para este cliente.
+        </div>
+      ) : (
+        <div className="space-y-3 max-h-[400px] overflow-y-auto">
+          {ordens.map((o) => (
+            <OrdemServicoCard
+              key={o.id}
+              ordem={o}
+              onEdit={(ord) => { setEditingOrdem(ord); setOrdemModalOpen(true); }}
+              onDelete={(id) => deleteOrdem(id)}
+            />
+          ))}
+        </div>
+      )}
+      <OrdemServicoModal
+        open={ordemModalOpen}
+        onOpenChange={setOrdemModalOpen}
+        ordem={editingOrdem}
+        defaultClienteId={clientId}
+      />
+    </div>
+  );
+};
 
 const Clientes = () => {
   const { user, profile, signOut } = useAuth();
@@ -237,12 +291,79 @@ const Clientes = () => {
         )}
       {/* Client Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingClient ? 'Editar Cliente' : 'Novo Cliente'}</DialogTitle>
           </DialogHeader>
+          {editingClient ? (
+            <Tabs defaultValue="dados">
+              <TabsList className="w-full">
+                <TabsTrigger value="dados" className="flex-1">Dados</TabsTrigger>
+                <TabsTrigger value="ordens" className="flex-1">Ordens de Serviço</TabsTrigger>
+              </TabsList>
+              <TabsContent value="dados" className="mt-4">
+                <ClientForm
+                  formData={formData}
+                  setFormData={setFormData}
+                  onSubmit={handleSubmit}
+                  onCancel={() => setIsModalOpen(false)}
+                  isSubmitting={isSubmitting}
+                  isEditing={true}
+                  formatPhone={formatPhone}
+                />
+              </TabsContent>
+              <TabsContent value="ordens" className="mt-4">
+                <ClientOrdensTab clientId={editingClient.id} />
+              </TabsContent>
+            </Tabs>
+          ) : (
+            <ClientForm
+              formData={formData}
+              setFormData={setFormData}
+              onSubmit={handleSubmit}
+              onCancel={() => setIsModalOpen(false)}
+              isSubmitting={isSubmitting}
+              isEditing={false}
+              formatPhone={formatPhone}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Delete Confirmation */}
+      <AlertDialog open={!!deleteClientId} onOpenChange={() => setDeleteClientId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir cliente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O cliente será removido permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+// Extracted form to be reused across tabs
+interface ClientFormProps {
+  formData: ClientFormData;
+  setFormData: React.Dispatch<React.SetStateAction<ClientFormData>>;
+  onSubmit: (e: React.FormEvent) => void;
+  onCancel: () => void;
+  isSubmitting: boolean;
+  isEditing: boolean;
+  formatPhone: (v: string) => string;
+}
+const ClientForm = ({ formData, setFormData, onSubmit, onCancel, isSubmitting, isEditing, formatPhone }: ClientFormProps) => {
+  return (
+    <form onSubmit={onSubmit} className="space-y-4">
             <div>
               <Label htmlFor="name">Nome completo *</Label>
               <Input
@@ -302,7 +423,7 @@ const Clientes = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsModalOpen(false)}
+                onClick={onCancel}
                 className="flex-1"
               >
                 Cancelar
@@ -313,31 +434,10 @@ const Clientes = () => {
                 className="flex-1"
               >
                 {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                {editingClient ? 'Salvar' : 'Criar Cliente'}
+                {isEditing ? 'Salvar' : 'Criar Cliente'}
               </Button>
             </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteClientId} onOpenChange={() => setDeleteClientId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir cliente?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O cliente será removido permanentemente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+    </form>
   );
 };
 
