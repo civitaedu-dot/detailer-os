@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Calendar, Users, Wrench, FileText, Car,
+  LayoutDashboard, Calendar, Users, Wrench, FileText, Car, ClipboardList,
   DollarSign, Package, UsersRound,
   TrendingUp, Megaphone, Upload,
   Settings, Shield, Bot
@@ -38,6 +38,7 @@ const navGroups = [
       { title: "Clientes", url: "/clientes", icon: Users },
       { title: "Serviços", url: "/servicos", icon: Wrench },
       { title: "Orçamentos", url: "/orcamentos", icon: FileText },
+      { title: "Ordens de Serviço", url: "/ordens-servico", icon: ClipboardList },
     ],
   },
   {

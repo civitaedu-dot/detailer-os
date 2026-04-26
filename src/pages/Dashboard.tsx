@@ -4,7 +4,8 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   DollarSign, TrendingUp, Calendar, Bot,
-  ArrowUpRight, ArrowDownRight, RefreshCw, Wrench, Users, Clock
+  ArrowUpRight, ArrowDownRight, RefreshCw, Wrench, Users, Clock,
+  ClipboardList, AlertTriangle
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth, isTrialActive, getTrialDaysRemaining } from "@/contexts/AuthContext";
@@ -16,6 +17,7 @@ import { useVariableCosts } from "@/hooks/useVariableCosts";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useClients } from "@/hooks/useClients";
 import { useServices } from "@/hooks/useServices";
+import { useOrdensServico } from "@/hooks/useOrdensServico";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -36,6 +38,13 @@ const Dashboard = () => {
   const { appointments } = useAppointments();
   const { clients } = useClients();
   const { services } = useServices();
+  const { ordens } = useOrdensServico();
+
+  const ordensStats = useMemo(() => {
+    const emAndamento = ordens.filter((o) => o.status === 'em_andamento').length;
+    const urgentes = ordens.filter((o) => o.prioridade === 'urgente' && o.status !== 'concluido').length;
+    return { emAndamento, urgentes };
+  }, [ordens]);
 
   const metrics = useMemo(() => {
     const fixedCosts = calculateTotalFixedCosts();
@@ -216,6 +225,36 @@ const Dashboard = () => {
             </Card>
           </motion.div>
         ))}
+      </div>
+
+      {/* Ordens de Serviço KPI */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <Link to="/ordens-servico">
+          <Card className="border-border/50 bg-card hover:shadow-md transition-all hover:border-amber-500/40">
+            <CardContent className="p-4 sm:p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
+                <ClipboardList className="w-5 h-5 text-amber-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-2xl font-bold font-display">{ordensStats.emAndamento}</p>
+                <p className="text-xs text-muted-foreground">Ordens em andamento</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link to="/ordens-servico">
+          <Card className="border-border/50 bg-card hover:shadow-md transition-all hover:border-destructive/40">
+            <CardContent className="p-4 sm:p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-destructive/15 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-2xl font-bold font-display">{ordensStats.urgentes}</p>
+                <p className="text-xs text-muted-foreground">Ordens urgentes</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Two columns: Bar Chart + Today's agenda */}

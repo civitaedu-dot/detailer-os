@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { LogOut, CreditCard, Loader2, Search, LayoutDashboard, Calendar, Users, TrendingUp, Plus, Wrench, FileText, DollarSign, Package, Megaphone, Upload, Settings, Bot, Eye, EyeOff } from "lucide-react";
+import { LogOut, CreditCard, Loader2, Search, LayoutDashboard, Calendar, Users, TrendingUp, Plus, Wrench, FileText, DollarSign, Package, Megaphone, Upload, Settings, Bot, Eye, EyeOff, ClipboardList } from "lucide-react";
 import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import {
   DropdownMenu,
@@ -24,6 +24,7 @@ import logo from "@/assets/logo.jpeg";
 const mobileMoreItems = [
   { title: "Serviços", url: "/servicos", icon: Wrench },
   { title: "Orçamentos", url: "/orcamentos", icon: FileText },
+  { title: "Ordens de Serviço", url: "/ordens-servico", icon: ClipboardList },
   { title: "Financeiro", url: "/financeiro", icon: DollarSign },
   { title: "Estoque", url: "/estoque", icon: Package },
   { title: "Campanhas", url: "/campanhas", icon: Megaphone },
