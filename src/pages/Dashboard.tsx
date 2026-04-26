@@ -4,7 +4,8 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   DollarSign, TrendingUp, Calendar, Bot,
-  ArrowUpRight, ArrowDownRight, RefreshCw, Wrench, Users, Clock
+  ArrowUpRight, ArrowDownRight, RefreshCw, Wrench, Users, Clock,
+  ClipboardList, AlertTriangle
 } from "lucide-react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth, isTrialActive, getTrialDaysRemaining } from "@/contexts/AuthContext";
@@ -16,6 +17,7 @@ import { useVariableCosts } from "@/hooks/useVariableCosts";
 import { useAppointments } from "@/hooks/useAppointments";
 import { useClients } from "@/hooks/useClients";
 import { useServices } from "@/hooks/useServices";
+import { useOrdensServico } from "@/hooks/useOrdensServico";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
@@ -36,6 +38,13 @@ const Dashboard = () => {
   const { appointments } = useAppointments();
   const { clients } = useClients();
   const { services } = useServices();
+  const { ordens } = useOrdensServico();
+
+  const ordensStats = useMemo(() => {
+    const emAndamento = ordens.filter((o) => o.status === 'em_andamento').length;
+    const urgentes = ordens.filter((o) => o.prioridade === 'urgente' && o.status !== 'concluido').length;
+    return { emAndamento, urgentes };
+  }, [ordens]);
 
   const metrics = useMemo(() => {
     const fixedCosts = calculateTotalFixedCosts();
