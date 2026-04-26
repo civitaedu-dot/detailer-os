@@ -227,6 +227,36 @@ const Dashboard = () => {
         ))}
       </div>
 
+      {/* Ordens de Serviço KPI */}
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <Link to="/ordens-servico">
+          <Card className="border-border/50 bg-card hover:shadow-md transition-all hover:border-amber-500/40">
+            <CardContent className="p-4 sm:p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center shrink-0">
+                <ClipboardList className="w-5 h-5 text-amber-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-2xl font-bold font-display">{ordensStats.emAndamento}</p>
+                <p className="text-xs text-muted-foreground">Ordens em andamento</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+        <Link to="/ordens-servico">
+          <Card className="border-border/50 bg-card hover:shadow-md transition-all hover:border-destructive/40">
+            <CardContent className="p-4 sm:p-5 flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-destructive/15 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-2xl font-bold font-display">{ordensStats.urgentes}</p>
+                <p className="text-xs text-muted-foreground">Ordens urgentes</p>
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
+
       {/* Two columns: Bar Chart + Today's agenda */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
