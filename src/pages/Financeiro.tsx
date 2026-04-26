@@ -29,6 +29,7 @@ import { MonthSelector } from "@/components/financeiro/MonthSelector";
 import { GestaoCompletaCustos } from "@/components/financeiro/GestaoCompletaCustos";
 import { ValorHoraEmpresa } from "@/components/financeiro/ValorHoraEmpresa";
 import { PrecificacaoServicos } from "@/components/financeiro/PrecificacaoServicos";
+import { CalculadoraPrecificacao } from "@/components/financeiro/CalculadoraPrecificacao";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useVariableCosts } from "@/hooks/useVariableCosts";
 import { useFixedCosts } from "@/hooks/useFixedCosts";
@@ -262,6 +263,10 @@ const Financeiro = () => {
                 <Calculator className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
                 Precificação
               </TabsTrigger>
+              <TabsTrigger value="calculadora" className="text-xs sm:text-sm px-2.5 sm:px-3">
+                <Calculator className="w-3.5 h-3.5 mr-1 sm:mr-1.5" />
+                Calculadora
+              </TabsTrigger>
               <TabsTrigger value="dfc" className="text-xs sm:text-sm px-2.5 sm:px-3" disabled={!hasDFCAccess}>
                 {!hasDFCAccess && <Lock className="w-3 h-3 mr-1 sm:mr-1.5" />}
                 DFC
@@ -410,6 +415,11 @@ const Financeiro = () => {
               onUpdateService={updateService}
               isUpdating={isUpdatingService}
             />
+          </TabsContent>
+
+          {/* TAB: Calculadora */}
+          <TabsContent value="calculadora" className="space-y-6">
+            <CalculadoraPrecificacao />
           </TabsContent>
 
           {/* TAB: DFC */}

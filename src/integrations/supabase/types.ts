@@ -714,6 +714,72 @@ export type Database = {
         }
         Relationships: []
       }
+      precificacoes: {
+        Row: {
+          aliquota_imposto: number
+          comissao_avista: number
+          comissao_parcelado: number
+          created_at: string
+          custo_mao_obra: number
+          custo_material_total: number
+          detalhes: Json
+          id: string
+          margem_lucro: number
+          nome_servico: string
+          preco_10x: number
+          preco_6x: number
+          preco_avista: number
+          preco_sn: number
+          service_id: string | null
+          taxa_cartao_10x: number
+          taxa_cartao_6x: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aliquota_imposto?: number
+          comissao_avista?: number
+          comissao_parcelado?: number
+          created_at?: string
+          custo_mao_obra?: number
+          custo_material_total?: number
+          detalhes?: Json
+          id?: string
+          margem_lucro?: number
+          nome_servico: string
+          preco_10x?: number
+          preco_6x?: number
+          preco_avista?: number
+          preco_sn?: number
+          service_id?: string | null
+          taxa_cartao_10x?: number
+          taxa_cartao_6x?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aliquota_imposto?: number
+          comissao_avista?: number
+          comissao_parcelado?: number
+          created_at?: string
+          custo_mao_obra?: number
+          custo_material_total?: number
+          detalhes?: Json
+          id?: string
+          margem_lucro?: number
+          nome_servico?: string
+          preco_10x?: number
+          preco_6x?: number
+          preco_avista?: number
+          preco_sn?: number
+          service_id?: string | null
+          taxa_cartao_10x?: number
+          taxa_cartao_6x?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           brand: string | null
