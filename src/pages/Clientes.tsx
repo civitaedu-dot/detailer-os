@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
-import { LogOut, Users, Plus, Search, Phone, Car, Calendar, Pencil, Trash2, MessageCircle } from 'lucide-react';
+import { LogOut, Users, Plus, Search, Phone, Car, Calendar, Pencil, Trash2, MessageCircle, ClipboardList } from 'lucide-react';
 import { WhatsAppButton } from '@/components/whatsapp/WhatsAppButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +16,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useOrdensServico } from '@/hooks/useOrdensServico';
 import { OrdemServicoCard } from '@/components/ordens/OrdemServicoCard';
 import { OrdemServicoModal } from '@/components/ordens/OrdemServicoModal';
-import { ClipboardList, Plus } from 'lucide-react';
 import { useState as useReactState } from 'react';
 import {
   AlertDialog,
