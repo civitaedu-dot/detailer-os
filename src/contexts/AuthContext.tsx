@@ -86,17 +86,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
   
-  // Track if we're currently fetching to avoid duplicate requests
-  const isFetchingProfile = useRef(false);
+  // Track latest profile request so slower responses don't overwrite newer auth state
+  const profileFetchRequest = useRef(0);
   const lastSubscriptionCheck = useRef<number>(0);
 
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
-    if (isFetchingProfile.current) {
-      console.log("[AuthContext] Profile fetch already in progress, skipping");
-      return null;
-    }
-
-    isFetchingProfile.current = true;
+    const requestId = ++profileFetchRequest.current;
     
     try {
       console.log("[AuthContext] Fetching profile for user:", userId);
@@ -106,6 +101,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
+
+      if (requestId !== profileFetchRequest.current) return null;
 
       if (error) {
         console.error("[AuthContext] Error fetching profile:", error);
@@ -123,6 +120,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           .eq("user_id", userId)
           .maybeSingle();
         
+        if (requestId !== profileFetchRequest.current) return null;
+
         if (retryError) {
           console.error("[AuthContext] Retry error fetching profile:", retryError);
           return null;
@@ -142,8 +141,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       console.error("[AuthContext] Error fetching profile:", error);
       return null;
-    } finally {
-      isFetchingProfile.current = false;
     }
   }, []);
 
