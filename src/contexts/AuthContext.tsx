@@ -68,7 +68,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const normalizeAuthError = (error: unknown): Error => {
-  if (error instanceof Error && /failed to fetch|networkerror|load failed/i.test(error.message)) {
+  const message = error instanceof Error ? error.message : String(error ?? "");
+
+  if (/failed to fetch|networkerror|load failed/i.test(message)) {
     return new Error("Não foi possível conectar ao serviço de autenticação. Verifique se o backend está ativo e tente novamente.");
   }
 
@@ -320,7 +322,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (error) {
         console.error("[AuthContext] Signup error:", error);
-        return { error };
+        return { error: normalizeAuthError(error) };
       }
 
       console.log("[AuthContext] Signup successful:", data.user?.id);
@@ -342,7 +344,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       if (error) {
         console.error("[AuthContext] Signin error:", error);
-        return { error };
+        return { error: normalizeAuthError(error) };
       }
 
       console.log("[AuthContext] Signin successful:", data.user?.id);
