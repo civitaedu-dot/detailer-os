@@ -67,6 +67,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const normalizeAuthError = (error: unknown): Error => {
+  if (error instanceof Error && /failed to fetch|networkerror|load failed/i.test(error.message)) {
+    return new Error("Não foi possível conectar ao serviço de autenticação. Verifique se o backend está ativo e tente novamente.");
+  }
+
+  return error instanceof Error ? error : new Error("Erro inesperado de autenticação.");
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -319,7 +327,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return { error: null };
     } catch (error) {
       console.error("[AuthContext] Signup exception:", error);
-      return { error: error as Error };
+      return { error: normalizeAuthError(error) };
     }
   };
 
@@ -341,7 +349,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return { error: null };
     } catch (error) {
       console.error("[AuthContext] Signin exception:", error);
-      return { error: error as Error };
+      return { error: normalizeAuthError(error) };
     }
   };
 
