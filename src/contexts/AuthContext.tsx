@@ -206,6 +206,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Initialize auth state
   useEffect(() => {
     let mounted = true;
+    let authEventTimer: ReturnType<typeof setTimeout> | undefined;
     
     const initializeAuth = async () => {
       console.log("[AuthContext] Initializing auth...");
@@ -237,9 +238,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
 
-    // Set up auth state listener
+    // Set up auth state listener. Keep this callback synchronous to avoid auth deadlocks.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      (event, newSession) => {
         console.log("[AuthContext] Auth state changed:", event, newSession?.user?.email);
         
         if (!mounted) return;
@@ -247,9 +248,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
-        if (event === "SIGNED_IN" && newSession?.user) {
-          // Wait a bit for the trigger to create the profile
-          setTimeout(async () => {
+        if (newSession?.user) {
+          if (authEventTimer) clearTimeout(authEventTimer);
+          // Defer profile queries until after auth has finished updating storage/session.
+          authEventTimer = setTimeout(async () => {
             if (!mounted) return;
             const profileData = await fetchProfile(newSession.user.id);
             if (mounted && profileData) {
@@ -260,9 +262,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         } else if (event === "SIGNED_OUT") {
           setProfile(null);
           setIsLoading(false);
-        } else if (event === "TOKEN_REFRESHED" && newSession?.user) {
-          // Just update session, don't refetch profile
-          console.log("[AuthContext] Token refreshed");
         }
       }
     );
@@ -271,6 +270,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return () => {
       mounted = false;
+      if (authEventTimer) clearTimeout(authEventTimer);
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
