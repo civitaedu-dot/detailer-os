@@ -67,6 +67,14 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const normalizeAuthError = (error: unknown): Error => {
+  if (error instanceof Error && /failed to fetch|networkerror|load failed/i.test(error.message)) {
+    return new Error("Não foi possível conectar ao serviço de autenticação. Verifique se o backend está ativo e tente novamente.");
+  }
+
+  return error instanceof Error ? error : new Error("Erro inesperado de autenticação.");
+};
+
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
@@ -86,17 +94,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckingSubscription, setIsCheckingSubscription] = useState(false);
   
-  // Track if we're currently fetching to avoid duplicate requests
-  const isFetchingProfile = useRef(false);
+  // Track latest profile request so slower responses don't overwrite newer auth state
+  const profileFetchRequest = useRef(0);
   const lastSubscriptionCheck = useRef<number>(0);
 
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
-    if (isFetchingProfile.current) {
-      console.log("[AuthContext] Profile fetch already in progress, skipping");
-      return null;
-    }
-
-    isFetchingProfile.current = true;
+    const requestId = ++profileFetchRequest.current;
     
     try {
       console.log("[AuthContext] Fetching profile for user:", userId);
@@ -106,6 +109,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
+
+      if (requestId !== profileFetchRequest.current) return null;
 
       if (error) {
         console.error("[AuthContext] Error fetching profile:", error);
@@ -123,6 +128,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           .eq("user_id", userId)
           .maybeSingle();
         
+        if (requestId !== profileFetchRequest.current) return null;
+
         if (retryError) {
           console.error("[AuthContext] Retry error fetching profile:", retryError);
           return null;
@@ -142,8 +149,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       console.error("[AuthContext] Error fetching profile:", error);
       return null;
-    } finally {
-      isFetchingProfile.current = false;
     }
   }, []);
 
@@ -209,6 +214,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Initialize auth state
   useEffect(() => {
     let mounted = true;
+    let authEventTimer: ReturnType<typeof setTimeout> | undefined;
     
     const initializeAuth = async () => {
       console.log("[AuthContext] Initializing auth...");
@@ -240,9 +246,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     };
 
-    // Set up auth state listener
+    // Set up auth state listener. Keep this callback synchronous to avoid auth deadlocks.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      (event, newSession) => {
         console.log("[AuthContext] Auth state changed:", event, newSession?.user?.email);
         
         if (!mounted) return;
@@ -250,9 +256,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
-        if (event === "SIGNED_IN" && newSession?.user) {
-          // Wait a bit for the trigger to create the profile
-          setTimeout(async () => {
+        if (newSession?.user) {
+          if (authEventTimer) clearTimeout(authEventTimer);
+          // Defer profile queries until after auth has finished updating storage/session.
+          authEventTimer = setTimeout(async () => {
             if (!mounted) return;
             const profileData = await fetchProfile(newSession.user.id);
             if (mounted && profileData) {
@@ -263,9 +270,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         } else if (event === "SIGNED_OUT") {
           setProfile(null);
           setIsLoading(false);
-        } else if (event === "TOKEN_REFRESHED" && newSession?.user) {
-          // Just update session, don't refetch profile
-          console.log("[AuthContext] Token refreshed");
         }
       }
     );
@@ -274,6 +278,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return () => {
       mounted = false;
+      if (authEventTimer) clearTimeout(authEventTimer);
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
@@ -322,7 +327,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return { error: null };
     } catch (error) {
       console.error("[AuthContext] Signup exception:", error);
-      return { error: error as Error };
+      return { error: normalizeAuthError(error) };
     }
   };
 
@@ -344,7 +349,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return { error: null };
     } catch (error) {
       console.error("[AuthContext] Signin exception:", error);
-      return { error: error as Error };
+      return { error: normalizeAuthError(error) };
     }
   };
 
