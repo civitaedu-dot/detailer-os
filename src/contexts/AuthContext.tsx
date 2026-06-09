@@ -173,20 +173,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return null;
     }
     
-    if (!session?.access_token) {
-      console.log("[AuthContext] No session for subscription check");
-      return null;
-    }
-    
     setIsCheckingSubscription(true);
     lastSubscriptionCheck.current = now;
     
     try {
       console.log("[AuthContext] Checking subscription status...");
-      
+
+      // Ensure we use a fresh, non-expired token. supabase.auth.getSession()
+      // auto-refreshes if needed. Then let functions.invoke attach it.
+      const { data: { session: freshSession } } = await supabase.auth.getSession();
+      if (!freshSession?.access_token) {
+        console.log("[AuthContext] No active session for subscription check");
+        return null;
+      }
+
       const { data, error } = await supabase.functions.invoke("check-subscription", {
         headers: {
-          Authorization: `Bearer ${session.access_token}`,
+          Authorization: `Bearer ${freshSession.access_token}`,
         },
       });
 
