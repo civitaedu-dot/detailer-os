@@ -1,55 +1,23 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Check, Zap, Sparkles, Crown } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
-const plans = [
-  {
-    name: "Base",
-    icon: Zap,
-    price: "97",
-    description: "Para começar a organizar sua operação",
-    features: [
-      "Agenda de atendimentos",
-      "Cadastro de clientes e veículos",
-      "Controle financeiro básico",
-      "Importação de dados",
-      "Sócio IA: 5 interações/mês",
-    ],
-    popular: false,
-  },
-  {
-    name: "Gestão",
-    icon: Sparkles,
-    price: "197",
-    description: "Gestão profissional completa do negócio",
-    features: [
-      "Tudo do plano Base",
-      "Financeiro avançado + DRE",
-      "Controle de estoque com custo por uso",
-      "Aba de Vendas e Retenção",
-      "Campanhas via WhatsApp",
-      "Relatórios de desempenho",
-      "Sócio IA: 10 interações/mês",
-    ],
-    popular: true,
-  },
-  {
-    name: "Escala",
-    icon: Crown,
-    price: "247",
-    description: "Máxima clareza para escalar",
-    features: [
-      "Tudo dos planos anteriores",
-      "Precificação assistida por serviço",
-      "Lucro real por atendimento",
-      "Valor da hora trabalhada",
-      "Orçamentos profissionais em PDF",
-      "Sócio IA ilimitado",
-    ],
-    popular: false,
-  },
-];
+const plan = {
+  name: "Plano Gestão Refinada",
+  price: "49,99",
+  description: "Tudo da plataforma liberado, sem limites.",
+  features: [
+    "Agenda completa de atendimentos",
+    "Cadastro de clientes e veículos",
+    "Financeiro completo + DRE automática",
+    "Controle de estoque e custos",
+    "Aba de Vendas, Retenção e Campanhas",
+    "Precificação assistida e valor-hora",
+    "Orçamentos profissionais em PDF",
+    "Sócio IA ilimitado",
+  ],
+};
 
 export const Pricing = () => {
   return (
@@ -75,62 +43,44 @@ export const Pricing = () => {
           </motion.h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 lg:gap-8 max-w-5xl mx-auto">
-          {plans.map((plan, i) => (
-            <motion.div
-              key={plan.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={`relative rounded-2xl p-8 flex flex-col ${
-                plan.popular
-                  ? "border-2 border-primary shadow-glow"
-                  : "border border-[#1a1a1a]"
-              }`}
-              style={{ background: plan.popular ? '#111111' : '#0F0F0F' }}
+        <div className="max-w-md mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="relative rounded-2xl p-8 flex flex-col border-2 border-primary shadow-glow"
+            style={{ background: '#111111' }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-primary/15">
+                <Sparkles className="w-5 h-5 text-primary" />
+              </div>
+              <h3 className="font-display font-bold text-lg">{plan.name}</h3>
+            </div>
+
+            <div className="mb-2">
+              <span className="font-display text-4xl font-bold">R${plan.price}</span>
+              <span className="text-sm text-muted-foreground">/mês</span>
+            </div>
+            <p className="text-sm text-muted-foreground mb-8">{plan.description}</p>
+
+            <ul className="space-y-3 mb-8 flex-1">
+              {plan.features.map((feature) => (
+                <li key={feature} className="flex items-start gap-2.5">
+                  <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span className="text-sm text-muted-foreground">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            <Button
+              asChild
+              size="lg"
+              className="w-full rounded-xl font-bold h-12 bg-primary text-primary-foreground hover:bg-primary/90"
             >
-              {plan.popular && (
-                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full">
-                  Mais escolhido
-                </div>
-              )}
-
-              <div className="flex items-center gap-3 mb-6">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${plan.popular ? 'bg-primary/15' : 'bg-[#1a1a1a]'}`}>
-                  <plan.icon className={`w-5 h-5 ${plan.popular ? 'text-primary' : 'text-muted-foreground'}`} />
-                </div>
-                <h3 className="font-display font-bold text-lg">{plan.name}</h3>
-              </div>
-
-              <div className="mb-2">
-                <span className="font-display text-4xl font-bold">R${plan.price}</span>
-                <span className="text-sm text-muted-foreground">/mês</span>
-              </div>
-              <p className="text-sm text-muted-foreground mb-8">{plan.description}</p>
-
-              <ul className="space-y-3 mb-8 flex-1">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2.5">
-                    <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm text-muted-foreground">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button
-                asChild
-                size="lg"
-                className={`w-full rounded-xl font-bold h-12 ${
-                  plan.popular
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "bg-[#1a1a1a] text-foreground hover:bg-[#222] border border-[#333]"
-                }`}
-              >
-                <Link to="/cadastro">Começar com {plan.name}</Link>
-              </Button>
-            </motion.div>
-          ))}
+              <Link to="/cadastro">Começar agora</Link>
+            </Button>
+          </motion.div>
         </div>
 
         <motion.p
