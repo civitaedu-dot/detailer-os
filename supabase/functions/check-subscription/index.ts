@@ -12,12 +12,13 @@ const logStep = (step: string, details?: Record<string, unknown>) => {
   console.log(`[CHECK-SUBSCRIPTION] ${step}${detailsStr}`);
 };
 
-// Updated to match LIVE Stripe product IDs from stripe-plans.ts
-const PLAN_MAP: Record<string, { plan: string; aiLimit: number }> = {
-  "prod_ToPe3sO7yHoz7c": { plan: "base", aiLimit: 5 },
-  "prod_ToPe9qWJjk3yE2": { plan: "gestao", aiLimit: 10 },
-  "prod_ToPeE6xN70O7B0": { plan: "escala", aiLimit: -1 },
-};
+// Plano único (LIVE) — apenas este price/product conta como assinatura ativa.
+// Qualquer assinatura ativa em preços antigos é tratada como "inativa" para
+// forçar a migração no próximo login (usuário será redirecionado a /planos).
+const NEW_PRICE_ID = "price_1TgYc5QgltCrbsp3nkIKAUqS";
+const NEW_PRODUCT_ID = "prod_UfuQAa62pMxeU7";
+const NEW_PLAN_NAME = "refinada";
+const AI_LIMIT_UNLIMITED = -1;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -113,9 +114,9 @@ serve(async (req) => {
         // Trial still active — return current trial info
         return new Response(JSON.stringify({
           subscribed: false,
-          plan: existingProfile.plan || "gestao",
+          plan: NEW_PLAN_NAME,
           plan_status: "trial",
-          ai_limit: 10,
+          ai_limit: AI_LIMIT_UNLIMITED,
           subscription_end: existingProfile.trial_end,
         }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
       }
@@ -147,39 +148,34 @@ serve(async (req) => {
       limit: 1,
     });
 
-    const hasActiveSub = subscriptions.data.length > 0;
+    // Considera ativo APENAS se a assinatura usa o preço novo (R$49,99).
+    // Assinantes legados (base/gestão/escala) são forçados a migrar.
+    const matchingSub = subscriptions.data.find((sub) => {
+      const priceItem = sub.items.data[0];
+      if (!priceItem?.price) return false;
+      if (priceItem.price.id === NEW_PRICE_ID) return true;
+      const productId = typeof priceItem.price.product === 'string'
+        ? priceItem.price.product
+        : priceItem.price.product?.id;
+      return productId === NEW_PRODUCT_ID;
+    });
+
+    const hasActiveSub = !!matchingSub;
     let plan = "none";
     let aiLimit = 0;
     let subscriptionEnd: string | null = null;
     let subscriptionId: string | null = null;
 
-    if (hasActiveSub) {
-      const subscription = subscriptions.data[0];
-      subscriptionId = subscription.id;
-      
-      if (subscription.current_period_end) {
+    if (matchingSub) {
+      subscriptionId = matchingSub.id;
+      if (matchingSub.current_period_end) {
         try {
-          subscriptionEnd = new Date(subscription.current_period_end * 1000).toISOString();
+          subscriptionEnd = new Date(matchingSub.current_period_end * 1000).toISOString();
         } catch { subscriptionEnd = null; }
       }
-      
-      const priceItem = subscription.items.data[0];
-      if (priceItem?.price?.product) {
-        const productId = typeof priceItem.price.product === 'string' 
-          ? priceItem.price.product 
-          : priceItem.price.product.id;
-        
-        const planInfo = PLAN_MAP[productId];
-        if (planInfo) {
-          plan = planInfo.plan;
-          aiLimit = planInfo.aiLimit;
-          logStep("Plan matched", { productId, plan, aiLimit });
-        } else {
-          logStep("Unknown product ID", { productId, knownProducts: Object.keys(PLAN_MAP) });
-        }
-      }
+      plan = NEW_PLAN_NAME;
+      aiLimit = AI_LIMIT_UNLIMITED;
 
-      // Update profile to active (overrides trial if present)
       await supabaseClient.from("profiles").update({
         plan,
         plan_status: "active",
@@ -188,9 +184,15 @@ serve(async (req) => {
         ai_interactions_limit: aiLimit,
       }).eq("user_id", user.id);
 
-      logStep("Profile updated to active", { plan });
+      logStep("Profile updated to active (Plano Gestão Refinada)");
     } else {
       logStep("No active subscription found");
+
+      if (subscriptions.data.length > 0) {
+        logStep("Legacy subscription detected — forcing migration", {
+          legacyCount: subscriptions.data.length,
+        });
+      }
 
       // Has Stripe customer but no active sub — check trial before overwriting
       if (existingProfile?.plan_status === "trial") {
@@ -205,9 +207,9 @@ serve(async (req) => {
 
           return new Response(JSON.stringify({
             subscribed: false,
-            plan: existingProfile.plan || "gestao",
+            plan: NEW_PLAN_NAME,
             plan_status: "trial",
-            ai_limit: 10,
+            ai_limit: AI_LIMIT_UNLIMITED,
             subscription_end: existingProfile.trial_end,
           }), { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 });
         }

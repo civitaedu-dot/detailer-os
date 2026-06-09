@@ -131,12 +131,8 @@ const Admin = () => {
   };
 
   const getPlanLabel = (plan: string | null) => {
-    switch (plan) {
-      case "base": return "Base";
-      case "gestao": return "Gestão";
-      case "escala": return "Escala";
-      default: return "Nenhum";
-    }
+    if (!plan || plan === "none") return "Nenhum";
+    return "Plano Gestão Refinada";
   };
 
   const getStatusBadge = (status: string | null) => {
@@ -205,18 +201,13 @@ const Admin = () => {
         >
           <h3 className="font-display font-bold mb-4 flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-primary" />
-            Distribuição de Planos (Ativos)
+            Assinantes Ativos
           </h3>
-          <div className="grid grid-cols-3 gap-4">
-            {["base", "gestao", "escala"].map((plan) => {
-              const count = users.filter((u) => u.plan === plan && u.plan_status === "active").length;
-              return (
-                <div key={plan} className="text-center p-4 rounded-lg bg-secondary/50">
-                  <p className="text-2xl font-bold font-display">{count}</p>
-                  <p className="text-sm text-muted-foreground">{getPlanLabel(plan)}</p>
-                </div>
-              );
-            })}
+          <div className="text-center p-4 rounded-lg bg-secondary/50">
+            <p className="text-2xl font-bold font-display">
+              {users.filter((u) => u.plan_status === "active").length}
+            </p>
+            <p className="text-sm text-muted-foreground">Plano Gestão Refinada</p>
           </div>
         </motion.div>
 

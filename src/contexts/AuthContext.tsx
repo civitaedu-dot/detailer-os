@@ -8,7 +8,7 @@ export interface Profile {
   name: string;
   business_name: string | null;
   phone: string | null;
-  plan: "none" | "base" | "gestao" | "escala";
+  plan: "none" | "refinada" | string;
   plan_status: "active" | "inactive" | "cancelled" | "trial";
   ai_interactions_used: number;
   ai_interactions_limit: number;

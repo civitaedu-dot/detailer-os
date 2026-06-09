@@ -7,49 +7,16 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const PLAN_LIMITS: Record<string, number> = {
-  base: 3,
-  gestao: 10,
-  escala: -1, // unlimited
-};
+// Plano único — ilimitado, modelo único
+const AI_MODEL = "google/gemini-2.5-pro";
 
-const MODEL_BY_PLAN: Record<string, string> = {
-  base: "google/gemini-2.5-flash-lite",
-  gestao: "google/gemini-3-flash-preview",
-  escala: "google/gemini-2.5-pro",
-};
-
-function getSystemPrompt(plan: string, userData: any): string {
-  const baseContext = `Você é o Sócio IA, um consultor estratégico especializado em estética automotiva e gestão de negócios. 
+function getSystemPrompt(userData: any): string {
+  return `Você é o Sócio IA, um consultor estratégico especializado em estética automotiva e gestão de negócios.
 Você tem acesso aos dados reais do negócio do usuário e deve usá-los para fundamentar suas respostas.
 Sempre responda em português brasileiro. Seja profissional mas acessível.
 
 DADOS DO NEGÓCIO DO USUÁRIO:
-${JSON.stringify(userData, null, 2)}`;
-
-  if (plan === "base") {
-    return `${baseContext}
-
-NÍVEL DE RESPOSTA: BÁSICO
-- Responda de forma objetiva e direta
-- Foque em dicas práticas e simples
-- Não faça análises aprofundadas ou comparativos mensais
-- Máximo 3-4 parágrafos por resposta`;
-  }
-
-  if (plan === "gestao") {
-    return `${baseContext}
-
-NÍVEL DE RESPOSTA: ANALÍTICO
-- Cruze dados do sistema para gerar insights
-- Analise tendências e padrões nos dados
-- Sugira melhorias baseadas nos números
-- Faça comparações quando possível
-- Responda com profundidade moderada`;
-  }
-
-  // escala
-  return `${baseContext}
+${JSON.stringify(userData, null, 2)}
 
 NÍVEL DE RESPOSTA: ESTRATÉGICO PROFUNDO
 - Atue como um sócio estratégico do negócio
@@ -57,8 +24,7 @@ NÍVEL DE RESPOSTA: ESTRATÉGICO PROFUNDO
 - Compare períodos, identifique tendências e projeções
 - Sugira otimizações detalhadas de custos, precificação e operação
 - Proponha metas e estratégias de crescimento
-- Use tabelas e formatação quando útil
-- Seja abrangente e aprofundado nas análises`;
+- Use tabelas e formatação quando útil`;
 }
 
 serve(async (req) => {
@@ -105,36 +71,9 @@ serve(async (req) => {
       });
     }
 
-    const plan = profile.plan || "base";
-    const limit = PLAN_LIMITS[plan] ?? 3;
-
-    // Check interaction limit (count messages this month)
+    // Plano único — sem limite de interações
     const now = new Date();
     const monthYear = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-
-    const { count: monthlyCount } = await supabase
-      .from("chat_messages")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("month_year", monthYear)
-      .eq("role", "user");
-
-    const used = monthlyCount || 0;
-
-    if (limit !== -1 && used >= limit) {
-      return new Response(
-        JSON.stringify({
-          error: "Limite de interações atingido",
-          limit,
-          used,
-          upgrade_needed: true,
-        }),
-        {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
 
     // Fetch user's business data for context
     const [
@@ -157,7 +96,7 @@ serve(async (req) => {
 
     const userData = {
       nome_negocio: profile.business_name || "Não informado",
-      plano: plan,
+      plano: "refinada",
       dados_financeiros: financialData,
       custos_fixos: fixedCosts,
       custos_variaveis: variableCosts,
@@ -168,8 +107,8 @@ serve(async (req) => {
       mes_atual: monthYear,
     };
 
-    const systemPrompt = getSystemPrompt(plan, userData);
-    const model = MODEL_BY_PLAN[plan] || "google/gemini-3-flash-preview";
+    const systemPrompt = getSystemPrompt(userData);
+    const model = AI_MODEL;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
