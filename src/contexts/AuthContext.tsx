@@ -67,6 +67,17 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Production redirect URL (Vercel). Falls back to current origin in dev/preview.
+const PRODUCTION_URL = "https://detailer-os-c2wp.vercel.app";
+const getRedirectUrl = (): string => {
+  if (typeof window === "undefined") return PRODUCTION_URL;
+  const host = window.location.hostname;
+  // Use production URL when on the Vercel domain or any non-localhost/non-preview host.
+  if (host === "detailer-os-c2wp.vercel.app") return PRODUCTION_URL;
+  // For local dev and Lovable preview, use current origin so links work in-context.
+  return window.location.origin;
+};
+
 const normalizeAuthError = (error: unknown): Error => {
   const message = error instanceof Error ? error.message : String(error ?? "");
 
@@ -316,7 +327,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           data: {
             name,
           },
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: getRedirectUrl(),
         },
       });
 
