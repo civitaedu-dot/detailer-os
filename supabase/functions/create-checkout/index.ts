@@ -34,9 +34,9 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { priceId } = await req.json();
-    if (!priceId) throw new Error("No price ID provided");
-    logStep("Price ID received", { priceId });
+    // Plano único — price ID fixo (LIVE)
+    const priceId = "price_1TgYc5QgltCrbsp3nkIKAUqS";
+    logStep("Using single plan price", { priceId });
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", { 
       apiVersion: "2025-08-27.basil" 
