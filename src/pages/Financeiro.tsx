@@ -37,12 +37,8 @@ const Financeiro = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
 
-  // Check if user has DFC access (gestao or escala plan, or admin bypass)
-  const hasDFCAccess = useMemo(() => {
-    if (isTrialActive(profile)) return true; // trial = gestao access
-    const plan = profile?.plan;
-    return plan === "gestao" || plan === "escala";
-  }, [profile]);
+  // Plano único — todos os assinantes têm acesso completo
+  const hasDFCAccess = true;
 
   // Month selector state
   const now = new Date();

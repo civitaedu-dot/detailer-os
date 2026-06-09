@@ -65,12 +65,8 @@ export function AppLayout() {
   };
 
   const getPlanLabel = (plan: string | undefined) => {
-    switch (plan) {
-      case "base": return "Base";
-      case "gestao": return "Gestão";
-      case "escala": return "Escala";
-      default: return "Sem plano";
-    }
+    if (!plan || plan === "none") return "Sem plano";
+    return "Plano Gestão Refinada";
   };
 
   const isActive = (path: string) => location.pathname === path;
