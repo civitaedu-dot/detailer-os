@@ -52,10 +52,14 @@ serve(async (req) => {
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseAuthClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    
-    const user = userData.user;
-    if (!user?.email) throw new Error("User not authenticated or email not available");
+    const user = userData?.user;
+    if (userError || !user?.email) {
+      logStep("No authenticated user", { error: userError?.message });
+      return new Response(
+        JSON.stringify({ subscribed: false, plan: "none", plan_status: "inactive" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" }, status: 200 }
+      );
+    }
     logStep("User authenticated", { userId: user.id, email: user.email });
 
     // Fetch current profile
