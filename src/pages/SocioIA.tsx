@@ -21,12 +21,6 @@ import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 type Msg = { role: "user" | "assistant"; content: string };
 
-const PLAN_LIMITS: Record<string, number> = {
-  base: 3,
-  gestao: 10,
-  escala: -1,
-};
-
 const SocioIA = () => {
   const { user, profile, session, signOut } = useAuth();
   const { isAdmin } = useUserRole();
@@ -40,10 +34,9 @@ const SocioIA = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const plan = profile?.plan || "base";
-  const limit = PLAN_LIMITS[plan] ?? 3;
-  const isUnlimited = limit === -1;
-  const remaining = isUnlimited ? Infinity : Math.max(0, limit - monthlyUsed);
+  const limit = -1; // Plano único: ilimitado
+  const isUnlimited = true;
+  const remaining = Infinity;
 
   const getCurrentMonthYear = () => {
     const now = new Date();
