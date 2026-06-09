@@ -1,68 +1,37 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Check, Sparkles, Zap, Crown, ArrowLeft, Loader2, LogOut } from "lucide-react";
+import { Check, Sparkles, ArrowLeft, Loader2, LogOut } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth, isTrialActive, getTrialDaysRemaining } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { STRIPE_PLANS, PlanId } from "@/lib/stripe-plans";
+import { SINGLE_PLAN } from "@/lib/stripe-plans";
 
-const plans = [
-  {
-    id: "base" as PlanId,
-    name: "Base",
-    icon: Zap,
-    price: "97",
-    description: "Perfeito para começar a organizar sua estética",
-    features: [
-      "Agenda de atendimentos",
-      "Cadastro de clientes",
-      "Controle financeiro básico",
-      "Sócio IA: 5 interações/mês",
-    ],
-    popular: false,
-  },
-  {
-    id: "gestao" as PlanId,
-    name: "Gestão",
-    icon: Sparkles,
-    price: "197",
-    description: "Para quem quer gestão profissional completa",
-    features: [
-      "Tudo do plano Base",
-      "Financeiro avançado",
-      "DRE automática",
-      "Relatórios de desempenho",
-      "Sócio IA: 10 interações/mês",
-    ],
-    popular: true,
-  },
-  {
-    id: "escala" as PlanId,
-    name: "Escala",
-    icon: Crown,
-    price: "247",
-    description: "Máxima clareza para escalar seu negócio",
-    features: [
-      "Tudo dos planos anteriores",
-      "Custo por serviço",
-      "Tempo médio por serviço",
-      "Lucro por serviço",
-      "Valor da hora trabalhada",
-      "Precificação assistida",
-      "Sócio IA ilimitado",
-    ],
-    popular: false,
-  },
-];
+const plan = {
+  id: SINGLE_PLAN.id,
+  name: SINGLE_PLAN.name,
+  price: SINGLE_PLAN.price.toFixed(2).replace(".", ","),
+  description: "Tudo da plataforma liberado, sem limites.",
+  features: [
+    "Agenda completa de atendimentos",
+    "Cadastro de clientes e veículos",
+    "Financeiro completo + DRE automática",
+    "Controle de estoque e custos",
+    "Aba de Vendas, Retenção e Campanhas",
+    "Orçamentos profissionais em PDF",
+    "Precificação assistida e valor-hora",
+    "Sócio IA ilimitado",
+    "Importação de dados e relatórios",
+  ],
+};
 
 const Planos = () => {
   const { user, profile, session, signOut, checkSubscription, isLoading } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   // Handle checkout result
   useEffect(() => {
@@ -90,21 +59,17 @@ const Planos = () => {
     }
   }, [isLoading, profile, navigate]);
 
-  const handleSelectPlan = async (planId: PlanId) => {
+  const handleSelectPlan = async () => {
     if (!user || !session) {
       navigate("/cadastro");
       return;
     }
 
-    setLoadingPlan(planId);
+    setIsCheckingOut(true);
 
     try {
-      const plan = STRIPE_PLANS[planId];
-      
-      console.log("[Planos] Creating checkout for plan:", planId, plan.priceId);
-      
       const { data, error } = await supabase.functions.invoke("create-checkout", {
-        body: { priceId: plan.priceId },
+        body: {},
         headers: {
           Authorization: `Bearer ${session.access_token}`,
         },
@@ -129,7 +94,7 @@ const Planos = () => {
         variant: "destructive",
       });
     } finally {
-      setLoadingPlan(null);
+      setIsCheckingOut(false);
     }
   };
 
@@ -138,8 +103,7 @@ const Planos = () => {
     navigate("/");
   };
 
-  const currentPlan = profile?.plan;
-  const isActivePlan = profile?.plan_status === "active";
+  const isActivePlan = profile?.plan_status === "active" && profile?.plan === SINGLE_PLAN.id;
 
   // Show loading while checking auth
   if (isLoading) {
@@ -207,92 +171,66 @@ const Planos = () => {
           </p>
         </motion.div>
 
-        {/* Plans grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-          {plans.map((plan, index) => {
-            const isCurrentPlan = currentPlan === plan.id && isActivePlan;
-            
-            return (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className={`relative rounded-2xl p-8 ${
-                  plan.popular
-                    ? "bg-gradient-primary shadow-accent-glow scale-105"
-                    : "bg-card border border-border"
-                } ${isCurrentPlan ? "ring-2 ring-accent ring-offset-2" : ""}`}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-4 py-1 bg-accent text-accent-foreground text-sm font-semibold rounded-full">
-                    Mais Popular
-                  </div>
-                )}
-                
-                {isCurrentPlan && (
-                  <div className="absolute -top-4 right-4 px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
-                    Seu Plano
-                  </div>
-                )}
+        {/* Single plan card */}
+        <div className="max-w-lg mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`relative rounded-2xl p-8 bg-gradient-primary shadow-accent-glow ${
+              isActivePlan ? "ring-2 ring-accent ring-offset-2" : ""
+            }`}
+          >
+            {isActivePlan && (
+              <div className="absolute -top-4 right-4 px-3 py-1 bg-green-500 text-white text-xs font-semibold rounded-full">
+                Seu Plano
+              </div>
+            )}
 
-                <div className="flex items-center gap-3 mb-4">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    plan.popular ? "bg-primary-foreground/20" : "bg-secondary"
-                  }`}>
-                    <plan.icon className={`w-5 h-5 ${plan.popular ? "text-primary-foreground" : "text-primary"}`} />
-                  </div>
-                  <h3 className={`font-display font-bold text-xl ${plan.popular ? "text-primary-foreground" : ""}`}>
-                    {plan.name}
-                  </h3>
-                </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-primary-foreground/20">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <h3 className="font-display font-bold text-xl text-primary-foreground">
+                {plan.name}
+              </h3>
+            </div>
 
-                <div className="mb-4">
-                  <span className={`text-4xl font-bold font-display ${plan.popular ? "text-primary-foreground" : ""}`}>
-                    R${plan.price}
-                  </span>
-                  <span className={`text-sm ${plan.popular ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                    /mês
-                  </span>
-                </div>
+            <div className="mb-4">
+              <span className="text-4xl font-bold font-display text-primary-foreground">
+                R${plan.price}
+              </span>
+              <span className="text-sm text-primary-foreground/70">/mês</span>
+            </div>
 
-                <p className={`text-sm mb-6 ${plan.popular ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                  {plan.description}
-                </p>
+            <p className="text-sm mb-6 text-primary-foreground/80">{plan.description}</p>
 
-                <ul className="space-y-3 mb-8">
-                  {plan.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2">
-                      <Check className={`w-5 h-5 shrink-0 ${
-                        plan.popular ? "text-primary-foreground" : "text-primary"
-                      }`} />
-                      <span className={`text-sm ${plan.popular ? "text-primary-foreground/90" : "text-muted-foreground"}`}>
-                        {feature}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+            <ul className="space-y-3 mb-8">
+              {plan.features.map((feature) => (
+                <li key={feature} className="flex items-start gap-2">
+                  <Check className="w-5 h-5 shrink-0 text-primary-foreground" />
+                  <span className="text-sm text-primary-foreground/90">{feature}</span>
+                </li>
+              ))}
+            </ul>
 
-                <Button
-                  onClick={() => handleSelectPlan(plan.id)}
-                  variant={plan.popular ? "glass" : "hero"}
-                  className={`w-full ${plan.popular ? "bg-primary-foreground text-primary hover:bg-primary-foreground/90" : ""}`}
-                  disabled={loadingPlan === plan.id || isCurrentPlan}
-                >
-                  {loadingPlan === plan.id ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Processando...
-                    </>
-                  ) : isCurrentPlan ? (
-                    "Plano Ativo"
-                  ) : (
-                    `Assinar ${plan.name}`
-                  )}
-                </Button>
-              </motion.div>
-            );
-          })}
+            <Button
+              onClick={handleSelectPlan}
+              variant="glass"
+              className="w-full bg-primary-foreground text-primary hover:bg-primary-foreground/90"
+              disabled={isCheckingOut || isActivePlan}
+            >
+              {isCheckingOut ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Processando...
+                </>
+              ) : isActivePlan ? (
+                "Plano Ativo"
+              ) : (
+                `Assinar ${plan.name}`
+              )}
+            </Button>
+          </motion.div>
         </div>
 
         {/* Footer note */}
