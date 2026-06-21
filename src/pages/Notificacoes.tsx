@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Bell, Check, CheckCheck, Trash2, Filter, ExternalLink, Settings, ArrowLeft } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, Filter, ExternalLink, Settings, ArrowLeft, Clock, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNotifications, Notification } from "@/hooks/useNotifications";
@@ -35,9 +36,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 interface NotificationSettings {
-  retention_15_days: boolean;
-  retention_30_days: boolean;
-  retention_45_days: boolean;
+  retention_days: number;
   birthdays: boolean;
   first_visit: boolean;
   loyalty_milestones: boolean;
@@ -46,9 +45,7 @@ interface NotificationSettings {
 }
 
 const defaultSettings: NotificationSettings = {
-  retention_15_days: true,
-  retention_30_days: true,
-  retention_45_days: true,
+  retention_days: 30,
   birthdays: true,
   first_visit: true,
   loyalty_milestones: true,
@@ -66,6 +63,8 @@ const Notificacoes = () => {
   const [periodFilter, setPeriodFilter] = useState("all");
   const [settings, setSettings] = useState<NotificationSettings>(defaultSettings);
   const [loadingSettings, setLoadingSettings] = useState(true);
+  const [retentionInput, setRetentionInput] = useState<string>("30");
+  const [savingRetention, setSavingRetention] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -77,16 +76,17 @@ const Notificacoes = () => {
         .single();
 
       if (data) {
-        setSettings({
-          retention_15_days: (data as any).retention_15_days,
-          retention_30_days: (data as any).retention_30_days,
-          retention_45_days: (data as any).retention_45_days,
+        const d: any = data;
+        const next: NotificationSettings = {
+          retention_days: d.retention_days ?? 30,
           birthdays: (data as any).birthdays,
           first_visit: (data as any).first_visit,
           loyalty_milestones: (data as any).loyalty_milestones,
           appointment_status: (data as any).appointment_status,
           no_future_booking: (data as any).no_future_booking,
-        });
+        };
+        setSettings(next);
+        setRetentionInput(String(next.retention_days));
       }
       setLoadingSettings(false);
     };
@@ -106,6 +106,21 @@ const Notificacoes = () => {
     } else {
       toast({ title: "Configurações salvas!" });
     }
+  };
+
+  const saveRetentionDays = async () => {
+    const parsed = parseInt(retentionInput, 10);
+    if (!Number.isFinite(parsed) || parsed < 1 || parsed > 365) {
+      toast({
+        title: "Valor inválido",
+        description: "Informe um número entre 1 e 365 dias.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setSavingRetention(true);
+    await saveSettings({ ...settings, retention_days: parsed });
+    setSavingRetention(false);
   };
 
   const filteredNotifications = useMemo(() => {
@@ -279,23 +294,39 @@ const Notificacoes = () => {
               <CardContent className="space-y-6">
                 <div>
                   <h3 className="font-semibold text-sm mb-3 text-muted-foreground uppercase">Retenção de Clientes</h3>
-                  <div className="space-y-3">
-                    {[
-                      { key: "retention_15_days" as const, label: "Alerta de 15 dias sem retorno", desc: "Cliente em risco de inatividade" },
-                      { key: "retention_30_days" as const, label: "Alerta de 30 dias sem retorno", desc: "Cliente inativo" },
-                      { key: "retention_45_days" as const, label: "Alerta de 45+ dias sem retorno", desc: "Cliente perdido — ação urgente" },
-                    ].map((item) => (
-                      <div key={item.key} className="flex items-center justify-between p-3 rounded-lg border border-border">
-                        <div>
-                          <Label className="font-medium">{item.label}</Label>
-                          <p className="text-xs text-muted-foreground">{item.desc}</p>
-                        </div>
-                        <Switch
-                          checked={settings[item.key]}
-                          onCheckedChange={(v) => saveSettings({ ...settings, [item.key]: v })}
-                        />
+                  <div className="p-4 rounded-lg border border-border space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Clock className="w-4 h-4 text-primary" />
                       </div>
-                    ))}
+                      <div className="flex-1">
+                        <Label className="font-medium">Dias sem retorno para alerta</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Quando um cliente passar deste número de dias sem aparecer na agenda, você recebe uma notificação para ir atrás dele.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                      <Input
+                        type="number"
+                        min={1}
+                        max={365}
+                        value={retentionInput}
+                        onChange={(e) => setRetentionInput(e.target.value)}
+                        className="sm:w-32"
+                        placeholder="30"
+                      />
+                      <span className="text-sm text-muted-foreground">dias</span>
+                      <Button
+                        size="sm"
+                        className="sm:ml-auto"
+                        onClick={saveRetentionDays}
+                        disabled={savingRetention || loadingSettings || parseInt(retentionInput, 10) === settings.retention_days}
+                      >
+                        <Save className="w-4 h-4 mr-1" />
+                        Salvar
+                      </Button>
+                    </div>
                   </div>
                 </div>
 

@@ -530,6 +530,7 @@ export type Database = {
           retention_15_days: boolean
           retention_30_days: boolean
           retention_45_days: boolean
+          retention_days: number
           updated_at: string
           user_id: string
         }
@@ -544,6 +545,7 @@ export type Database = {
           retention_15_days?: boolean
           retention_30_days?: boolean
           retention_45_days?: boolean
+          retention_days?: number
           updated_at?: string
           user_id: string
         }
@@ -558,6 +560,7 @@ export type Database = {
           retention_15_days?: boolean
           retention_30_days?: boolean
           retention_45_days?: boolean
+          retention_days?: number
           updated_at?: string
           user_id?: string
         }
