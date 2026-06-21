@@ -51,15 +51,15 @@ Deno.serve(async (req) => {
 
     // Default all settings to true if no record
     const s = settings || {
-      retention_15_days: true,
-      retention_30_days: true,
-      retention_45_days: true,
+      retention_days: 30,
       birthdays: true,
       first_visit: true,
       loyalty_milestones: true,
       appointment_status: true,
       no_future_booking: true,
     };
+
+    const retentionDays = Math.max(1, Math.min(365, Number(s.retention_days) || 30));
 
     // Get all clients
     const { data: clients } = await supabase
@@ -103,38 +103,16 @@ Deno.serve(async (req) => {
           );
           const lastVisitStr = lastVisit.toLocaleDateString("pt-BR");
 
-          if (daysSince >= 45 && s.retention_45_days && !hasNotif("retention", client.id, "danger")) {
-            notifications.push({
-              user_id: userId,
-              type: "danger",
-              category: "retention",
-              title: "Cliente perdido — ação urgente necessária",
-              message: `${client.name} não retorna há ${daysSince} dias. Última visita: ${lastVisitStr}.`,
-              client_id: client.id,
-              client_name: client.name,
-              metadata: { days_since: daysSince, last_visit: clientAppts[0].appointment_date },
-            });
-          } else if (daysSince >= 30 && daysSince < 45 && s.retention_30_days && !hasNotif("retention", client.id, "warning")) {
+          if (daysSince >= retentionDays && !hasNotif("retention", client.id, "warning")) {
             notifications.push({
               user_id: userId,
               type: "warning",
               category: "retention",
-              title: "Cliente inativo — considere entrar em contato",
-              message: `${client.name} não retorna há ${daysSince} dias. Última visita: ${lastVisitStr}.`,
+              title: "Cliente sem retorno — hora de ir atrás",
+              message: `${client.name} não retorna há ${daysSince} dias (limite configurado: ${retentionDays}). Última visita: ${lastVisitStr}.`,
               client_id: client.id,
               client_name: client.name,
-              metadata: { days_since: daysSince, last_visit: clientAppts[0].appointment_date },
-            });
-          } else if (daysSince >= 15 && daysSince < 30 && s.retention_15_days && !hasNotif("retention", client.id, "alert")) {
-            notifications.push({
-              user_id: userId,
-              type: "alert",
-              category: "retention",
-              title: "Cliente em risco de inatividade",
-              message: `${client.name} não retorna há ${daysSince} dias. Última visita: ${lastVisitStr}.`,
-              client_id: client.id,
-              client_name: client.name,
-              metadata: { days_since: daysSince, last_visit: clientAppts[0].appointment_date },
+              metadata: { days_since: daysSince, threshold: retentionDays, last_visit: clientAppts[0].appointment_date },
             });
           }
 
