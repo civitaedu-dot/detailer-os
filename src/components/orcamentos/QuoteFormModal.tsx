@@ -256,8 +256,24 @@ export const QuoteFormModal = ({
   };
 
   const handleGeneratePDF = () => {
-    const quoteForPdf = buildQuoteObject();
-    generateQuotePdf(quoteForPdf, settings, template);
+    try {
+      const quoteForPdf = buildQuoteObject();
+      generateQuotePdf(quoteForPdf, settings, template);
+      toast({
+        title: "PDF gerado!",
+        description:
+          /iPad|iPhone|iPod/.test(navigator.userAgent)
+            ? "O PDF abriu em nova aba. Toque em Compartilhar para salvar ou enviar."
+            : "O download foi iniciado.",
+      });
+    } catch (err: any) {
+      console.error(err);
+      toast({
+        title: "Erro ao gerar PDF",
+        description: err?.message || "Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleCopyLink = () => {

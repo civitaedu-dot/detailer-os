@@ -394,5 +394,43 @@ export const generateQuotePdf = (
   }
 
   const filename = `Orcamento-${quote.quote_number}.pdf`;
-  doc.save(filename);
+  savePdf(doc, filename);
 };
+
+// Reliable download across desktop + mobile (iOS Safari blocks doc.save silently).
+// On iOS we open the PDF in a new tab so the user can use the Share sheet to save.
+function savePdf(doc: jsPDF, filename: string) {
+  try {
+    const blob = doc.output('blob');
+    const ua = navigator.userAgent || '';
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+    const isSafari = /^((?!chrome|android|crios|fxios).)*safari/i.test(ua);
+
+    if (isIOS || isSafari) {
+      // iOS/Safari: open blob in a new tab; user can save/share from there.
+      const url = URL.createObjectURL(blob);
+      const win = window.open(url, '_blank');
+      if (!win) {
+        // Popup blocked — fall back to navigating current tab.
+        window.location.href = url;
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      return;
+    }
+
+    // Other browsers: trigger a real download.
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (err) {
+    console.error('Falha ao gerar PDF:', err);
+    // Last-resort fallback to jsPDF's own save.
+    try { doc.save(filename); } catch {}
+  }
+}
