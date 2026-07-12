@@ -73,6 +73,65 @@ export type Database = {
           },
         ]
       }
+      bank_imports: {
+        Row: {
+          account_id: string | null
+          created_at: string
+          error_message: string | null
+          file_format: Database["public"]["Enums"]["import_file_format"]
+          filename: string
+          id: string
+          matched_rows: number
+          pending_rows: number
+          period_end: string | null
+          period_start: string | null
+          status: Database["public"]["Enums"]["import_status"]
+          total_rows: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_format: Database["public"]["Enums"]["import_file_format"]
+          filename: string
+          id?: string
+          matched_rows?: number
+          pending_rows?: number
+          period_end?: string | null
+          period_start?: string | null
+          status?: Database["public"]["Enums"]["import_status"]
+          total_rows?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_format?: Database["public"]["Enums"]["import_file_format"]
+          filename?: string
+          id?: string
+          matched_rows?: number
+          pending_rows?: number
+          period_end?: string | null
+          period_start?: string | null
+          status?: Database["public"]["Enums"]["import_status"]
+          total_rows?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_imports_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "cash_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_recipients: {
         Row: {
           campaign_id: string
@@ -187,6 +246,132 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      cash_accounts: {
+        Row: {
+          active: boolean
+          color: string | null
+          created_at: string
+          id: string
+          initial_balance: number
+          initial_balance_date: string
+          name: string
+          type: Database["public"]["Enums"]["cash_account_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          color?: string | null
+          created_at?: string
+          id?: string
+          initial_balance?: number
+          initial_balance_date?: string
+          name: string
+          type?: Database["public"]["Enums"]["cash_account_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          color?: string | null
+          created_at?: string
+          id?: string
+          initial_balance?: number
+          initial_balance_date?: string
+          name?: string
+          type?: Database["public"]["Enums"]["cash_account_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      cash_transactions: {
+        Row: {
+          account_id: string | null
+          category: string | null
+          created_at: string
+          dedupe_hash: string | null
+          description: string
+          direction: Database["public"]["Enums"]["cash_direction"]
+          id: string
+          import_id: string | null
+          matched_entry_id: string | null
+          matched_entry_type: string | null
+          notes: string | null
+          payment_method: string | null
+          raw_data: Json | null
+          reconciliation_status: Database["public"]["Enums"]["reconciliation_status"]
+          source: Database["public"]["Enums"]["cash_source"]
+          source_ref_id: string | null
+          suggested_match: Json | null
+          transaction_date: string
+          updated_at: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          account_id?: string | null
+          category?: string | null
+          created_at?: string
+          dedupe_hash?: string | null
+          description: string
+          direction: Database["public"]["Enums"]["cash_direction"]
+          id?: string
+          import_id?: string | null
+          matched_entry_id?: string | null
+          matched_entry_type?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          raw_data?: Json | null
+          reconciliation_status?: Database["public"]["Enums"]["reconciliation_status"]
+          source?: Database["public"]["Enums"]["cash_source"]
+          source_ref_id?: string | null
+          suggested_match?: Json | null
+          transaction_date: string
+          updated_at?: string
+          user_id: string
+          value: number
+        }
+        Update: {
+          account_id?: string | null
+          category?: string | null
+          created_at?: string
+          dedupe_hash?: string | null
+          description?: string
+          direction?: Database["public"]["Enums"]["cash_direction"]
+          id?: string
+          import_id?: string | null
+          matched_entry_id?: string | null
+          matched_entry_type?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          raw_data?: Json | null
+          reconciliation_status?: Database["public"]["Enums"]["reconciliation_status"]
+          source?: Database["public"]["Enums"]["cash_source"]
+          source_ref_id?: string | null
+          suggested_match?: Json | null
+          transaction_date?: string
+          updated_at?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "cash_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_transactions_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "bank_imports"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat_messages: {
         Row: {
@@ -1290,6 +1475,42 @@ export type Database = {
         }
         Relationships: []
       }
+      transaction_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          direction: Database["public"]["Enums"]["cash_direction"]
+          icon: string | null
+          id: string
+          is_system: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          direction: Database["public"]["Enums"]["cash_direction"]
+          icon?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          direction?: Database["public"]["Enums"]["cash_direction"]
+          icon?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1403,8 +1624,24 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      cash_account_type: "dinheiro" | "banco" | "pix" | "maquininha" | "outro"
+      cash_direction: "in" | "out"
+      cash_source:
+        | "import"
+        | "manual"
+        | "auto_appointment"
+        | "auto_fixed_cost"
+        | "auto_variable_cost"
+      import_file_format: "csv" | "xlsx" | "ofx" | "pdf"
+      import_status: "processing" | "completed" | "failed"
       ordem_prioridade: "normal" | "urgente"
       ordem_status: "aguardando" | "em_andamento" | "concluido"
+      reconciliation_status:
+        | "pending"
+        | "matched"
+        | "divergent"
+        | "needs_review"
+        | "ignored"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1533,8 +1770,26 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      cash_account_type: ["dinheiro", "banco", "pix", "maquininha", "outro"],
+      cash_direction: ["in", "out"],
+      cash_source: [
+        "import",
+        "manual",
+        "auto_appointment",
+        "auto_fixed_cost",
+        "auto_variable_cost",
+      ],
+      import_file_format: ["csv", "xlsx", "ofx", "pdf"],
+      import_status: ["processing", "completed", "failed"],
       ordem_prioridade: ["normal", "urgente"],
       ordem_status: ["aguardando", "em_andamento", "concluido"],
+      reconciliation_status: [
+        "pending",
+        "matched",
+        "divergent",
+        "needs_review",
+        "ignored",
+      ],
     },
   },
 } as const
