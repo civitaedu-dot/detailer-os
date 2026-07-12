@@ -313,7 +313,7 @@ export function useCashFlow(referenceDate?: Date) {
     let matched = 0;
     let pending = 0;
     for (const row of toInsert) {
-      const { error } = await supabase.from("cash_transactions").insert(row);
+      const { error } = await supabase.from("cash_transactions").insert([row] as any);
       if (error) {
         if (error.code === "23505") skipped++;
         else console.error(error);
