@@ -18,7 +18,7 @@ import { useClients } from "@/hooks/useClients";
 import { useServices } from "@/hooks/useServices";
 import { FinancialIndicators } from "@/components/financeiro/FinancialIndicators";
 import { DRESimples } from "@/components/financeiro/DRESimples";
-import { DFCReport } from "@/components/financeiro/DFCReport";
+import { DFCCenter } from "@/components/financeiro/dfc/DFCCenter";
 import { PaymentFeesManager } from "@/components/financeiro/PaymentFeesManager";
 import { FinancialAnalysis } from "@/components/financeiro/FinancialAnalysis";
 import { DailyGoalTracker } from "@/components/financeiro/DailyGoalTracker";
@@ -421,12 +421,7 @@ const Financeiro = () => {
           {/* TAB: DFC */}
           <TabsContent value="dfc" className="space-y-6">
             {hasDFCAccess ? (
-              <DFCReport
-                entries={entries}
-                fixedCosts={fixedCosts}
-                variableCosts={variableCosts}
-                monthlyRevenue={monthlyRevenue.total}
-              />
+              <DFCCenter referenceDate={selectedDate} />
             ) : (
               <div className="bg-card border border-border rounded-xl p-8 text-center">
                 <Lock className="w-10 h-10 mx-auto mb-4 text-muted-foreground" />
