@@ -4,11 +4,15 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, AlertTriangle, Clock, EyeOff, Trash2 } from "lucide-react";
 import type { CashTransaction } from "@/hooks/useCashFlow";
 import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
+import { CategoryPicker } from "./CategoryPicker";
+import type { StoredCategoryRule } from "@/hooks/useCategoryRules";
 
 interface Props {
   transactions: CashTransaction[];
   onUpdateStatus: (id: string, status: CashTransaction["reconciliation_status"], match?: { entry_type: string; entry_id: string }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onUpdateCategory: (id: string, category: string, description: string, direction: "in" | "out") => Promise<void>;
+  rules: StoredCategoryRule[];
 }
 
 const STATUS_META: Record<string, { label: string; color: string; icon: any }> = {
@@ -19,7 +23,7 @@ const STATUS_META: Record<string, { label: string; color: string; icon: any }> =
   ignored: { label: "Ignorado", color: "bg-muted text-muted-foreground border-border", icon: EyeOff },
 };
 
-export function ReconciliationTable({ transactions, onUpdateStatus, onDelete }: Props) {
+export function ReconciliationTable({ transactions, onUpdateStatus, onDelete, onUpdateCategory, rules }: Props) {
   const { maskCurrency } = usePrivacyMode();
   const [filter, setFilter] = useState<string>("all");
 
@@ -74,6 +78,15 @@ export function ReconciliationTable({ transactions, onUpdateStatus, onDelete }: 
                       <span className="text-xs text-muted-foreground capitalize">{t.source.replace("_", " ")}</span>
                     </div>
                     <p className="text-sm font-medium mt-1 truncate">{t.description}</p>
+                    <div className="mt-2">
+                      <CategoryPicker
+                        value={t.category}
+                        description={t.description}
+                        direction={t.direction}
+                        rules={rules}
+                        onChange={(cat) => onUpdateCategory(t.id, cat, t.description, t.direction)}
+                      />
+                    </div>
                     {suggestion && t.reconciliation_status !== "matched" && (
                       <div className="mt-2 p-2 bg-info/5 border border-info/20 rounded text-xs">
                         <strong>Sugestão:</strong> {suggestion.description} · {maskCurrency(suggestion.value)}
