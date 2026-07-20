@@ -373,6 +373,54 @@ export type Database = {
           },
         ]
       }
+      category_rules: {
+        Row: {
+          auto_created: boolean
+          category: string
+          created_at: string
+          direction: string
+          hit_count: number
+          id: string
+          last_matched_at: string | null
+          match_type: string
+          pattern: string
+          payment_method: string | null
+          priority: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_created?: boolean
+          category: string
+          created_at?: string
+          direction?: string
+          hit_count?: number
+          id?: string
+          last_matched_at?: string | null
+          match_type?: string
+          pattern: string
+          payment_method?: string | null
+          priority?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_created?: boolean
+          category?: string
+          created_at?: string
+          direction?: string
+          hit_count?: number
+          id?: string
+          last_matched_at?: string | null
+          match_type?: string
+          pattern?: string
+          payment_method?: string | null
+          priority?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
