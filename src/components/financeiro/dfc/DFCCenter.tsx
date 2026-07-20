@@ -1,21 +1,34 @@
 import { useMemo, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Plus, Upload, ArrowUpCircle, ArrowDownCircle, Wallet, Activity } from "lucide-react";
+import { Plus, Upload, ArrowUpCircle, ArrowDownCircle, Wallet, Activity, Sparkles } from "lucide-react";
 import { useCashFlow } from "@/hooks/useCashFlow";
+import { useCategoryRules } from "@/hooks/useCategoryRules";
 import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import { AccountsManager } from "./AccountsManager";
 import { ImportWizardModal } from "./ImportWizardModal";
 import { ManualTransactionModal } from "./ManualTransactionModal";
 import { ReconciliationTable } from "./ReconciliationTable";
+import { RulesManager } from "./RulesManager";
+import { CategoryDashboard } from "./CategoryDashboard";
 
 interface Props { referenceDate?: Date }
 
 export function DFCCenter({ referenceDate }: Props) {
   const cf = useCashFlow(referenceDate);
+  const { rules, learnFrom } = useCategoryRules();
   const { maskCurrency } = usePrivacyMode();
   const [importOpen, setImportOpen] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
+
+  const handleUpdateCategory = async (id: string, category: string, description: string, direction: "in" | "out") => {
+    await cf.updateTransactionCategory(id, category);
+    await learnFrom(description, direction, category);
+  };
+
+  const handleReclassify = async () => {
+    await cf.reclassifyAll(rules);
+  };
 
   const stats = useMemo(() => {
     const active = cf.transactions.filter((t) => t.reconciliation_status !== "ignored");
@@ -57,7 +70,9 @@ export function DFCCenter({ referenceDate }: Props) {
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <TabsList>
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="categories">Categorias</TabsTrigger>
             <TabsTrigger value="reconcile">Conciliação</TabsTrigger>
+            <TabsTrigger value="rules">Regras</TabsTrigger>
             <TabsTrigger value="accounts">Contas & Importações</TabsTrigger>
           </TabsList>
           <div className="flex gap-2">
@@ -99,12 +114,27 @@ export function DFCCenter({ referenceDate }: Props) {
           </div>
         </TabsContent>
 
+        <TabsContent value="categories" className="mt-4">
+          <CategoryDashboard transactions={cf.transactions} referenceDate={referenceDate || new Date()} />
+        </TabsContent>
+
         <TabsContent value="reconcile" className="mt-4">
+          <div className="flex justify-end mb-3">
+            <Button size="sm" variant="outline" onClick={handleReclassify}>
+              <Sparkles className="w-4 h-4 mr-1" /> Reclassificar com regras atuais
+            </Button>
+          </div>
           <ReconciliationTable
             transactions={cf.transactions}
             onUpdateStatus={cf.updateTransactionStatus}
             onDelete={cf.deleteTransaction}
+            onUpdateCategory={handleUpdateCategory}
+            rules={rules}
           />
+        </TabsContent>
+
+        <TabsContent value="rules" className="mt-4">
+          <RulesManager />
         </TabsContent>
 
         <TabsContent value="accounts" className="space-y-4 mt-4">

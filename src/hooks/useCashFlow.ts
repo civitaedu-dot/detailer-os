@@ -6,6 +6,7 @@ import { toLocalDateString } from "@/lib/utils";
 import type { ParsedRow } from "@/lib/imports/parsers";
 import { dedupeHash } from "@/lib/imports/parsers";
 import { reconcileRow, type MatchCandidate } from "@/lib/imports/reconcile";
+import { suggestCategory, type CategoryRule } from "@/lib/imports/categorize";
 
 export interface CashAccount {
   id: string;
@@ -192,6 +193,26 @@ export function useCashFlow(referenceDate?: Date) {
     fetchAll();
   };
 
+  const updateTransactionCategory = async (id: string, category: string) => {
+    await supabase.from("cash_transactions").update({ category }).eq("id", id);
+    setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, category } : t)));
+  };
+
+  const reclassifyAll = async (userRules: CategoryRule[]) => {
+    if (!user?.id) return { updated: 0 };
+    let updated = 0;
+    for (const t of transactions) {
+      if (t.category && t.category !== "Outros") continue;
+      const s = suggestCategory(t.description, t.direction, userRules);
+      if (s.source === "default") continue;
+      await supabase.from("cash_transactions").update({ category: s.category }).eq("id", t.id);
+      updated++;
+    }
+    toast({ title: "Reclassificação concluída", description: `${updated} movimentações atualizadas.` });
+    fetchAll();
+    return { updated };
+  };
+
   const deleteTransaction = async (id: string) => {
     await supabase.from("cash_transactions").delete().eq("id", id);
     fetchAll();
@@ -257,6 +278,13 @@ export function useCashFlow(referenceDate?: Date) {
     format: "csv" | "xlsx" | "ofx" | "pdf",
   ) => {
     if (!user?.id || rows.length === 0) return { inserted: 0, skipped: 0, importId: null as string | null };
+    // Load user category rules for auto-classification during import
+    const { data: userRulesData } = await (supabase as any)
+      .from("category_rules")
+      .select("*")
+      .eq("user_id", user.id);
+    const userRules: CategoryRule[] = (userRulesData as any) || [];
+
     const dates = rows.map((r) => r.date).sort();
     const periodStart = dates[0];
     const periodEnd = dates[dates.length - 1];
@@ -289,6 +317,8 @@ export function useCashFlow(referenceDate?: Date) {
       if (outcome.status === "matched" && outcome.matched_entry_id) {
         alreadyMatchedIds.add(outcome.matched_entry_id);
       }
+      const catSuggestion = suggestCategory(r.description, r.direction, userRules);
+      const category = catSuggestion.source === "default" ? null : catSuggestion.category;
       return {
         user_id: user.id,
         account_id: accountId,
@@ -296,6 +326,7 @@ export function useCashFlow(referenceDate?: Date) {
         description: r.description,
         value: r.value,
         direction: r.direction,
+        category,
         source: "import" as const,
         import_id: importRec.id,
         reconciliation_status: outcome.status,
@@ -351,6 +382,8 @@ export function useCashFlow(referenceDate?: Date) {
     deleteAccount,
     createManualTransaction,
     updateTransactionStatus,
+    updateTransactionCategory,
+    reclassifyAll,
     deleteTransaction,
     importRows,
     refetch: fetchAll,

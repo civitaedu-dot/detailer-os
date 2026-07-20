@@ -1,92 +1,89 @@
-# DFC 2.0 — Central de Gestão e Conciliação Financeira
+# Classificação Inteligente de Movimentações + DRE por Categoria
 
-Transformar a aba DFC em uma central completa de fluxo de caixa, com importação de extratos, conciliação automática, movimentações manuais, dashboards inteligentes e painel de saúde financeira em linguagem simples.
+Transforma a conciliação em um sistema que aprende com o usuário: sugere categorias automaticamente, memoriza padrões de descrição e aplica regras salvas nas próximas importações. Toda categorização alimenta um novo dashboard de custos por categoria, integrado ao DRE e à DFC.
 
 ## Escopo
 
 ### 1. Banco de dados (Supabase)
 
-Novas tabelas com RLS por `user_id`:
+**Nova tabela `category_rules`** — regras inteligentes por usuário
+- `user_id`, `pattern` (texto que dispara — case-insensitive), `match_type` (contains | exact | starts_with), `direction` (in | out | any), `category`, `payment_method` (opcional), `priority` (int), `auto_created` (bool — regras aprendidas pelo sistema vs manuais), `hit_count`, `last_matched_at`
+- RLS por `auth.uid()`, grants para authenticated + service_role.
 
-- **`cash_accounts`** — contas de caixa/bancárias/maquininhas
-  - `name`, `type` (dinheiro | banco | pix | maquininha | outro), `initial_balance`, `initial_balance_date`, `color`, `active`
-- **`cash_transactions`** — todas as movimentações (importadas + manuais + automáticas)
-  - `account_id`, `transaction_date`, `description`, `value`, `direction` (in|out), `category`, `payment_method`, `source` (import|manual|auto_appointment|auto_fixed_cost|auto_variable_cost), `source_ref_id`, `import_id`, `reconciliation_status` (pending | matched | divergent | needs_review | ignored), `matched_entry_type`, `matched_entry_id`, `raw_data` (jsonb), `notes`
-- **`bank_imports`** — histórico de arquivos importados
-  - `account_id`, `filename`, `file_format` (csv|xlsx|ofx|pdf), `period_start`, `period_end`, `total_rows`, `matched_rows`, `pending_rows`, `status`
-- **`transaction_categories`** — categorias personalizadas (com defaults do sistema)
-  - `name`, `direction`, `color`, `icon`, `is_system`
+**Seed de categorias padrão do setor** na `transaction_categories` (via migração idempotente): Aluguel, Salários, Pró-labore, Produtos Químicos, Insumos, Comissões, Energia, Água, Internet, Impostos, Taxas Bancárias, Taxas de Cartão, Equipamentos, Marketing, Combustível, Manutenção, Fornecedores, Investimentos, Outros. Marcadas como `is_system = true` para não serem excluídas.
 
-Todas com `GRANT` para authenticated + service_role, RLS `auth.uid() = user_id`, timestamps + trigger de `updated_at`.
+### 2. Engine de categorização
 
-### 2. Importação de extratos
+Novo módulo `src/lib/imports/categorize.ts`:
 
-Nova página/aba com upload:
-- **CSV/XLSX**: parse client-side com `papaparse` / `xlsx` (já usados em ImportarDados). Wizard de mapeamento de colunas (data, descrição, valor, tipo).
-- **OFX**: parser JS leve (regex sobre tags SGML) — direto no cliente.
-- **PDF**: extração best-effort via `pdfjs-dist` (já disponível indiretamente); quando o layout não permitir parse confiável, avisar o usuário e sugerir CSV/OFX.
+- **Dicionário built-in** com padrões conhecidos do setor:
+  - Operadoras: `stone|cielo|rede|getnet|pagseguro|mercado pago|sumup|infinitepay` → Taxas de Cartão
+  - Utilities: `vivo|claro|tim|oi` → Internet; `cpfl|enel|light|neoenergia|energisa` → Energia; `sabesp|copasa|cedae` → Água
+  - Fornecedores: `vonixx|3m|meguiars|sonax|kers` → Produtos Químicos; `mercado livre|magalu|amazon` → Insumos
+  - Impostos: `das|simples nacional|darf|inss|fgts` → Impostos
+  - Combustível: `posto|shell|ipiranga|petrobras|ale` → Combustível
+- **Ordem de resolução por movimentação** (maior prioridade primeiro):
+  1. Regra manual salva do usuário (`auto_created = false`)
+  2. Regra aprendida (`auto_created = true`) com maior `hit_count`
+  3. Dicionário built-in
+  4. Sem sugestão → categoria "Outros"
+- Retorna `{ category, source: 'user_rule'|'learned'|'builtin'|'default', confidence }`.
 
-Detecção automática de duplicatas por `account_id + date + value + description` (hash).
+### 3. Aprendizado automático
 
-### 3. Conciliação automática
+Sempre que o usuário confirma/altera a categoria de uma movimentação na tela de conciliação:
+- Extrai um "token" estável da descrição (remove valores, datas, sufixos numéricos; mantém 2-3 palavras-chave iniciais).
+- Faz upsert em `category_rules` com `match_type = contains`, `auto_created = true`, incrementa `hit_count`.
+- Se já existir regra manual conflitante, não sobrescreve.
 
-Ao importar, para cada transação nova:
-1. Buscar em `financial_entries`, `appointments (status=concluído)`, `fixed_costs`, `variable_costs` com data ±3 dias e valor exato → `matched`.
-2. Valor exato, data ±7 dias, descrição parecida (levenshtein simples) → `needs_review` com sugestão.
-3. Valor divergente >0 mas descrição idêntica no mesmo dia → `divergent`.
-4. Sem match → `pending`.
+Reaplicar em lote: botão "Reclassificar pendentes com regras atuais" na aba Conciliação.
 
-Tela de conciliação com filtro por status, badges coloridos, ações: **Confirmar sugestão**, **Vincular manualmente**, **Criar lançamento no financeiro**, **Ignorar**.
+### 4. UI — Categorização inline na conciliação
 
-### 4. Movimentações manuais
+Em `ReconciliationTable.tsx`:
+- Nova coluna/linha "Categoria" com `Select` mostrando a sugestão em destaque + as demais categorias.
+- Badge "Sugerido: Taxas de Cartão · Stone" quando vier do dicionário/regra.
+- Ao trocar, salva imediatamente em `cash_transactions.category` e alimenta o aprendizado.
+- Filtro adicional por categoria.
 
-Modal "Nova movimentação" para lançar entrada/saída em dinheiro, PIX, depósito, retirada, pagamento avulso — vai direto para `cash_transactions` já como `matched` (source=manual).
+### 5. Tela "Regras Inteligentes"
 
-### 5. Dashboards da DFC
+Nova sub-aba dentro de **Contas & Importações** (ou terceira aba dedicada):
+- Lista das regras do usuário, ordenadas por `hit_count`.
+- Criar/editar/excluir manualmente (padrão, tipo de match, categoria, direção).
+- Toggle "Aplicar em movimentações já importadas".
+- Regras aprendidas ficam marcadas com badge "Auto" e podem ser promovidas a "Manual" (fixadas).
 
-Substituir/expandir `DFCReport.tsx`:
-- Cards: saldo inicial, entradas, saídas, fluxo líquido, saldo final
-- Gráfico de evolução (diária/semanal/mensal — toggle)
-- Top categorias de saída (ranking + % do total)
-- Fontes de receita (ranking)
-- Comparativo por meio de recebimento (dinheiro/PIX/cartão/outros) — donut
-- Projeção de saldo futuro (próximos 30 dias) usando média móvel + custos fixos recorrentes
+### 6. Dashboard "Onde vai meu dinheiro"
 
-### 6. Painel Saúde do Caixa
+Nova sub-aba na DFC **"Análise por Categoria"** (ou incluir na Visão Geral):
+- **Ranking** — barras horizontais com top categorias de saída, valor e % do total.
+- **Donut** — participação por categoria.
+- **Evolução mensal** — line chart empilhado por categoria (últimos 6 meses), usando `recharts`.
+- **Comparativo mês vs mês anterior** — cards mostrando ↑/↓ % por categoria principal.
+- **Insights automáticos** (mesmo padrão do painel Saúde do Caixa): frases geradas por regras como "Taxas de cartão representam X% do seu faturamento", "Produtos químicos subiram Y% vs mês anterior", "Seu maior centro de custo foi Z".
 
-Card destacado com frases automáticas geradas por regras:
-- Status geral (saudável / atenção / crítico) baseado em fluxo líquido + runway
-- "% das entradas consumido por custos fixos"
-- "% das saídas em produtos/insumos"
-- "Runway: X dias de operação no ritmo atual"
-- Comparativo com mês anterior (melhorou/piorou X%)
+### 7. Integração com DRE e Financeiro
 
-### 7. Navegação histórica
-
-Reusar `MonthSelector` para navegar entre meses; dados sempre por competência (`transaction_date`).
+- DRE Simples passa a considerar as categorias `cash_transactions` conciliadas quando não houver `financial_entry` vinculado, evitando duplicidade (join por `matched_entry_id`).
+- Dashboard financeiro principal ganha KPI "Maior gasto do mês (categoria)".
 
 ## Detalhes técnicos
 
-- **Rotas**: manter dentro de `/financeiro` (aba DFC já existe). Adicionar sub-abas: **Visão Geral**, **Conciliação**, **Contas & Importações**.
-- **Hooks novos**: `useCashAccounts`, `useCashTransactions`, `useBankImports`, `useReconciliation`.
-- **Parsers**: `src/lib/imports/{csv,xlsx,ofx,pdf}Parser.ts` + `src/lib/imports/reconcile.ts`.
-- **Componentes**: `CashFlowDashboard`, `CashHealthPanel`, `ReconciliationTable`, `ImportWizardModal`, `ManualTransactionModal`, `AccountsManager`.
-- **Restrição de plano**: manter DFC restrito aos planos Gestão e Escala (regra já existente).
-- **Isolamento**: todas as queries filtradas por `auth.uid()` via RLS; nenhuma query cross-user.
+- **Hooks novos**: `useCategoryRules`, `useCategorization` (aplica engine + aprende).
+- **Componentes novos**: `CategoryPicker`, `RulesManager`, `CategoryDashboard`, `CategoryInsights`.
+- **Migração única**: cria `category_rules` (+GRANT+RLS+trigger updated_at) e faz `INSERT ... ON CONFLICT DO NOTHING` das 19 categorias padrão em `transaction_categories`.
+- **Sem quebra de contratos**: `cash_transactions.category` já existe; nova lógica apenas preenche/atualiza.
+- **Client-side**: engine roda no browser durante importação para sugerir antes do commit (mostra pré-visualização com categoria já sugerida no wizard).
 
 ## Entregas em ordem
 
-1. Migração do banco (4 tabelas + policies + grants).
-2. Hooks + tipos.
-3. Parsers + engine de conciliação.
-4. UI: Contas, Importação (wizard), Movimentação manual.
-5. UI: Tela de conciliação.
-6. UI: Dashboards + Saúde do Caixa.
-7. Integração com DRE/Financeiro existente (garantir que `matched` alimenta os mesmos totais sem duplicar).
+1. Migração (`category_rules` + seed de categorias).
+2. Engine `categorize.ts` + hook `useCategoryRules`.
+3. Categorização inline na Conciliação + aprendizado.
+4. Sugestão automática no `ImportWizardModal` (pré-visualização com badges).
+5. Tela "Regras Inteligentes".
+6. Dashboard por categoria + insights.
+7. Ajuste do DRE para consumir categorias conciliadas sem duplicar.
 
-## Confirmação necessária
-
-Antes de começar, confirme:
-- **Escopo do PDF**: parse best-effort ok, ou prefere pular PDF nesta etapa e focar em CSV/XLSX/OFX (mais confiáveis)?
-- **Contas de caixa**: quer que eu crie contas default automaticamente (Dinheiro, PIX, Cartão) no primeiro acesso, ou o usuário cadastra manualmente?
-- **Entrega**: posso entregar tudo de uma vez (grande PR), ou prefere em fases (ex: primeiro migração + importação + conciliação, depois dashboards)?
+Confirma que posso seguir com tudo em um único lote, ou prefere fatiar (ex.: primeiro engine + categorização + regras, depois dashboards)?
