@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail, Lock, User, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { guardRateLimit } from "@/lib/rateLimit";
 
 const Cadastro = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,8 +40,20 @@ const Cadastro = () => {
     }
 
     setIsLoading(true);
-    
-    const { error } = await signUp(email.trim(), password, name.trim());
+
+    // Protects the public signup endpoint against bots/automation (per IP).
+    const limit = await guardRateLimit("auth_signup", { endpoint: "/cadastro" });
+    if (!limit.allowed) {
+      toast({
+        title: "Muitas solicitações",
+        description: limit.message,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const { error } = await signUp(email.trim().toLowerCase(), password, name.trim());
     
     if (error) {
       toast({
