@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import RateLimitLogs from "@/components/admin/RateLimitLogs";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import { useUserRole } from "@/hooks/useUserRole";
