@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { guardRateLimit } from "@/lib/rateLimit";
 import { Link } from "react-router-dom";
 import {
   Upload, FileSpreadsheet, Users, DollarSign, Download, CheckCircle2,
