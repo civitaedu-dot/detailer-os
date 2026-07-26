@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { enforceRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,6 +34,16 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated or email not available");
     logStep("User authenticated", { userId: user.id, email: user.email });
+
+    const limit = await enforceRateLimit({
+      req,
+      rule: "checkout",
+      identity: user.id,
+      userId: user.id,
+      userEmail: user.email,
+      endpoint: "create-checkout",
+    });
+    if (!limit.allowed) return rateLimitResponse(limit, corsHeaders);
 
     // Plano único — price ID fixo (LIVE)
     const priceId = "price_1TgYc5QgltCrbsp3nkIKAUqS";
