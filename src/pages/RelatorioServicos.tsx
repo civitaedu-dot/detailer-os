@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePrivacyMode } from '@/contexts/PrivacyModeContext';
+import { guardRateLimit } from '@/lib/rateLimit';
 import { useNavigate } from 'react-router-dom';
 import { useAppointments } from '@/hooks/useAppointments';
 import { useClients } from '@/hooks/useClients';
@@ -143,7 +144,12 @@ const RelatorioServicos = () => {
   const { maskCurrency } = usePrivacyMode();
   const formatCurrency = (v: number) => maskCurrency(v);
 
-  const exportCSV = () => {
+  const exportCSV = async () => {
+    const limit = await guardRateLimit('report_generation', { endpoint: 'relatorio-servicos/csv' });
+    if (!limit.allowed) {
+      toast.error(limit.message);
+      return;
+    }
     const headers = ['Data', 'Serviço', 'Cliente', 'Status', 'Valor'];
     const rows = sortedData.map((a) => [
       format(parseISO(a.appointment_date), 'dd/MM/yyyy'),
@@ -163,7 +169,12 @@ const RelatorioServicos = () => {
     toast.success('CSV exportado com sucesso!');
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
+    const limit = await guardRateLimit('report_generation', { endpoint: 'relatorio-servicos/pdf' });
+    if (!limit.allowed) {
+      toast.error(limit.message);
+      return;
+    }
     const printContent = `
       <html><head><title>Relatório de Serviços</title>
       <style>
