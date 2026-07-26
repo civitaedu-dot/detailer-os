@@ -120,7 +120,15 @@ const SocioIA = () => {
 
       if (!resp.ok) {
         const errorData = await resp.json().catch(() => ({}));
-        if (errorData.upgrade_needed) {
+        if (resp.status === 429 || errorData.rate_limited) {
+          toast({
+            title: "Muitas mensagens seguidas",
+            description:
+              errorData.error ||
+              "Muitas solicitações em pouco tempo. Aguarde alguns minutos e tente novamente.",
+            variant: "destructive",
+          });
+        } else if (errorData.upgrade_needed) {
           toast({
             title: "Limite de interações atingido",
             description: `Você usou todas as ${errorData.limit} interações do mês. Faça upgrade do seu plano para continuar.`,
