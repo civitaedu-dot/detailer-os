@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { guardRateLimit } from "@/lib/rateLimit";
 import { Link } from "react-router-dom";
 import {
   Upload, FileSpreadsheet, Users, DollarSign, Download, CheckCircle2,
@@ -231,6 +232,17 @@ const ImportarDados = () => {
 
   const runImport = async () => {
     if (!user) return;
+
+    const limit = await guardRateLimit("import_file", { endpoint: "/importar-dados" });
+    if (!limit.allowed) {
+      toast({
+        title: "Muitas importações seguidas",
+        description: limit.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setStep("processing");
     setProgress(0);
     const errors: ImportError[] = [];

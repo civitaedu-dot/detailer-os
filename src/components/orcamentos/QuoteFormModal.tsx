@@ -20,6 +20,7 @@ import type { Quote } from "@/hooks/useQuotes";
 import type { Client } from "@/hooks/useClients";
 import type { Service } from "@/hooks/useServices";
 import { generateQuotePdf } from "@/lib/quotePdf";
+import { guardRateLimit } from "@/lib/rateLimit";
 import { useToast } from "@/hooks/use-toast";
 
 const STEPS = [
@@ -255,8 +256,17 @@ export const QuoteFormModal = ({
     };
   };
 
-  const handleGeneratePDF = () => {
+  const handleGeneratePDF = async () => {
     try {
+      const limit = await guardRateLimit("report_generation", { endpoint: "orcamentos/pdf" });
+      if (!limit.allowed) {
+        toast({
+          title: "Muitas gerações seguidas",
+          description: limit.message,
+          variant: "destructive",
+        });
+        return;
+      }
       const quoteForPdf = buildQuoteObject();
       generateQuotePdf(quoteForPdf, settings, template);
       toast({

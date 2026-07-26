@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import RateLimitLogs from "@/components/admin/RateLimitLogs";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -283,6 +284,17 @@ const Admin = () => {
               </Table>
             </div>
           )}
+        </motion.div>
+
+        {/* Rate limit logs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-8"
+        >
+          <h2 className="font-display text-xl font-bold mb-4">Segurança & Rate Limits</h2>
+          <RateLimitLogs />
         </motion.div>
     </div>
   );

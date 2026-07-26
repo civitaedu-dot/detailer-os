@@ -7,6 +7,7 @@ import { Upload, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import { parseCSV, parseXLSX, parseOFX, autoDetectMapping, applyMapping, type ParsedRow, type ColumnMapping } from "@/lib/imports/parsers";
 import type { CashAccount } from "@/hooks/useCashFlow";
 import { useToast } from "@/hooks/use-toast";
+import { guardRateLimit } from "@/lib/rateLimit";
 
 interface Props {
   open: boolean;
@@ -91,6 +92,17 @@ export function ImportWizardModal({ open, onOpenChange, accounts, onImport }: Pr
 
   const handleImport = async () => {
     if (!accountId || rows.length === 0) return;
+
+    const limit = await guardRateLimit("import_file", { endpoint: "dfc/import" });
+    if (!limit.allowed) {
+      toast({
+        title: "Muitas importações seguidas",
+        description: limit.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setBusy(true);
     try {
       await onImport(rows, accountId, file?.name || "extrato", format);

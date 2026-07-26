@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Mail, Lock, Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { guardRateLimit, clearRateLimit } from "@/lib/rateLimit";
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -29,8 +30,26 @@ const Login = () => {
     }
 
     setIsLoading(true);
-    
-    const { error } = await signIn(email.trim(), password);
+
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Centralized brute-force protection (progressive lockout).
+    const limit = await guardRateLimit("auth_login", {
+      identity: normalizedEmail,
+      endpoint: "/login",
+    });
+
+    if (!limit.allowed) {
+      toast({
+        title: "Muitas tentativas",
+        description: limit.message,
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const { error } = await signIn(normalizedEmail, password);
     
     if (error) {
       toast({
@@ -43,6 +62,9 @@ const Login = () => {
       setIsLoading(false);
       return;
     }
+
+    // Successful login clears the counters for this e-mail/IP.
+    void clearRateLimit("auth_login", normalizedEmail);
 
     toast({
       title: "Bem-vindo de volta!",

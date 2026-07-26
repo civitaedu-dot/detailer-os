@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { enforceRateLimit, rateLimitResponse } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -56,6 +57,28 @@ serve(async (req) => {
     }
 
     const { messages } = await req.json();
+
+    // Technical rate limit: anti-spam per minute + burst guard per hour.
+    // The plan itself is unlimited, so only abuse protection applies here.
+    const perMinute = await enforceRateLimit({
+      req,
+      rule: "ai_chat",
+      identity: user.id,
+      userId: user.id,
+      userEmail: user.email ?? null,
+      endpoint: "socio-ia-chat",
+    });
+    if (!perMinute.allowed) return rateLimitResponse(perMinute, corsHeaders);
+
+    const perHour = await enforceRateLimit({
+      req,
+      rule: "ai_chat_burst",
+      identity: user.id,
+      userId: user.id,
+      userEmail: user.email ?? null,
+      endpoint: "socio-ia-chat",
+    });
+    if (!perHour.allowed) return rateLimitResponse(perHour, corsHeaders);
 
     // Fetch profile
     const { data: profile } = await supabase
