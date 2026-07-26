@@ -284,6 +284,17 @@ const Admin = () => {
             </div>
           )}
         </motion.div>
+
+        {/* Rate limit logs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-8"
+        >
+          <h2 className="font-display text-xl font-bold mb-4">Segurança & Rate Limits</h2>
+          <RateLimitLogs />
+        </motion.div>
     </div>
   );
 };
