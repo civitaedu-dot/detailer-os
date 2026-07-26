@@ -1385,6 +1385,153 @@ export type Database = {
           },
         ]
       }
+      rate_limit_blocks: {
+        Row: {
+          blocked_until: string | null
+          created_at: string
+          id: string
+          identity_key: string
+          last_violation_at: string
+          rule_key: string
+          strikes: number
+          updated_at: string
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          identity_key: string
+          last_violation_at?: string
+          rule_key: string
+          strikes?: number
+          updated_at?: string
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string
+          id?: string
+          identity_key?: string
+          last_violation_at?: string
+          rule_key?: string
+          strikes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      rate_limit_configs: {
+        Row: {
+          block_seconds: number
+          created_at: string
+          description: string
+          enabled: boolean
+          id: string
+          max_requests: number
+          progressive: boolean
+          rule_key: string
+          updated_at: string
+          window_seconds: number
+        }
+        Insert: {
+          block_seconds?: number
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          id?: string
+          max_requests: number
+          progressive?: boolean
+          rule_key: string
+          updated_at?: string
+          window_seconds: number
+        }
+        Update: {
+          block_seconds?: number
+          created_at?: string
+          description?: string
+          enabled?: boolean
+          id?: string
+          max_requests?: number
+          progressive?: boolean
+          rule_key?: string
+          updated_at?: string
+          window_seconds?: number
+        }
+        Relationships: []
+      }
+      rate_limit_events: {
+        Row: {
+          created_at: string
+          id: number
+          identity_key: string
+          ip_address: string | null
+          rule_key: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          identity_key: string
+          ip_address?: string | null
+          rule_key: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          identity_key?: string
+          ip_address?: string | null
+          rule_key?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      rate_limit_logs: {
+        Row: {
+          blocked_seconds: number
+          created_at: string
+          endpoint: string
+          id: string
+          ip_address: string | null
+          max_requests: number
+          request_count: number
+          rule_key: string
+          strikes: number
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+          window_seconds: number
+        }
+        Insert: {
+          blocked_seconds?: number
+          created_at?: string
+          endpoint: string
+          id?: string
+          ip_address?: string | null
+          max_requests?: number
+          request_count?: number
+          rule_key: string
+          strikes?: number
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          window_seconds?: number
+        }
+        Update: {
+          blocked_seconds?: number
+          created_at?: string
+          endpoint?: string
+          id?: string
+          ip_address?: string | null
+          max_requests?: number
+          request_count?: number
+          rule_key?: string
+          strikes?: number
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          window_seconds?: number
+        }
+        Relationships: []
+      }
       services: {
         Row: {
           additional_cost: number | null
@@ -1662,12 +1809,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          _count_request?: boolean
+          _endpoint?: string
+          _identity_key: string
+          _ip_address?: string
+          _rule_key: string
+          _user_agent?: string
+          _user_email?: string
+          _user_id?: string
+        }
+        Returns: Json
+      }
+      cleanup_rate_limit_data: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      reset_rate_limit: {
+        Args: { _identity_key: string; _rule_key: string }
+        Returns: undefined
       }
     }
     Enums: {
