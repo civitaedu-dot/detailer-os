@@ -231,6 +231,17 @@ const ImportarDados = () => {
 
   const runImport = async () => {
     if (!user) return;
+
+    const limit = await guardRateLimit("import_file", { endpoint: "/importar-dados" });
+    if (!limit.allowed) {
+      toast({
+        title: "Muitas importações seguidas",
+        description: limit.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setStep("processing");
     setProgress(0);
     const errors: ImportError[] = [];
