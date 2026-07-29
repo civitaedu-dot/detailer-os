@@ -613,11 +613,11 @@ const Campanhas = () => {
           <TabsContent value="calendario">
             <Card>
               <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Calendário de Campanhas</CardTitle>
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <CardTitle className="text-base sm:text-lg">Calendário de Campanhas</CardTitle>
+                  <div className="flex items-center gap-2 justify-between sm:justify-end">
                     <Button variant="ghost" size="sm" onClick={() => setCalendarMonth(subMonths(calendarMonth, 1))}>←</Button>
-                    <span className="text-sm font-medium min-w-[120px] text-center">
+                    <span className="text-sm font-medium min-w-0 sm:min-w-[120px] text-center capitalize truncate">
                       {format(calendarMonth, "MMMM yyyy", { locale: ptBR })}
                     </span>
                     <Button variant="ghost" size="sm" onClick={() => setCalendarMonth(addMonths(calendarMonth, 1))}>→</Button>
