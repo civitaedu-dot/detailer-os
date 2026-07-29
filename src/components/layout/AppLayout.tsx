@@ -158,49 +158,49 @@ export function AppLayout() {
           </header>
 
           {/* Page content */}
-          <main className={`flex-1 overflow-auto ${isMobile ? 'pb-20' : ''}`}>
+          <main className={`flex-1 overflow-x-hidden overflow-y-auto ${isMobile ? 'pb-24' : ''}`}>
             <Outlet />
           </main>
 
           {/* Mobile bottom navigation */}
           {isMobile && (
-            <nav className="fixed bottom-0 left-0 right-0 z-40 h-16 bg-card/95 backdrop-blur-lg border-t border-border flex items-center justify-around px-2">
+            <nav className="fixed bottom-0 left-0 right-0 z-40 h-16 bg-card/95 backdrop-blur-lg border-t border-border flex items-center justify-around px-1 safe-bottom">
               {bottomNavItems.map((item) => (
                 <Link
                   key={item.url}
                   to={item.url}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg transition-colors ${
+                  className={`flex flex-1 min-w-0 flex-col items-center gap-0.5 px-1 py-1.5 rounded-lg transition-colors ${
                     isActive(item.url) 
                       ? 'text-primary' 
                       : 'text-muted-foreground'
                   }`}
                 >
-                  <item.icon className="w-5 h-5" />
-                  <span className="text-[10px] font-medium">{item.title}</span>
+                  <item.icon className="w-5 h-5 shrink-0" />
+                  <span className="text-[10px] font-medium truncate max-w-full">{item.title}</span>
                 </Link>
               ))}
 
               {/* More button */}
               <Sheet open={moreOpen} onOpenChange={setMoreOpen}>
                 <SheetTrigger asChild>
-                  <button className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-lg text-muted-foreground">
-                    <Plus className="w-5 h-5" />
+                  <button className="flex flex-1 min-w-0 flex-col items-center gap-0.5 px-1 py-1.5 rounded-lg text-muted-foreground">
+                    <Plus className="w-5 h-5 shrink-0" />
                     <span className="text-[10px] font-medium">Mais</span>
                   </button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="rounded-t-2xl pb-8">
-                  <div className="grid grid-cols-4 gap-4 pt-4">
+                <SheetContent side="bottom" className="rounded-t-2xl pb-10 max-h-[80dvh] overflow-y-auto">
+                  <div className="grid grid-cols-3 xs:grid-cols-4 gap-3 pt-4">
                     {mobileMoreItems.map((item) => (
                       <Link
                         key={item.url}
                         to={item.url}
                         onClick={() => setMoreOpen(false)}
-                        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-colors ${
+                        className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl transition-colors ${
                           isActive(item.url) ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:bg-secondary'
                         }`}
                       >
-                        <item.icon className="w-6 h-6" />
-                        <span className="text-xs font-medium text-center">{item.title}</span>
+                        <item.icon className="w-6 h-6 shrink-0" />
+                        <span className="text-[11px] font-medium text-center leading-tight">{item.title}</span>
                       </Link>
                     ))}
                   </div>
