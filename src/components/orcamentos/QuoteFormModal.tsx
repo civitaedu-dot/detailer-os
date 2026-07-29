@@ -616,7 +616,7 @@ export const QuoteFormModal = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-5 py-4 border-t border-border bg-card/50 flex-shrink-0">
+        <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 sm:py-4 border-t border-border bg-card/50 flex-shrink-0 safe-bottom">
           <Button
             variant="ghost"
             onClick={() => step > 1 ? setStep(step - 1) : onClose()}
