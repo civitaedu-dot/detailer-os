@@ -110,6 +110,15 @@
     @apply border-border;
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  html, body, #root {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', system-ui, sans-serif;
@@ -117,6 +126,34 @@
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Sora', system-ui, sans-serif;
+  }
+
+  img, svg, video, canvas {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Mobile touch & readability tuning */
+  @media (max-width: 767px) {
+    input, select, textarea {
+      font-size: 16px; /* evita zoom automático no iOS */
+    }
+
+    button, [role="button"], a[role="button"] {
+      touch-action: manipulation;
+    }
+
+    /* Nada deve estourar a largura da tela */
+    h1, h2, h3, h4, p, span, div {
+      overflow-wrap: anywhere;
+    }
+  }
+
+  /* Scroll horizontal suave para tabelas/abas em telas pequenas */
+  .relative.w-full.overflow-auto,
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
   }
 }
 
@@ -157,6 +194,16 @@
 
   .animate-pulse-slow {
     animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Faixa de conteúdo que pode "sangrar" até as bordas no mobile */
+  .scroll-x-bleed {
+    @apply overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0;
+    -webkit-overflow-scrolling: touch;
   }
 
   @keyframes float {
