@@ -181,23 +181,23 @@ const Agenda = () => {
           </Tabs>
 
           {/* Navigation */}
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={goToToday}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" size="sm" onClick={goToToday} className="shrink-0">
               Hoje
             </Button>
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigateBack}>
+            <div className="flex items-center gap-1 flex-1 min-w-0 justify-center">
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={navigateBack}>
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <span className="text-sm font-medium min-w-[140px] text-center capitalize">
+              <span className="text-xs sm:text-sm font-medium flex-1 min-w-0 sm:min-w-[140px] text-center capitalize truncate">
                 {getNavigationLabel()}
               </span>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={navigateForward}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={navigateForward}>
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
             {viewMode !== '3months' && (
-              <Button onClick={handleNewAppointment} size="sm" className="gap-1">
+              <Button onClick={handleNewAppointment} size="sm" className="gap-1 shrink-0">
                 + Novo
               </Button>
             )}
