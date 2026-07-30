@@ -28,6 +28,9 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell
 } from "recharts";
+import {
+  ChartCard, TrendBadge, SimpleLineChart, SimpleBarChart, RankedBars, CHART_COLORS, trendSentence,
+} from "@/components/charts/ChartKit";
 import { format, subMonths, differenceInDays, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
