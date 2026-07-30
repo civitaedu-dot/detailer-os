@@ -198,7 +198,10 @@ export function PrevisibilidadeCustos({ fixedCosts, variableCosts, monthlyRevenu
         animate={{ opacity: 1, y: 0 }}
         className="bg-card border border-border rounded-xl p-6"
       >
-        <h3 className="font-semibold mb-4">Projeção — Próximos 12 Meses</h3>
+        <div className="mb-4">
+          <h3 className="font-semibold">Quanto você vai gastar nos próximos 12 meses</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Projeção com base nos custos atuais</p>
+        </div>
         {totalFixed === 0 && baseVariableValue === 0 ? (
           <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">
             Adicione custos para ver a projeção
@@ -228,6 +231,12 @@ export function PrevisibilidadeCustos({ fixedCosts, variableCosts, monthlyRevenu
             </ResponsiveContainer>
           </div>
         )}
+        <div className="mt-4 flex items-start gap-2 rounded-lg border border-border/60 bg-secondary/40 p-3 text-xs leading-relaxed text-muted-foreground">
+          <span>
+            Esta é uma estimativa: a área azul é o que você paga todo mês independente das vendas e a laranja acompanha
+            o volume de atendimentos. Use este valor como meta mínima de faturamento para não operar no prejuízo.
+          </span>
+        </div>
       </motion.div>
 
       {/* Monthly Projection Table */}

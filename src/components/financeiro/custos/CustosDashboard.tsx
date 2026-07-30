@@ -312,7 +312,10 @@ export function CustosDashboard({ fixedCosts, variableCosts, monthlyRevenue }: C
           transition={{ delay: 0.25 }}
           className="bg-card border border-border rounded-xl p-6"
         >
-          <h3 className="font-semibold text-base mb-4">Evolução nos Últimos 6 Meses</h3>
+          <div className="mb-4">
+            <h3 className="font-semibold text-base">Quanto seus custos variaram por mês</h3>
+            <p className="text-xs text-muted-foreground mt-0.5">Custos fixos e variáveis somados</p>
+          </div>
           {totalCosts === 0 ? (
             <div className="h-48 flex items-center justify-center text-muted-foreground text-sm">
               Adicione custos para ver a evolução
@@ -332,6 +335,12 @@ export function CustosDashboard({ fixedCosts, variableCosts, monthlyRevenue }: C
               </ResponsiveContainer>
             </div>
           )}
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-border/60 bg-secondary/40 p-3 text-xs leading-relaxed text-muted-foreground">
+            <span>
+              A barra azul é o custo que você paga todo mês mesmo sem vender (fixo) e a laranja varia conforme os
+              atendimentos. Se a parte azul estiver muito grande, seu risco em meses fracos é maior.
+            </span>
+          </div>
         </motion.div>
       </div>
 

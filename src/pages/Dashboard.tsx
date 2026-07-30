@@ -21,6 +21,7 @@ import { useOrdensServico } from "@/hooks/useOrdensServico";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { SimpleBarChart, TrendBadge, ChartInsight, trendSentence } from "@/components/charts/ChartKit";
 import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 
 const formatCurrency = (value: number) =>
@@ -263,23 +264,35 @@ const Dashboard = () => {
           className="lg:col-span-3">
           <Card className="border-border/50 h-full">
             <CardContent className="p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="font-display font-semibold text-base sm:text-lg">Faturamento (6 meses)</h3>
-                <DollarSign className="w-5 h-5 text-muted-foreground/50" />
+              <div className="flex items-start justify-between mb-5 gap-3">
+                <div>
+                  <h3 className="font-display font-semibold text-base sm:text-lg">Faturamento (6 meses)</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">Quanto entrou por mês</p>
+                </div>
+                <TrendBadge
+                  current={revenueChartData[revenueChartData.length - 1]?.receita || 0}
+                  previous={revenueChartData[revenueChartData.length - 2]?.receita || 0}
+                />
               </div>
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={revenueChartData} barSize={32}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis dataKey="month" tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    formatter={(v: number) => [formatCurrency(v), 'Receita']}
-                    contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: '8px', color: 'hsl(var(--foreground))' }}
-                    cursor={{ fill: 'hsl(var(--muted) / 0.3)' }}
-                  />
-                  <Bar dataKey="receita" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <SimpleBarChart
+                data={revenueChartData}
+                xKey="month"
+                valueKey="receita"
+                label="Faturamento"
+                format={(v) => formatCurrency(v)}
+                height={260}
+              />
+              <ChartInsight>
+                {trendSentence(
+                  revenueChartData[revenueChartData.length - 1]?.receita || 0,
+                  revenueChartData[revenueChartData.length - 2]?.receita || 0,
+                  { noun: "seu faturamento" }
+                )}{" "}
+                {(revenueChartData[revenueChartData.length - 1]?.receita || 0) >=
+                (revenueChartData[revenueChartData.length - 2]?.receita || 0)
+                  ? "Tendência positiva — siga com as ações que estão trazendo clientes."
+                  : "Vale reativar clientes parados e revisar seus preços e pacotes."}
+              </ChartInsight>
             </CardContent>
           </Card>
         </motion.div>

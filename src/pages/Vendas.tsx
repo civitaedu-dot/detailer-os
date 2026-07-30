@@ -28,6 +28,9 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell
 } from "recharts";
+import {
+  ChartCard, TrendBadge, SimpleLineChart, SimpleBarChart, RankedBars, CHART_COLORS, trendSentence,
+} from "@/components/charts/ChartKit";
 import { format, subMonths, differenceInDays, startOfMonth, endOfMonth, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -329,6 +332,9 @@ const Vendas = () => {
     URL.revokeObjectURL(url);
   };
 
+  const last = monthlyEvolution[monthlyEvolution.length - 1] || { newClients: 0, appointments: 0, revenue: 0 };
+  const prev = monthlyEvolution[monthlyEvolution.length - 2] || { newClients: 0, appointments: 0, revenue: 0 };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -386,52 +392,67 @@ const Vendas = () => {
               ))}
             </div>
 
-            {/* Evolution Chart */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Evolução da Carteira — Últimos 6 Meses</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 sm:h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={monthlyEvolution}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }}
-                        labelStyle={{ color: "hsl(var(--foreground))" }}
-                      />
-                      <Line type="monotone" dataKey="newClients" name="Novos Clientes" stroke="hsl(152, 60%, 45%)" strokeWidth={2} dot={{ r: 4 }} />
-                      <Line type="monotone" dataKey="appointments" name="Atendimentos" stroke="hsl(142, 70%, 55%)" strokeWidth={2} dot={{ r: 4 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Cada indicador no seu próprio gráfico */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <ChartCard
+                title="Novos clientes por mês"
+                subtitle="Quantas pessoas novas você conquistou"
+                badge={<TrendBadge current={last.newClients} previous={prev.newClients} />}
+                insight={
+                  <>
+                    {last.newClients === prev.newClients
+                      ? "Você conquistou a mesma quantidade de clientes novos do mês passado."
+                      : `Você conquistou ${Math.abs(last.newClients - prev.newClients)} cliente${Math.abs(last.newClients - prev.newClients) !== 1 ? "s" : ""} ${last.newClients > prev.newClients ? "a mais" : "a menos"} que no mês anterior.`}{" "}
+                    {last.newClients < prev.newClients
+                      ? "Vale reforçar divulgação e indicações para voltar a crescer."
+                      : "Mantenha o que está funcionando na captação."}
+                  </>
+                }
+              >
+                <SimpleLineChart
+                  data={monthlyEvolution} xKey="label" valueKey="newClients"
+                  label="Clientes novos" color={CHART_COLORS.primary} height={220}
+                />
+              </ChartCard>
 
-            {/* Revenue evolution */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Faturamento Mensal</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64 sm:h-72">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={monthlyEvolution}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickFormatter={(v) => `R$${(v / 1000).toFixed(0)}k`} />
-                      <Tooltip
-                        contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }}
-                        formatter={(value: number) => [formatCurrency(value), "Faturamento"]}
-                      />
-                      <Bar dataKey="revenue" fill="hsl(152, 60%, 45%)" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
+              <ChartCard
+                title="Atendimentos por mês"
+                subtitle="Quantos serviços foram realizados"
+                badge={<TrendBadge current={last.appointments} previous={prev.appointments} />}
+                insight={
+                  <>
+                    {trendSentence(last.appointments, prev.appointments, { noun: "o número de atendimentos" })}{" "}
+                    {last.newClients > prev.newClients && last.appointments <= prev.appointments
+                      ? "Você atraiu mais clientes, mas o volume de serviços não acompanhou — há espaço para aumentar a conversão."
+                      : "Acompanhe junto com a agenda para entender a ocupação do studio."}
+                  </>
+                }
+              >
+                <SimpleLineChart
+                  data={monthlyEvolution} xKey="label" valueKey="appointments"
+                  label="Atendimentos" color={CHART_COLORS.neutral} height={220}
+                />
+              </ChartCard>
+            </div>
+
+            <ChartCard
+              title="Faturamento mensal"
+              subtitle="Quanto entrou de dinheiro em cada mês"
+              badge={<TrendBadge current={last.revenue} previous={prev.revenue} />}
+              insight={
+                <>
+                  {trendSentence(last.revenue, prev.revenue, { noun: "seu faturamento" })}{" "}
+                  {last.revenue >= prev.revenue
+                    ? "Tendência positiva: continue com as ações de venda que estão dando resultado."
+                    : "Considere reativar clientes parados e oferecer pacotes para recuperar o ritmo."}
+                </>
+              }
+            >
+              <SimpleBarChart
+                data={monthlyEvolution} xKey="label" valueKey="revenue" label="Faturamento"
+                format={(v) => formatCurrency(v)} height={240}
+              />
+            </ChartCard>
           </TabsContent>
 
           {/* ========== RELATÓRIOS ========== */}
@@ -448,27 +469,21 @@ const Vendas = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Top services */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Serviços Mais Vendidos</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {topServices.length > 0 ? (
-                    <div className="h-64">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie data={topServices} dataKey="count" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, count }) => `${name} (${count})`}>
-                            {topServices.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                          </Pie>
-                          <Tooltip contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px" }} />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-sm text-center py-8">Nenhum serviço realizado ainda.</p>
-                  )}
-                </CardContent>
-              </Card>
+              <ChartCard
+                title="Serviços mais vendidos"
+                subtitle="Ranking por quantidade realizada"
+                insight={
+                  topServices.length > 0
+                    ? `${topServices[0].name} é o serviço que você mais vende (${topServices[0].count} atendimentos). Use ele como porta de entrada e ofereça serviços complementares.`
+                    : "Assim que você concluir atendimentos, o ranking dos serviços mais vendidos aparece aqui."
+                }
+              >
+                <RankedBars
+                  items={topServices.map((s) => ({ name: s.name, value: s.count, hint: `Faturou ${formatCurrency(s.revenue)}` }))}
+                  format={(v) => `${v} atend.`}
+                  emptyMessage="Nenhum serviço realizado ainda."
+                />
+              </ChartCard>
 
               {/* Busiest days */}
               <Card>
