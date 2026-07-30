@@ -21,6 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format, parseISO, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { ChartCard, RankedBars, SimpleBarChart, TrendBadge, trendSentence } from "@/components/charts/ChartKit";
 
 const CATEGORIES = [
   { value: "ceras", label: "Ceras" },
@@ -285,41 +286,43 @@ const Estoque = () => {
           {/* ===== PAINEL ===== */}
           <TabsContent value="painel">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader><CardTitle className="text-lg">Distribuição por Categoria</CardTitle></CardHeader>
-                <CardContent>
-                  {categoryChartData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <PieChart>
-                        <Pie data={categoryChartData} cx="50%" cy="50%" outerRadius={80} dataKey="valor" nameKey="name" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
-                          {categoryChartData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                        </Pie>
-                        <Tooltip formatter={(v: number) => formatCurrency(v)} />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-8">Cadastre produtos para visualizar</p>
-                  )}
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader><CardTitle className="text-lg">Consumo Recente (Saídas)</CardTitle></CardHeader>
-                <CardContent>
-                  {consumptionData.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={250}>
-                      <BarChart data={consumptionData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                        <YAxis tick={{ fontSize: 12 }} />
-                        <Tooltip />
-                        <Bar dataKey="saidas" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-8">Registre movimentações para visualizar</p>
-                  )}
-                </CardContent>
-              </Card>
+              <ChartCard
+                title="Onde está o dinheiro do seu estoque"
+                subtitle="Valor parado por categoria de produto"
+                insight={
+                  categoryChartData.length > 0
+                    ? `A categoria ${categoryChartData[0].name} concentra a maior parte do valor parado em estoque. Compre com mais cuidado nessa categoria para não travar seu caixa.`
+                    : "Cadastre produtos para ver quanto dinheiro está parado em cada categoria."
+                }
+              >
+                <RankedBars
+                  items={[...categoryChartData].sort((a: any, b: any) => b.valor - a.valor).map((c: any) => ({ name: c.name, value: c.valor }))}
+                  format={(v) => formatCurrency(v)}
+                  emptyMessage="Cadastre produtos para visualizar"
+                />
+              </ChartCard>
+              <ChartCard
+                title="Consumo de produtos por mês"
+                subtitle="Quantidade de saídas registradas"
+                badge={
+                  <TrendBadge
+                    current={consumptionData[consumptionData.length - 1]?.saidas || 0}
+                    previous={consumptionData[consumptionData.length - 2]?.saidas || 0}
+                    invert
+                  />
+                }
+                insight={
+                  consumptionData.length > 0
+                    ? `${trendSentence(consumptionData[consumptionData.length - 1]?.saidas || 0, consumptionData[consumptionData.length - 2]?.saidas || 0, { noun: "o consumo de produtos" })} Consumo subindo sem faturamento subindo pode indicar desperdício.`
+                    : "Registre movimentações para acompanhar o consumo mês a mês."
+                }
+              >
+                {consumptionData.length > 0 ? (
+                  <SimpleBarChart data={consumptionData} xKey="month" valueKey="saidas" label="Saídas" height={240} />
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">Registre movimentações para visualizar</p>
+                )}
+              </ChartCard>
             </div>
           </TabsContent>
 
