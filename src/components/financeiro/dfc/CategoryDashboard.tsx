@@ -4,8 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePrivacyMode } from "@/contexts/PrivacyModeContext";
 import { toLocalDateString } from "@/lib/utils";
 import type { CashTransaction } from "@/hooks/useCashFlow";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from "recharts";
 import { TrendingDown, TrendingUp, Trophy } from "lucide-react";
+import { ChartCard, RankedBars, SimpleLineChart, TrendBadge, trendSentence } from "@/components/charts/ChartKit";
 
 interface Props {
   transactions: CashTransaction[];
@@ -63,33 +63,29 @@ export function CategoryDashboard({ transactions, referenceDate }: Props) {
   }, [transactions, historical, prevMonthKey]);
 
   const sortedCategories = Object.entries(stats.byCategory).sort((a, b) => b[1] - a[1]);
-  const pieData = sortedCategories.slice(0, 8).map(([name, value]) => ({ name, value }));
 
-  // Evolution chart: last 6 months per top-5 category
+  // Evolution chart: total de saídas nos últimos 6 meses (uma única métrica)
   const evolution = useMemo(() => {
     const months: string[] = [];
     for (let i = 5; i >= 0; i--) {
       const d = new Date(referenceDate.getFullYear(), referenceDate.getMonth() - i, 1);
       months.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
     }
-    const top = sortedCategories.slice(0, 5).map((x) => x[0]);
-    const byMonth: Record<string, Record<string, number>> = {};
-    months.forEach((m) => { byMonth[m] = {}; top.forEach((c) => { byMonth[m][c] = 0; }); });
+    const byMonth: Record<string, number> = {};
+    months.forEach((m) => { byMonth[m] = 0; });
     historical
       .filter((t) => t.direction === "out" && t.reconciliation_status !== "ignored")
       .forEach((t) => {
         const mKey = t.transaction_date.slice(0, 7);
-        if (!byMonth[mKey]) return;
-        const cat = t.category || "Outros";
-        if (!top.includes(cat)) return;
-        byMonth[mKey][cat] = (byMonth[mKey][cat] || 0) + Number(t.value);
+        if (byMonth[mKey] === undefined) return;
+        byMonth[mKey] += Number(t.value);
       });
     return months.map((m) => {
       const [y, mm] = m.split("-");
       const label = new Date(Number(y), Number(mm) - 1, 1).toLocaleDateString("pt-BR", { month: "short" });
-      return { month: label, ...byMonth[m] };
+      return { month: label, total: byMonth[m] };
     });
-  }, [historical, sortedCategories, referenceDate]);
+  }, [historical, referenceDate]);
 
   // Insights
   const insights = useMemo(() => {
@@ -169,76 +165,59 @@ export function CategoryDashboard({ transactions, referenceDate }: Props) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Ranking */}
-        <div className="bg-card border border-border rounded-xl p-6">
-          <h3 className="font-display font-bold text-lg mb-4">Ranking de gastos por categoria</h3>
-          {sortedCategories.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">Sem saídas categorizadas ainda.</p>
-          ) : (
-            <div className="space-y-2">
-              {sortedCategories.slice(0, 8).map(([cat, val], idx) => {
-                const pct = stats.totalOut > 0 ? (val / stats.totalOut) * 100 : 0;
-                const prev = stats.prevByCategory[cat] || 0;
-                const diff = prev > 0 ? ((val - prev) / prev) * 100 : null;
-                return (
-                  <div key={cat}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="truncate">{cat}</span>
-                      <span className="text-destructive font-medium ml-2 shrink-0">
-                        {maskCurrency(val)} ({pct.toFixed(0)}%)
-                        {diff !== null && Math.abs(diff) > 5 && (
-                          <span className={`ml-2 text-[10px] ${diff > 0 ? "text-destructive" : "text-success"}`}>
-                            {diff > 0 ? "↑" : "↓"}{Math.abs(diff).toFixed(0)}%
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                      <div className="h-full" style={{ width: `${pct}%`, background: PALETTE[idx % PALETTE.length] }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+      {/* Ranking de gastos */}
+      <ChartCard
+        title="Para onde vai cada real que sai"
+        subtitle="Ranking de gastos do mês por categoria"
+        insight={
+          sortedCategories.length > 0
+            ? `${sortedCategories[0][0]} é hoje o seu maior gasto. Reduzir 10% nessa categoria já sobra dinheiro no seu caixa todo mês.`
+            : "Classifique suas saídas para descobrir para onde o seu dinheiro está indo."
+        }
+      >
+        <RankedBars
+          items={sortedCategories.map(([cat, val]) => {
+            const prev = stats.prevByCategory[cat] || 0;
+            const diff = prev > 0 ? ((val - prev) / prev) * 100 : null;
+            return {
+              name: cat,
+              value: val,
+              hint: diff !== null && Math.abs(diff) > 5
+                ? `${diff > 0 ? "Subiu" : "Caiu"} ${Math.abs(diff).toFixed(0)}% em relação ao mês passado`
+                : undefined,
+            };
+          })}
+          format={(v) => maskCurrency(v)}
+          max={8}
+          emptyMessage="Sem saídas categorizadas ainda."
+        />
+      </ChartCard>
 
-        {/* Donut */}
-        <div className="bg-card border border-border rounded-xl p-6">
-          <h3 className="font-display font-bold text-lg mb-4">Participação por categoria</h3>
-          {pieData.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">Sem dados.</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={240}>
-              <PieChart>
-                <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={50} outerRadius={90}>
-                  {pieData.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
-                </Pie>
-                <Tooltip formatter={(v: any) => maskCurrency(Number(v))} />
-                <Legend wrapperStyle={{ fontSize: 11 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </div>
-
-      {/* Evolution */}
-      <div className="bg-card border border-border rounded-xl p-6">
-        <h3 className="font-display font-bold text-lg mb-4">Evolução mensal (últimos 6 meses)</h3>
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={evolution}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.3} />
-            <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-            <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-            <Tooltip formatter={(v: any) => maskCurrency(Number(v))} />
-            <Legend wrapperStyle={{ fontSize: 11 }} />
-            {sortedCategories.slice(0, 5).map(([cat], i) => (
-              <Line key={cat} type="monotone" dataKey={cat} stroke={PALETTE[i % PALETTE.length]} strokeWidth={2} dot={false} />
-            ))}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      {/* Evolução total de saídas */}
+      <ChartCard
+        title="Quanto você gastou por mês"
+        subtitle="Total de saídas nos últimos 6 meses"
+        badge={
+          <TrendBadge
+            current={evolution[evolution.length - 1]?.total || 0}
+            previous={evolution[evolution.length - 2]?.total || 0}
+            invert
+          />
+        }
+        insight={
+          <>
+            {trendSentence(evolution[evolution.length - 1]?.total || 0, evolution[evolution.length - 2]?.total || 0, { noun: "o total de gastos" })}{" "}
+            {(evolution[evolution.length - 1]?.total || 0) > (evolution[evolution.length - 2]?.total || 0)
+              ? "Confira no ranking acima qual categoria puxou esse aumento."
+              : "Gastar menos mantendo o faturamento significa mais lucro no bolso."}
+          </>
+        }
+      >
+        <SimpleLineChart
+          data={evolution} xKey="month" valueKey="total" label="Total de gastos"
+          format={(v) => maskCurrency(v)} height={240}
+        />
+      </ChartCard>
     </div>
   );
 }
