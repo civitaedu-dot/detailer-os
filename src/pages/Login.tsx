@@ -1,21 +1,48 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Mail, Lock, Loader2 } from "lucide-react";
+import { Mail, Lock, Loader2, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { guardRateLimit, clearRateLimit } from "@/lib/rateLimit";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isRecovering, setIsRecovering] = useState(false);
   const { signIn } = useAuth();
   const { toast } = useToast();
-  const navigate = useNavigate();
+
+  const handleRecover = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      toast({
+        title: "Informe seu e-mail",
+        description: "Digite o e-mail da conta para enviarmos o link de recuperação.",
+        variant: "destructive",
+      });
+      return;
+    }
+    setIsRecovering(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setIsRecovering(false);
+    if (error) {
+      toast({ title: "Não foi possível enviar", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({
+      title: "E-mail enviado",
+      description: "Se existir uma conta com esse e-mail, você receberá o link para redefinir a senha.",
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,42 +103,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
-      {/* Background effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-accent/15 rounded-full blur-3xl" />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 w-full max-w-md"
-      >
-        {/* Back link */}
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8 transition-colors"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Voltar para o início
-        </Link>
-
-        {/* Card */}
-        <div className="bg-card border border-border rounded-2xl p-8 shadow-lg">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 mb-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center">
-                <span className="font-display font-bold text-primary-foreground text-xl">D</span>
-              </div>
-            </Link>
-            <h1 className="font-display text-2xl font-bold mb-2">Bem-vindo de volta</h1>
-            <p className="text-muted-foreground">Entre para acessar sua conta</p>
-          </div>
-
-          {/* Form */}
+    <AuthShell title="Bem-vindo de volta" subtitle="Entre para acessar sua gestão">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
@@ -120,6 +112,9 @@ const Login = () => {
                 <Input
                   id="email"
                   type="email"
+                  inputMode="email"
+                  autoCapitalize="none"
+                  autoComplete="email"
                   placeholder="seu@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -133,22 +128,36 @@ const Login = () => {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Senha</Label>
-                <a href="#" className="text-sm text-primary hover:underline">
-                  Esqueceu a senha?
-                </a>
+                <button
+                  type="button"
+                  onClick={handleRecover}
+                  disabled={isRecovering}
+                  className="text-sm text-primary hover:underline disabled:opacity-60"
+                >
+                  {isRecovering ? "Enviando..." : "Esqueceu a senha?"}
+                </button>
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 h-12"
+                  className="pl-10 pr-12 h-12"
                   required
                   disabled={isLoading}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
@@ -156,7 +165,7 @@ const Login = () => {
               type="submit"
               variant="hero"
               size="lg"
-              className="w-full"
+              className="w-full h-12"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -165,21 +174,21 @@ const Login = () => {
                   Entrando...
                 </>
               ) : (
-                "Entrar"
+                <>
+                  Entrar
+                  <ArrowRight className="w-4 h-4" />
+                </>
               )}
             </Button>
           </form>
 
-          {/* Footer */}
-          <p className="text-center text-sm text-muted-foreground mt-6">
+          <p className="text-center text-sm text-muted-foreground mt-6 pt-5 border-t border-border">
             Não tem uma conta?{" "}
             <Link to="/cadastro" className="text-primary hover:underline font-medium">
               Criar conta
             </Link>
           </p>
-        </div>
-      </motion.div>
-    </div>
+    </AuthShell>
   );
 };
 
