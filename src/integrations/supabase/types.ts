@@ -1083,9 +1083,16 @@ export type Database = {
           ai_interactions_limit: number | null
           ai_interactions_used: number | null
           business_name: string | null
+          business_type: string | null
+          city: string | null
           created_at: string
+          employees_count: string | null
           id: string
+          main_services: string[] | null
+          monthly_revenue_estimate: number | null
+          monthly_services_avg: number | null
           name: string
+          onboarding_completed: boolean
           phone: string | null
           plan: string | null
           plan_status: string | null
@@ -1096,14 +1103,22 @@ export type Database = {
           trial_used: boolean
           updated_at: string
           user_id: string
+          years_operating: string | null
         }
         Insert: {
           ai_interactions_limit?: number | null
           ai_interactions_used?: number | null
           business_name?: string | null
+          business_type?: string | null
+          city?: string | null
           created_at?: string
+          employees_count?: string | null
           id?: string
+          main_services?: string[] | null
+          monthly_revenue_estimate?: number | null
+          monthly_services_avg?: number | null
           name: string
+          onboarding_completed?: boolean
           phone?: string | null
           plan?: string | null
           plan_status?: string | null
@@ -1114,14 +1129,22 @@ export type Database = {
           trial_used?: boolean
           updated_at?: string
           user_id: string
+          years_operating?: string | null
         }
         Update: {
           ai_interactions_limit?: number | null
           ai_interactions_used?: number | null
           business_name?: string | null
+          business_type?: string | null
+          city?: string | null
           created_at?: string
+          employees_count?: string | null
           id?: string
+          main_services?: string[] | null
+          monthly_revenue_estimate?: number | null
+          monthly_services_avg?: number | null
           name?: string
+          onboarding_completed?: boolean
           phone?: string | null
           plan?: string | null
           plan_status?: string | null
@@ -1132,6 +1155,7 @@ export type Database = {
           trial_used?: boolean
           updated_at?: string
           user_id?: string
+          years_operating?: string | null
         }
         Relationships: []
       }
