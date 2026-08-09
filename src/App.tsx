@@ -10,6 +10,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Cadastro from "./pages/Cadastro";
+import ResetPassword from "./pages/ResetPassword";
 import Planos from "./pages/Planos";
 import Dashboard from "./pages/Dashboard";
 import Financeiro from "./pages/Financeiro";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
             <Route path="/cadastro" element={<PublicRoute><Cadastro /></PublicRoute>} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             
             {/* Plans page - requires auth but not active plan */}
             <Route path="/planos" element={<PlanRoute><Planos /></PlanRoute>} />

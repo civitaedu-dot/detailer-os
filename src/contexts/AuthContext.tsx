@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { applyPendingOnboarding } from "@/lib/onboarding";
 
 export interface Profile {
   id: string;
@@ -157,7 +158,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         plan: data.plan, 
         status: data.plan_status 
       });
-      
+
+      // Apply onboarding answers captured before the session existed (email confirmation flow)
+      if (!(data as { onboarding_completed?: boolean }).onboarding_completed) {
+        void applyPendingOnboarding(userId);
+      }
+
       return data as Profile;
     } catch (error) {
       console.error("[AuthContext] Error fetching profile:", error);
