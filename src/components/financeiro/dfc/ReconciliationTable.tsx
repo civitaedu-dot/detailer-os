@@ -76,8 +76,17 @@ export function ReconciliationTable({ transactions, onUpdateStatus, onDelete, on
                         {new Date(t.transaction_date + "T00:00:00").toLocaleDateString("pt-BR")}
                       </span>
                       <span className="text-xs text-muted-foreground capitalize">{t.source.replace("_", " ")}</span>
+                      {t.bank_name && <span className="text-xs text-muted-foreground">{t.bank_name}</span>}
+                      {!!t.match_confidence && t.reconciliation_status !== "pending" && (
+                        <Badge variant="outline" className="text-[10px] bg-info/10 text-info border-info/30">
+                          {Number(t.match_confidence)}% de confiança
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-sm font-medium mt-1 truncate">{t.description}</p>
+                    {t.original_description && t.original_description !== t.description && (
+                      <p className="text-[10px] text-muted-foreground font-mono truncate">Original: {t.original_description}</p>
+                    )}
                     <div className="mt-2">
                       <CategoryPicker
                         value={t.category}
