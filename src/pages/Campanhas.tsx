@@ -558,56 +558,82 @@ const Campanhas = () => {
 
               {/* Right: Audience preview */}
               <div className="space-y-4">
-                <Card className="border-primary/30">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Target className="w-5 h-5 text-primary" />
-                      Público-alvo
-                    </CardTitle>
-                    <CardDescription>{targetClients.length} cliente{targetClients.length !== 1 ? "s" : ""} selecionado{targetClients.length !== 1 ? "s" : ""}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="max-h-64 overflow-y-auto space-y-2">
-                      {targetClients.slice(0, 20).map((item) => (
-                        <div key={item.client.id} className="flex items-center justify-between text-sm p-2 rounded-lg bg-muted/30">
-                          <div>
-                            <p className="font-medium">{item.client.name}</p>
-                            <p className="text-xs text-muted-foreground">{item.client.vehicle || "—"}</p>
-                          </div>
-                          {item.daysSince !== null && (
-                            <span className="text-xs text-muted-foreground">{item.daysSince}d</span>
-                          )}
-                        </div>
-                      ))}
-                      {targetClients.length > 20 && (
-                        <p className="text-xs text-muted-foreground text-center pt-2">+{targetClients.length - 20} clientes</p>
-                      )}
-                      {targetClients.length === 0 && (
-                        <p className="text-sm text-muted-foreground text-center py-4">Nenhum cliente corresponde aos filtros</p>
-                      )}
-                    </div>
+                <RecipientSelector
+                  items={recipientItems}
+                  excludedIds={excludedIds}
+                  onToggle={toggleRecipient}
+                  onSelectAll={selectAllRecipients}
+                  onClearAll={clearAllRecipients}
+                  allClients={clients}
+                  onAddClients={addManualClients}
+                  onRemoveManual={removeManualClient}
+                />
 
-                    <div className="mt-4 space-y-2">
-                      <Button
-                        className="w-full"
-                        variant="outline"
-                        disabled={targetClients.length === 0 || !campaignMessage}
-                        onClick={() => setShowPreview(true)}
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        Pré-visualizar
-                      </Button>
-                      <Button
-                        className="w-full"
-                        disabled={targetClients.length === 0 || !campaignName || !campaignMessage || isSending}
-                        onClick={handleSendCampaign}
-                      >
-                        {isSending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
-                        {scheduledDate ? "Agendar Campanha" : `Enviar para ${targetClients.length} clientes`}
-                      </Button>
+                <Card className="border-primary/30">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <Target className="w-4 h-4 text-primary" />Vão receber
+                      </span>
+                      <span className="text-lg font-bold">{finalRecipients.length}</span>
                     </div>
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      disabled={finalRecipients.length === 0 || !campaignMessage}
+                      onClick={() => setShowPreview(true)}
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Pré-visualizar mensagem
+                    </Button>
+                    <Button
+                      className="w-full"
+                      disabled={finalRecipients.length === 0 || !campaignName || !campaignMessage || isSending}
+                      onClick={() => setShowConfirm(true)}
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      {scheduledDate ? "Agendar Campanha" : `Enviar para ${finalRecipients.length} clientes`}
+                    </Button>
                   </CardContent>
                 </Card>
+
+                {/* Confirmation step */}
+                <Dialog open={showConfirm} onOpenChange={(v) => { if (!isSending) setShowConfirm(v); }}>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Confirmar {scheduledDate ? "agendamento" : "envio"}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                      <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 text-center">
+                        <p className="text-3xl font-bold">{finalRecipients.length}</p>
+                        <p className="text-sm text-muted-foreground">
+                          cliente{finalRecipients.length !== 1 ? "s" : ""} receberá{finalRecipients.length !== 1 ? "ão" : ""} a campanha "{campaignName}"
+                        </p>
+                      </div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p>{targetClients.length} encontrados pelo filtro · {manualIds.length} adicionados manualmente · {excludedIds.length} desmarcados</p>
+                        {!scheduledDate && <p>Uma janela do WhatsApp será aberta para cada cliente.</p>}
+                      </div>
+                      <div className="max-h-40 overflow-y-auto flex flex-wrap gap-1.5">
+                        {finalRecipients.slice(0, 40).map((i) => (
+                          <Badge key={i.client.id} variant="secondary" className="text-xs">{i.client.name}</Badge>
+                        ))}
+                        {finalRecipients.length > 40 && (
+                          <Badge variant="outline" className="text-xs">+{finalRecipients.length - 40}</Badge>
+                        )}
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Button variant="outline" className="flex-1" onClick={() => setShowConfirm(false)} disabled={isSending}>
+                          Voltar e revisar
+                        </Button>
+                        <Button className="flex-1" onClick={handleSendCampaign} disabled={isSending}>
+                          {isSending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
+                          Confirmar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
 
                 {/* Preview Dialog */}
                 <Dialog open={showPreview} onOpenChange={setShowPreview}>
@@ -616,14 +642,14 @@ const Campanhas = () => {
                       <DialogTitle>Prévia da Mensagem</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3">
-                      {targetClients.slice(0, 3).map((item) => (
+                      {finalRecipients.slice(0, 3).map((item) => (
                         <div key={item.client.id} className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                           <p className="text-xs font-medium text-emerald-400 mb-1">Para: {item.client.name}</p>
                           <p className="text-sm">{replaceVars(campaignMessage, item.client, item.lastAppt)}</p>
                         </div>
                       ))}
-                      {targetClients.length > 3 && (
-                        <p className="text-xs text-muted-foreground text-center">+{targetClients.length - 3} mensagens similares</p>
+                      {finalRecipients.length > 3 && (
+                        <p className="text-xs text-muted-foreground text-center">+{finalRecipients.length - 3} mensagens similares</p>
                       )}
                     </div>
                   </DialogContent>
