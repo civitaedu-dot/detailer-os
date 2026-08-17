@@ -11,6 +11,7 @@ import { ManualTransactionModal } from "./ManualTransactionModal";
 import { ReconciliationTable } from "./ReconciliationTable";
 import { RulesManager } from "./RulesManager";
 import { CategoryDashboard } from "./CategoryDashboard";
+import { ReviewCenter } from "./ReviewCenter";
 
 interface Props { referenceDate?: Date }
 
@@ -71,6 +72,7 @@ export function DFCCenter({ referenceDate }: Props) {
           <TabsList>
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="categories">Categorias</TabsTrigger>
+            <TabsTrigger value="review">Revisão</TabsTrigger>
             <TabsTrigger value="reconcile">Conciliação</TabsTrigger>
             <TabsTrigger value="rules">Regras</TabsTrigger>
             <TabsTrigger value="accounts">Contas & Importações</TabsTrigger>
@@ -116,6 +118,15 @@ export function DFCCenter({ referenceDate }: Props) {
 
         <TabsContent value="categories" className="mt-4">
           <CategoryDashboard transactions={cf.transactions} referenceDate={referenceDate || new Date()} />
+        </TabsContent>
+
+        <TabsContent value="review" className="mt-4">
+          <ReviewCenter
+            transactions={cf.transactions}
+            rules={rules}
+            onUpdateStatus={cf.updateTransactionStatus}
+            onUpdateCategory={handleUpdateCategory}
+          />
         </TabsContent>
 
         <TabsContent value="reconcile" className="mt-4">
@@ -172,6 +183,7 @@ export function DFCCenter({ referenceDate }: Props) {
         onOpenChange={setImportOpen}
         accounts={cf.accounts}
         onImport={cf.importRows}
+        onAnalyze={cf.analyzeDuplicates}
       />
       <ManualTransactionModal
         open={manualOpen}
