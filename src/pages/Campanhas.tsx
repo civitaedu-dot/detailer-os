@@ -184,6 +184,82 @@ const Campanhas = () => {
     return list;
   }, [clientMap, filterInactiveDays, filterVehicle, filterService, filterBirthMonth, filterMinVisits, appointments]);
 
+  /** Filter results + manually added clients, de-duplicated by client id. */
+  const recipientItems = useMemo(() => {
+    const seen = new Set<string>();
+    const list: { client: any; lastAppt: any; daysSince: number | null; manual?: boolean }[] = [];
+    targetClients.forEach((item) => {
+      seen.add(item.client.id);
+      list.push({ client: item.client, lastAppt: item.lastAppt, daysSince: item.daysSince });
+    });
+    manualIds.forEach((id) => {
+      if (seen.has(id)) return;
+      const entry = clientMap.get(id);
+      if (!entry) return;
+      seen.add(id);
+      list.push({ client: entry.client, lastAppt: entry.lastAppt, daysSince: entry.daysSince, manual: true });
+    });
+    return list;
+  }, [targetClients, manualIds, clientMap]);
+
+  const finalRecipients = useMemo(
+    () => recipientItems.filter((i) => !excludedIds.includes(i.client.id)),
+    [recipientItems, excludedIds],
+  );
+
+  const toggleRecipient = (id: string) =>
+    setExcludedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const selectAllRecipients = () => setExcludedIds([]);
+  const clearAllRecipients = () => setExcludedIds(recipientItems.map((i) => i.client.id));
+  const addManualClients = (ids: string[]) => {
+    setManualIds((prev) => Array.from(new Set([...prev, ...ids])));
+    setExcludedIds((prev) => prev.filter((id) => !ids.includes(id)));
+  };
+  const removeManualClient = (id: string) => setManualIds((prev) => prev.filter((x) => x !== id));
+
+  // Restore the saved draft (selection persisted in the backend)
+  useEffect(() => {
+    if (draftLoaded.current || !draft) return;
+    draftLoaded.current = true;
+    setCampaignName(draft.name === "Rascunho" ? "" : draft.name);
+    setCampaignObjective(draft.objective || "geral");
+    setCampaignMessage(draft.message_template || "");
+    setScheduledDate(draft.scheduled_date || "");
+    setScheduledTime(draft.scheduled_time || "");
+    const f = (draft.filters || {}) as any;
+    if (f.filterInactiveDays) setFilterInactiveDays(f.filterInactiveDays);
+    if (f.filterVehicle) setFilterVehicle(f.filterVehicle);
+    if (f.filterService) setFilterService(f.filterService);
+    if (f.filterBirthMonth) setFilterBirthMonth(f.filterBirthMonth);
+    if (f.filterMinVisits) setFilterMinVisits(f.filterMinVisits);
+    setExcludedIds(draft.excluded_client_ids || []);
+    setManualIds(draft.manual_client_ids || []);
+  }, [draft]);
+
+  // Persist the draft (debounced) so the selection survives reloads
+  useEffect(() => {
+    if (!user) return;
+    if (!campaignName && !campaignMessage && manualIds.length === 0 && excludedIds.length === 0) return;
+    const t = setTimeout(() => {
+      saveDraft({
+        name: campaignName || "Rascunho",
+        objective: campaignObjective,
+        message_template: campaignMessage,
+        filters: { filterInactiveDays, filterVehicle, filterService, filterBirthMonth, filterMinVisits },
+        target_count: finalRecipients.length,
+        scheduled_date: scheduledDate || null,
+        scheduled_time: scheduledTime || null,
+        excluded_client_ids: excludedIds,
+        manual_client_ids: manualIds,
+        selected_client_ids: finalRecipients.map((i) => i.client.id),
+      });
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, campaignName, campaignObjective, campaignMessage, scheduledDate, scheduledTime,
+      filterInactiveDays, filterVehicle, filterService, filterBirthMonth, filterMinVisits,
+      excludedIds, manualIds, finalRecipients.length]);
+
   const applyTemplate = (template: typeof CAMPAIGN_TEMPLATES[0]) => {
     setCampaignObjective(template.objective);
     setCampaignMessage(template.message);
@@ -191,7 +267,7 @@ const Campanhas = () => {
   };
 
   const handleSendCampaign = async () => {
-    if (!user || !campaignName || !campaignMessage || targetClients.length === 0) {
+    if (!user || !campaignName || !campaignMessage || finalRecipients.length === 0) {
       toast({ title: "Preencha todos os campos", variant: "destructive" });
       return;
     }
@@ -203,17 +279,20 @@ const Campanhas = () => {
         objective: campaignObjective,
         message_template: campaignMessage,
         filters: { filterInactiveDays, filterVehicle, filterService, filterBirthMonth, filterMinVisits },
-        target_count: targetClients.length,
+        target_count: finalRecipients.length,
         status: scheduledDate ? "scheduled" : "sent",
         scheduled_date: scheduledDate || null,
         scheduled_time: scheduledTime || null,
-      });
+        excluded_client_ids: excludedIds,
+        manual_client_ids: manualIds,
+        selected_client_ids: finalRecipients.map((i) => i.client.id),
+      } as any);
 
       if (!campaign) return;
 
       // Open WhatsApp for each client
       const recipients: any[] = [];
-      for (const item of targetClients) {
+      for (const item of finalRecipients) {
         const msg = replaceVars(campaignMessage, item.client, item.lastAppt);
         const phone = item.client.phone.replace(/\D/g, "");
         const fullPhone = phone.startsWith("55") ? phone : `55${phone}`;
@@ -235,13 +314,19 @@ const Campanhas = () => {
 
       toast({ title: scheduledDate ? "Campanha agendada!" : `Campanha enviada para ${recipients.length} clientes!` });
 
+      await clearDraft();
+      draftLoaded.current = true;
+
       // Reset
       setCampaignName("");
       setCampaignMessage("");
       setCampaignObjective("geral");
       setScheduledDate("");
       setScheduledTime("");
+      setExcludedIds([]);
+      setManualIds([]);
       setShowPreview(false);
+      setShowConfirm(false);
       setActiveTab("historico");
     } catch (e: any) {
       toast({ title: "Erro", description: e.message, variant: "destructive" });
