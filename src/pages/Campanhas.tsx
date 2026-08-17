@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RecipientSelector } from "@/components/campanhas/RecipientSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClients } from "@/hooks/useClients";
 import { useAppointments } from "@/hooks/useAppointments";
@@ -77,7 +78,7 @@ const Campanhas = () => {
   const { isAdmin } = useUserRole();
   const { clients } = useClients();
   const { toast } = useToast();
-  const { campaigns, isLoading, createCampaign, updateCampaign, deleteCampaign, saveCampaignRecipients } = useCampaigns();
+  const { campaigns, isLoading, draft, saveDraft, clearDraft, createCampaign, updateCampaign, deleteCampaign, saveCampaignRecipients } = useCampaigns();
 
   const [activeTab, setActiveTab] = useState("criar");
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
@@ -99,7 +100,13 @@ const Campanhas = () => {
 
   // Preview/send
   const [showPreview, setShowPreview] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  // Manual recipient control
+  const [excludedIds, setExcludedIds] = useState<string[]>([]);
+  const [manualIds, setManualIds] = useState<string[]>([]);
+  const draftLoaded = useRef(false);
 
   // Calendar view
   const [calendarMonth, setCalendarMonth] = useState(new Date());
