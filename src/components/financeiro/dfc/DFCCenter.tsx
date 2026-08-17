@@ -169,6 +169,12 @@ export function DFCCenter({ referenceDate }: Props) {
                     <div className="text-xs text-right">
                       <p>{i.total_rows} linhas</p>
                       <p className="text-success">{i.matched_rows} conciliadas</p>
+                      {!!i.duplicate_rows && <p className="text-warning">{i.duplicate_rows} duplicadas ignoradas</p>}
+                      {(i.total_in !== undefined || i.total_out !== undefined) && (
+                        <p className="text-muted-foreground">
+                          {maskCurrency(Number(i.total_in || 0))} entradas · {maskCurrency(Number(i.total_out || 0))} saídas
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}
