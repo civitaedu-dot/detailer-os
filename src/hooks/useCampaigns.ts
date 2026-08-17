@@ -16,6 +16,10 @@ export interface Campaign {
   scheduled_time: string | null;
   sent_at: string | null;
   created_at: string;
+  excluded_client_ids?: string[];
+  manual_client_ids?: string[];
+  selected_client_ids?: string[];
+  is_draft?: boolean;
 }
 
 export interface CampaignRecipient {
@@ -34,6 +38,7 @@ export const useCampaigns = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [draft, setDraft] = useState<Campaign | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchCampaigns = useCallback(async () => {
@@ -43,6 +48,7 @@ export const useCampaigns = () => {
         .from("campaigns")
         .select("*")
         .eq("user_id", user.id)
+        .eq("is_draft", false)
         .order("created_at", { ascending: false });
       if (error) throw error;
       setCampaigns((data || []) as Campaign[]);
@@ -54,6 +60,76 @@ export const useCampaigns = () => {
   }, [user]);
 
   useEffect(() => { fetchCampaigns(); }, [fetchCampaigns]);
+
+  const fetchDraft = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from("campaigns")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("is_draft", true)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      setDraft((data as Campaign) || null);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [user]);
+
+  useEffect(() => { fetchDraft(); }, [fetchDraft]);
+
+  /** Creates or updates the single in-progress draft campaign for this user. */
+  const saveDraft = useCallback(async (payload: Partial<Campaign>) => {
+    if (!user) return null;
+    try {
+      if (draft?.id) {
+        const { data, error } = await supabase
+          .from("campaigns")
+          .update({ ...payload, is_draft: true } as any)
+          .eq("id", draft.id)
+          .eq("user_id", user.id)
+          .select()
+          .single();
+        if (error) throw error;
+        setDraft(data as Campaign);
+        return data as Campaign;
+      }
+      const { data, error } = await supabase
+        .from("campaigns")
+        .insert({
+          user_id: user.id,
+          name: payload.name || "Rascunho",
+          objective: payload.objective || "geral",
+          message_template: payload.message_template || "",
+          filters: payload.filters || {},
+          target_count: payload.target_count ?? 0,
+          status: "draft",
+          is_draft: true,
+          excluded_client_ids: payload.excluded_client_ids || [],
+          manual_client_ids: payload.manual_client_ids || [],
+          selected_client_ids: payload.selected_client_ids || [],
+          scheduled_date: payload.scheduled_date ?? null,
+          scheduled_time: payload.scheduled_time ?? null,
+        } as any)
+        .select()
+        .single();
+      if (error) throw error;
+      setDraft(data as Campaign);
+      return data as Campaign;
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }, [user, draft?.id]);
+
+  const clearDraft = useCallback(async () => {
+    if (!user || !draft?.id) { setDraft(null); return; }
+    await supabase.from("campaigns").delete().eq("id", draft.id).eq("user_id", user.id);
+    setDraft(null);
+  }, [user, draft?.id]);
 
   const createCampaign = async (campaign: Omit<Campaign, "id" | "created_at" | "sent_at" | "sent_count">) => {
     if (!user) return null;
@@ -130,5 +206,18 @@ export const useCampaigns = () => {
     }
   };
 
-  return { campaigns, isLoading, createCampaign, updateCampaign, deleteCampaign, saveCampaignRecipients, fetchRecipients, refetch: fetchCampaigns };
+  return {
+    campaigns,
+    isLoading,
+    draft,
+    saveDraft,
+    clearDraft,
+    fetchDraft,
+    createCampaign,
+    updateCampaign,
+    deleteCampaign,
+    saveCampaignRecipients,
+    fetchRecipients,
+    refetch: fetchCampaigns,
+  };
 };
