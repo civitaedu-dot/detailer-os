@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import {
@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { RecipientSelector } from "@/components/campanhas/RecipientSelector";
 import { useAuth } from "@/contexts/AuthContext";
 import { useClients } from "@/hooks/useClients";
 import { useAppointments } from "@/hooks/useAppointments";
@@ -77,7 +78,7 @@ const Campanhas = () => {
   const { isAdmin } = useUserRole();
   const { clients } = useClients();
   const { toast } = useToast();
-  const { campaigns, isLoading, createCampaign, updateCampaign, deleteCampaign, saveCampaignRecipients } = useCampaigns();
+  const { campaigns, isLoading, draft, saveDraft, clearDraft, createCampaign, updateCampaign, deleteCampaign, saveCampaignRecipients } = useCampaigns();
 
   const [activeTab, setActiveTab] = useState("criar");
   const [isOpeningPortal, setIsOpeningPortal] = useState(false);
@@ -99,7 +100,13 @@ const Campanhas = () => {
 
   // Preview/send
   const [showPreview, setShowPreview] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [isSending, setIsSending] = useState(false);
+
+  // Manual recipient control
+  const [excludedIds, setExcludedIds] = useState<string[]>([]);
+  const [manualIds, setManualIds] = useState<string[]>([]);
+  const draftLoaded = useRef(false);
 
   // Calendar view
   const [calendarMonth, setCalendarMonth] = useState(new Date());
@@ -177,6 +184,82 @@ const Campanhas = () => {
     return list;
   }, [clientMap, filterInactiveDays, filterVehicle, filterService, filterBirthMonth, filterMinVisits, appointments]);
 
+  /** Filter results + manually added clients, de-duplicated by client id. */
+  const recipientItems = useMemo(() => {
+    const seen = new Set<string>();
+    const list: { client: any; lastAppt: any; daysSince: number | null; manual?: boolean }[] = [];
+    targetClients.forEach((item) => {
+      seen.add(item.client.id);
+      list.push({ client: item.client, lastAppt: item.lastAppt, daysSince: item.daysSince });
+    });
+    manualIds.forEach((id) => {
+      if (seen.has(id)) return;
+      const entry = clientMap.get(id);
+      if (!entry) return;
+      seen.add(id);
+      list.push({ client: entry.client, lastAppt: entry.lastAppt, daysSince: entry.daysSince, manual: true });
+    });
+    return list;
+  }, [targetClients, manualIds, clientMap]);
+
+  const finalRecipients = useMemo(
+    () => recipientItems.filter((i) => !excludedIds.includes(i.client.id)),
+    [recipientItems, excludedIds],
+  );
+
+  const toggleRecipient = (id: string) =>
+    setExcludedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  const selectAllRecipients = () => setExcludedIds([]);
+  const clearAllRecipients = () => setExcludedIds(recipientItems.map((i) => i.client.id));
+  const addManualClients = (ids: string[]) => {
+    setManualIds((prev) => Array.from(new Set([...prev, ...ids])));
+    setExcludedIds((prev) => prev.filter((id) => !ids.includes(id)));
+  };
+  const removeManualClient = (id: string) => setManualIds((prev) => prev.filter((x) => x !== id));
+
+  // Restore the saved draft (selection persisted in the backend)
+  useEffect(() => {
+    if (draftLoaded.current || !draft) return;
+    draftLoaded.current = true;
+    setCampaignName(draft.name === "Rascunho" ? "" : draft.name);
+    setCampaignObjective(draft.objective || "geral");
+    setCampaignMessage(draft.message_template || "");
+    setScheduledDate(draft.scheduled_date || "");
+    setScheduledTime(draft.scheduled_time || "");
+    const f = (draft.filters || {}) as any;
+    if (f.filterInactiveDays) setFilterInactiveDays(f.filterInactiveDays);
+    if (f.filterVehicle) setFilterVehicle(f.filterVehicle);
+    if (f.filterService) setFilterService(f.filterService);
+    if (f.filterBirthMonth) setFilterBirthMonth(f.filterBirthMonth);
+    if (f.filterMinVisits) setFilterMinVisits(f.filterMinVisits);
+    setExcludedIds(draft.excluded_client_ids || []);
+    setManualIds(draft.manual_client_ids || []);
+  }, [draft]);
+
+  // Persist the draft (debounced) so the selection survives reloads
+  useEffect(() => {
+    if (!user) return;
+    if (!campaignName && !campaignMessage && manualIds.length === 0 && excludedIds.length === 0) return;
+    const t = setTimeout(() => {
+      saveDraft({
+        name: campaignName || "Rascunho",
+        objective: campaignObjective,
+        message_template: campaignMessage,
+        filters: { filterInactiveDays, filterVehicle, filterService, filterBirthMonth, filterMinVisits },
+        target_count: finalRecipients.length,
+        scheduled_date: scheduledDate || null,
+        scheduled_time: scheduledTime || null,
+        excluded_client_ids: excludedIds,
+        manual_client_ids: manualIds,
+        selected_client_ids: finalRecipients.map((i) => i.client.id),
+      });
+    }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, campaignName, campaignObjective, campaignMessage, scheduledDate, scheduledTime,
+      filterInactiveDays, filterVehicle, filterService, filterBirthMonth, filterMinVisits,
+      excludedIds, manualIds, finalRecipients.length]);
+
   const applyTemplate = (template: typeof CAMPAIGN_TEMPLATES[0]) => {
     setCampaignObjective(template.objective);
     setCampaignMessage(template.message);
@@ -184,7 +267,7 @@ const Campanhas = () => {
   };
 
   const handleSendCampaign = async () => {
-    if (!user || !campaignName || !campaignMessage || targetClients.length === 0) {
+    if (!user || !campaignName || !campaignMessage || finalRecipients.length === 0) {
       toast({ title: "Preencha todos os campos", variant: "destructive" });
       return;
     }
@@ -196,17 +279,20 @@ const Campanhas = () => {
         objective: campaignObjective,
         message_template: campaignMessage,
         filters: { filterInactiveDays, filterVehicle, filterService, filterBirthMonth, filterMinVisits },
-        target_count: targetClients.length,
+        target_count: finalRecipients.length,
         status: scheduledDate ? "scheduled" : "sent",
         scheduled_date: scheduledDate || null,
         scheduled_time: scheduledTime || null,
-      });
+        excluded_client_ids: excludedIds,
+        manual_client_ids: manualIds,
+        selected_client_ids: finalRecipients.map((i) => i.client.id),
+      } as any);
 
       if (!campaign) return;
 
       // Open WhatsApp for each client
       const recipients: any[] = [];
-      for (const item of targetClients) {
+      for (const item of finalRecipients) {
         const msg = replaceVars(campaignMessage, item.client, item.lastAppt);
         const phone = item.client.phone.replace(/\D/g, "");
         const fullPhone = phone.startsWith("55") ? phone : `55${phone}`;
@@ -228,13 +314,19 @@ const Campanhas = () => {
 
       toast({ title: scheduledDate ? "Campanha agendada!" : `Campanha enviada para ${recipients.length} clientes!` });
 
+      await clearDraft();
+      draftLoaded.current = true;
+
       // Reset
       setCampaignName("");
       setCampaignMessage("");
       setCampaignObjective("geral");
       setScheduledDate("");
       setScheduledTime("");
+      setExcludedIds([]);
+      setManualIds([]);
       setShowPreview(false);
+      setShowConfirm(false);
       setActiveTab("historico");
     } catch (e: any) {
       toast({ title: "Erro", description: e.message, variant: "destructive" });
@@ -466,56 +558,82 @@ const Campanhas = () => {
 
               {/* Right: Audience preview */}
               <div className="space-y-4">
-                <Card className="border-primary/30">
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Target className="w-5 h-5 text-primary" />
-                      Público-alvo
-                    </CardTitle>
-                    <CardDescription>{targetClients.length} cliente{targetClients.length !== 1 ? "s" : ""} selecionado{targetClients.length !== 1 ? "s" : ""}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="max-h-64 overflow-y-auto space-y-2">
-                      {targetClients.slice(0, 20).map((item) => (
-                        <div key={item.client.id} className="flex items-center justify-between text-sm p-2 rounded-lg bg-muted/30">
-                          <div>
-                            <p className="font-medium">{item.client.name}</p>
-                            <p className="text-xs text-muted-foreground">{item.client.vehicle || "—"}</p>
-                          </div>
-                          {item.daysSince !== null && (
-                            <span className="text-xs text-muted-foreground">{item.daysSince}d</span>
-                          )}
-                        </div>
-                      ))}
-                      {targetClients.length > 20 && (
-                        <p className="text-xs text-muted-foreground text-center pt-2">+{targetClients.length - 20} clientes</p>
-                      )}
-                      {targetClients.length === 0 && (
-                        <p className="text-sm text-muted-foreground text-center py-4">Nenhum cliente corresponde aos filtros</p>
-                      )}
-                    </div>
+                <RecipientSelector
+                  items={recipientItems}
+                  excludedIds={excludedIds}
+                  onToggle={toggleRecipient}
+                  onSelectAll={selectAllRecipients}
+                  onClearAll={clearAllRecipients}
+                  allClients={clients}
+                  onAddClients={addManualClients}
+                  onRemoveManual={removeManualClient}
+                />
 
-                    <div className="mt-4 space-y-2">
-                      <Button
-                        className="w-full"
-                        variant="outline"
-                        disabled={targetClients.length === 0 || !campaignMessage}
-                        onClick={() => setShowPreview(true)}
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        Pré-visualizar
-                      </Button>
-                      <Button
-                        className="w-full"
-                        disabled={targetClients.length === 0 || !campaignName || !campaignMessage || isSending}
-                        onClick={handleSendCampaign}
-                      >
-                        {isSending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Send className="w-4 h-4 mr-2" />}
-                        {scheduledDate ? "Agendar Campanha" : `Enviar para ${targetClients.length} clientes`}
-                      </Button>
+                <Card className="border-primary/30">
+                  <CardContent className="p-4 space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <Target className="w-4 h-4 text-primary" />Vão receber
+                      </span>
+                      <span className="text-lg font-bold">{finalRecipients.length}</span>
                     </div>
+                    <Button
+                      className="w-full"
+                      variant="outline"
+                      disabled={finalRecipients.length === 0 || !campaignMessage}
+                      onClick={() => setShowPreview(true)}
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Pré-visualizar mensagem
+                    </Button>
+                    <Button
+                      className="w-full"
+                      disabled={finalRecipients.length === 0 || !campaignName || !campaignMessage || isSending}
+                      onClick={() => setShowConfirm(true)}
+                    >
+                      <Send className="w-4 h-4 mr-2" />
+                      {scheduledDate ? "Agendar Campanha" : `Enviar para ${finalRecipients.length} clientes`}
+                    </Button>
                   </CardContent>
                 </Card>
+
+                {/* Confirmation step */}
+                <Dialog open={showConfirm} onOpenChange={(v) => { if (!isSending) setShowConfirm(v); }}>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Confirmar {scheduledDate ? "agendamento" : "envio"}</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-3">
+                      <div className="p-4 rounded-lg bg-primary/10 border border-primary/20 text-center">
+                        <p className="text-3xl font-bold">{finalRecipients.length}</p>
+                        <p className="text-sm text-muted-foreground">
+                          cliente{finalRecipients.length !== 1 ? "s" : ""} receberá{finalRecipients.length !== 1 ? "ão" : ""} a campanha "{campaignName}"
+                        </p>
+                      </div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p>{targetClients.length} encontrados pelo filtro · {manualIds.length} adicionados manualmente · {excludedIds.length} desmarcados</p>
+                        {!scheduledDate && <p>Uma janela do WhatsApp será aberta para cada cliente.</p>}
+                      </div>
+                      <div className="max-h-40 overflow-y-auto flex flex-wrap gap-1.5">
+                        {finalRecipients.slice(0, 40).map((i) => (
+                          <Badge key={i.client.id} variant="secondary" className="text-xs">{i.client.name}</Badge>
+                        ))}
+                        {finalRecipients.length > 40 && (
+                          <Badge variant="outline" className="text-xs">+{finalRecipients.length - 40}</Badge>
+                        )}
+                      </div>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <Button variant="outline" className="flex-1" onClick={() => setShowConfirm(false)} disabled={isSending}>
+                          Voltar e revisar
+                        </Button>
+                        <Button className="flex-1" onClick={handleSendCampaign} disabled={isSending}>
+                          {isSending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
+                          Confirmar
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
 
                 {/* Preview Dialog */}
                 <Dialog open={showPreview} onOpenChange={setShowPreview}>
@@ -524,14 +642,14 @@ const Campanhas = () => {
                       <DialogTitle>Prévia da Mensagem</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-3">
-                      {targetClients.slice(0, 3).map((item) => (
+                      {finalRecipients.slice(0, 3).map((item) => (
                         <div key={item.client.id} className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                           <p className="text-xs font-medium text-emerald-400 mb-1">Para: {item.client.name}</p>
                           <p className="text-sm">{replaceVars(campaignMessage, item.client, item.lastAppt)}</p>
                         </div>
                       ))}
-                      {targetClients.length > 3 && (
-                        <p className="text-xs text-muted-foreground text-center">+{targetClients.length - 3} mensagens similares</p>
+                      {finalRecipients.length > 3 && (
+                        <p className="text-xs text-muted-foreground text-center">+{finalRecipients.length - 3} mensagens similares</p>
                       )}
                     </div>
                   </DialogContent>
