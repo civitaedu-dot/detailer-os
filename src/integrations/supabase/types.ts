@@ -77,6 +77,7 @@ export type Database = {
         Row: {
           account_id: string | null
           created_at: string
+          duplicate_rows: number
           error_message: string | null
           file_format: Database["public"]["Enums"]["import_file_format"]
           filename: string
@@ -86,6 +87,8 @@ export type Database = {
           period_end: string | null
           period_start: string | null
           status: Database["public"]["Enums"]["import_status"]
+          total_in: number
+          total_out: number
           total_rows: number
           updated_at: string
           user_id: string
@@ -93,6 +96,7 @@ export type Database = {
         Insert: {
           account_id?: string | null
           created_at?: string
+          duplicate_rows?: number
           error_message?: string | null
           file_format: Database["public"]["Enums"]["import_file_format"]
           filename: string
@@ -102,6 +106,8 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           status?: Database["public"]["Enums"]["import_status"]
+          total_in?: number
+          total_out?: number
           total_rows?: number
           updated_at?: string
           user_id: string
@@ -109,6 +115,7 @@ export type Database = {
         Update: {
           account_id?: string | null
           created_at?: string
+          duplicate_rows?: number
           error_message?: string | null
           file_format?: Database["public"]["Enums"]["import_file_format"]
           filename?: string
@@ -118,6 +125,8 @@ export type Database = {
           period_end?: string | null
           period_start?: string | null
           status?: Database["public"]["Enums"]["import_status"]
+          total_in?: number
+          total_out?: number
           total_rows?: number
           updated_at?: string
           user_id?: string
@@ -289,16 +298,22 @@ export type Database = {
       cash_transactions: {
         Row: {
           account_id: string | null
+          balance_after: number | null
+          bank_name: string | null
           category: string | null
           created_at: string
           dedupe_hash: string | null
           description: string
           direction: Database["public"]["Enums"]["cash_direction"]
+          external_id: string | null
           id: string
           import_id: string | null
+          match_confidence: number | null
+          match_kind: string | null
           matched_entry_id: string | null
           matched_entry_type: string | null
           notes: string | null
+          original_description: string | null
           payment_method: string | null
           raw_data: Json | null
           reconciliation_status: Database["public"]["Enums"]["reconciliation_status"]
@@ -312,16 +327,22 @@ export type Database = {
         }
         Insert: {
           account_id?: string | null
+          balance_after?: number | null
+          bank_name?: string | null
           category?: string | null
           created_at?: string
           dedupe_hash?: string | null
           description: string
           direction: Database["public"]["Enums"]["cash_direction"]
+          external_id?: string | null
           id?: string
           import_id?: string | null
+          match_confidence?: number | null
+          match_kind?: string | null
           matched_entry_id?: string | null
           matched_entry_type?: string | null
           notes?: string | null
+          original_description?: string | null
           payment_method?: string | null
           raw_data?: Json | null
           reconciliation_status?: Database["public"]["Enums"]["reconciliation_status"]
@@ -335,16 +356,22 @@ export type Database = {
         }
         Update: {
           account_id?: string | null
+          balance_after?: number | null
+          bank_name?: string | null
           category?: string | null
           created_at?: string
           dedupe_hash?: string | null
           description?: string
           direction?: Database["public"]["Enums"]["cash_direction"]
+          external_id?: string | null
           id?: string
           import_id?: string | null
+          match_confidence?: number | null
+          match_kind?: string | null
           matched_entry_id?: string | null
           matched_entry_type?: string | null
           notes?: string | null
+          original_description?: string | null
           payment_method?: string | null
           raw_data?: Json | null
           reconciliation_status?: Database["public"]["Enums"]["reconciliation_status"]

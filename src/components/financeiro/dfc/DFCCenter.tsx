@@ -11,6 +11,7 @@ import { ManualTransactionModal } from "./ManualTransactionModal";
 import { ReconciliationTable } from "./ReconciliationTable";
 import { RulesManager } from "./RulesManager";
 import { CategoryDashboard } from "./CategoryDashboard";
+import { ReviewCenter } from "./ReviewCenter";
 
 interface Props { referenceDate?: Date }
 
@@ -71,6 +72,7 @@ export function DFCCenter({ referenceDate }: Props) {
           <TabsList>
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="categories">Categorias</TabsTrigger>
+            <TabsTrigger value="review">Revisão</TabsTrigger>
             <TabsTrigger value="reconcile">Conciliação</TabsTrigger>
             <TabsTrigger value="rules">Regras</TabsTrigger>
             <TabsTrigger value="accounts">Contas & Importações</TabsTrigger>
@@ -118,6 +120,15 @@ export function DFCCenter({ referenceDate }: Props) {
           <CategoryDashboard transactions={cf.transactions} referenceDate={referenceDate || new Date()} />
         </TabsContent>
 
+        <TabsContent value="review" className="mt-4">
+          <ReviewCenter
+            transactions={cf.transactions}
+            rules={rules}
+            onUpdateStatus={cf.updateTransactionStatus}
+            onUpdateCategory={handleUpdateCategory}
+          />
+        </TabsContent>
+
         <TabsContent value="reconcile" className="mt-4">
           <div className="flex justify-end mb-3">
             <Button size="sm" variant="outline" onClick={handleReclassify}>
@@ -158,6 +169,12 @@ export function DFCCenter({ referenceDate }: Props) {
                     <div className="text-xs text-right">
                       <p>{i.total_rows} linhas</p>
                       <p className="text-success">{i.matched_rows} conciliadas</p>
+                      {!!i.duplicate_rows && <p className="text-warning">{i.duplicate_rows} duplicadas ignoradas</p>}
+                      {(i.total_in !== undefined || i.total_out !== undefined) && (
+                        <p className="text-muted-foreground">
+                          {maskCurrency(Number(i.total_in || 0))} entradas · {maskCurrency(Number(i.total_out || 0))} saídas
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -172,6 +189,7 @@ export function DFCCenter({ referenceDate }: Props) {
         onOpenChange={setImportOpen}
         accounts={cf.accounts}
         onImport={cf.importRows}
+        onAnalyze={cf.analyzeDuplicates}
       />
       <ManualTransactionModal
         open={manualOpen}

@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { toLocalDateString } from "@/lib/utils";
-import type { ParsedRow } from "@/lib/imports/parsers";
+import type { ParsedRow, FileFormat } from "@/lib/imports/parsers";
 import { dedupeHash } from "@/lib/imports/parsers";
 import { reconcileRow, type MatchCandidate } from "@/lib/imports/reconcile";
 import { suggestCategory, type CategoryRule } from "@/lib/imports/categorize";
@@ -39,6 +39,12 @@ export interface CashTransaction {
   raw_data: any;
   notes: string | null;
   created_at: string;
+  original_description?: string | null;
+  balance_after?: number | null;
+  bank_name?: string | null;
+  external_id?: string | null;
+  match_confidence?: number | null;
+  match_kind?: string | null;
 }
 
 export interface BankImport {
@@ -48,6 +54,9 @@ export interface BankImport {
   total_rows: number;
   matched_rows: number;
   pending_rows: number;
+  duplicate_rows?: number;
+  total_in?: number;
+  total_out?: number;
   status: string;
   created_at: string;
   period_start: string | null;
@@ -188,9 +197,11 @@ export function useCashFlow(referenceDate?: Date) {
     if (match) {
       patch.matched_entry_type = match.entry_type;
       patch.matched_entry_id = match.entry_id;
+      patch.match_kind = "confirmed";
+      patch.match_confidence = 100;
     }
     await supabase.from("cash_transactions").update(patch).eq("id", id);
-    fetchAll();
+    setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
   };
 
   const updateTransactionCategory = async (id: string, category: string) => {
@@ -222,8 +233,8 @@ export function useCashFlow(referenceDate?: Date) {
   const fetchCandidates = async (from: string, to: string): Promise<MatchCandidate[]> => {
     if (!user?.id) return [];
     const [entries, apts, fx, vc] = await Promise.all([
-      supabase.from("financial_entries").select("id,description,entry_date,value").eq("user_id", user.id).gte("entry_date", from).lte("entry_date", to),
-      supabase.from("appointments").select("id,client_name,service_name,appointment_date,service_value,status").eq("user_id", user.id).eq("status", "concluído").gte("appointment_date", from).lte("appointment_date", to),
+      supabase.from("financial_entries").select("id,description,entry_date,value,client_name,payment_method").eq("user_id", user.id).gte("entry_date", from).lte("entry_date", to),
+      supabase.from("appointments").select("id,client_name,service_name,appointment_date,service_value,status,payment_method").eq("user_id", user.id).eq("status", "concluído").gte("appointment_date", from).lte("appointment_date", to),
       supabase.from("fixed_costs").select("id,name,value,is_active").eq("user_id", user.id).eq("is_active", true),
       supabase.from("variable_costs").select("id,name,value,cost_type").eq("user_id", user.id),
     ]);
@@ -236,6 +247,8 @@ export function useCashFlow(referenceDate?: Date) {
         date: e.entry_date,
         value: Number(e.value),
         direction: "in",
+        client_name: e.client_name,
+        payment_method: e.payment_method,
       }),
     );
     apts.data?.forEach((a: any) =>
@@ -246,6 +259,8 @@ export function useCashFlow(referenceDate?: Date) {
         date: a.appointment_date,
         value: Number(a.service_value),
         direction: "in",
+        client_name: a.client_name,
+        payment_method: a.payment_method,
       }),
     );
     fx.data?.forEach((f: any) =>
@@ -256,6 +271,7 @@ export function useCashFlow(referenceDate?: Date) {
         date: from,
         value: Number(f.value),
         direction: "out",
+        flexible_date: true,
       }),
     );
     vc.data?.forEach((v: any) =>
@@ -266,19 +282,51 @@ export function useCashFlow(referenceDate?: Date) {
         date: from,
         value: Number(v.value),
         direction: "out",
+        flexible_date: true,
       }),
     );
     return out;
+  };
+
+  /** Verifica quais hashes já existem no banco (proteção contra duplicidade antes de gravar). */
+  const findExistingHashes = async (hashes: string[]): Promise<Set<string>> => {
+    if (!user?.id || hashes.length === 0) return new Set();
+    const found = new Set<string>();
+    const chunk = 200;
+    for (let i = 0; i < hashes.length; i += chunk) {
+      const { data } = await supabase
+        .from("cash_transactions")
+        .select("dedupe_hash")
+        .eq("user_id", user.id)
+        .in("dedupe_hash", hashes.slice(i, i + chunk));
+      data?.forEach((d: any) => d.dedupe_hash && found.add(d.dedupe_hash));
+    }
+    return found;
+  };
+
+  /** Análise prévia: quantas linhas já existem no sistema, sem gravar nada. */
+  const analyzeDuplicates = async (rows: ParsedRow[], accountId: string) => {
+    if (!user?.id) return { duplicates: 0, hashes: [] as string[] };
+    const hashes = rows.map((r) => dedupeHash(user.id, accountId, r));
+    const existing = await findExistingHashes(hashes);
+    return { duplicates: hashes.filter((h) => existing.has(h)).length, hashes };
   };
 
   const importRows = async (
     rows: ParsedRow[],
     accountId: string,
     filename: string,
-    format: "csv" | "xlsx" | "ofx" | "pdf",
+    format: FileFormat,
+    meta?: { bankName?: string | null },
+    onProgress?: (p: { phase: string; done: number; total: number }) => void,
   ) => {
-    if (!user?.id || rows.length === 0) return { inserted: 0, skipped: 0, importId: null as string | null };
-    // Load user category rules for auto-classification during import
+    if (!user?.id || rows.length === 0)
+      return { inserted: 0, skipped: 0, matched: 0, review: 0, pending: 0, importId: null as string | null };
+
+    const report = (phase: string, done: number, total: number) => onProgress?.({ phase, done, total });
+
+    report("Preparando importação", 0, rows.length);
+
     const { data: userRulesData } = await (supabase as any)
       .from("category_rules")
       .select("*")
@@ -289,71 +337,102 @@ export function useCashFlow(referenceDate?: Date) {
     const periodStart = dates[0];
     const periodEnd = dates[dates.length - 1];
 
+    const totalIn = rows.filter((r) => r.direction === "in").reduce((s, r) => s + r.value, 0);
+    const totalOut = rows.filter((r) => r.direction === "out").reduce((s, r) => s + r.value, 0);
+
     const { data: importRec, error: impErr } = await supabase
       .from("bank_imports")
       .insert({
         user_id: user.id,
         account_id: accountId,
         filename,
-        file_format: format,
+        file_format: format as any,
         period_start: periodStart,
         period_end: periodEnd,
         total_rows: rows.length,
+        total_in: Math.round(totalIn * 100) / 100,
+        total_out: Math.round(totalOut * 100) / 100,
         status: "processing",
       })
       .select()
       .single();
     if (impErr || !importRec) {
       toast({ title: "Erro", description: impErr?.message, variant: "destructive" });
-      return { inserted: 0, skipped: 0, importId: null };
+      return { inserted: 0, skipped: 0, matched: 0, review: 0, pending: 0, importId: null };
     }
 
+    report("Buscando lançamentos para conciliar", 0, rows.length);
     const candidates = await fetchCandidates(periodStart, periodEnd);
 
-    const alreadyMatchedIds = new Set<string>();
-    const toInsert = rows.map((r) => {
-      const hash = dedupeHash(user.id, accountId, r);
-      const outcome = reconcileRow(r, candidates.filter((c) => !alreadyMatchedIds.has(c.entry_id)));
-      if (outcome.status === "matched" && outcome.matched_entry_id) {
-        alreadyMatchedIds.add(outcome.matched_entry_id);
-      }
+    report("Verificando duplicidades", 0, rows.length);
+    const hashes = rows.map((r) => dedupeHash(user.id, accountId, r));
+    const existing = await findExistingHashes(hashes);
+
+    const seenInBatch = new Set<string>();
+    const usedEntryIds = new Set<string>();
+    const toInsert: any[] = [];
+    let skipped = 0;
+
+    rows.forEach((r, idx) => {
+      const hash = hashes[idx];
+      if (existing.has(hash) || seenInBatch.has(hash)) { skipped++; return; }
+      seenInBatch.add(hash);
+
+      const outcome = reconcileRow(r, candidates.filter((c) => !usedEntryIds.has(c.entry_id)));
+      if (outcome.status === "matched" && outcome.matched_entry_id) usedEntryIds.add(outcome.matched_entry_id);
+
       const catSuggestion = suggestCategory(r.description, r.direction, userRules);
       const category = catSuggestion.source === "default" ? null : catSuggestion.category;
-      return {
+
+      toInsert.push({
         user_id: user.id,
         account_id: accountId,
         transaction_date: r.date,
         description: r.description,
+        original_description: r.original_description || r.description,
         value: r.value,
         direction: r.direction,
+        balance_after: r.balance_after ?? null,
+        bank_name: meta?.bankName || null,
+        external_id: r.external_id || null,
         category,
         source: "import" as const,
         import_id: importRec.id,
         reconciliation_status: outcome.status,
         matched_entry_type: outcome.matched_entry_type || null,
         matched_entry_id: outcome.matched_entry_id || null,
+        match_confidence: outcome.confidence,
+        match_kind: outcome.kind,
         suggested_match: outcome.suggested_match || null,
         raw_data: r.raw as any,
         dedupe_hash: hash,
-      };
+      });
     });
 
-    // Insert one at a time to skip duplicates gracefully
+    // Inserção em lotes (rápida) com fallback linha a linha em caso de conflito
     let inserted = 0;
-    let skipped = 0;
-    let matched = 0;
-    let pending = 0;
-    for (const row of toInsert) {
-      const { error } = await supabase.from("cash_transactions").insert([row] as any);
+    const CHUNK = 100;
+    for (let i = 0; i < toInsert.length; i += CHUNK) {
+      const batch = toInsert.slice(i, i + CHUNK);
+      const { error } = await supabase.from("cash_transactions").insert(batch as any);
       if (error) {
-        if (error.code === "23505") skipped++;
-        else console.error(error);
+        for (const row of batch) {
+          const { error: e2 } = await supabase.from("cash_transactions").insert([row] as any);
+          if (e2) { if (e2.code === "23505") skipped++; else console.error(e2); }
+          else inserted++;
+        }
       } else {
-        inserted++;
-        if (row.reconciliation_status === "matched") matched++;
-        else if (row.reconciliation_status === "pending") pending++;
+        inserted += batch.length;
       }
+      report("Gravando movimentações", Math.min(i + CHUNK, toInsert.length), toInsert.length);
+      // libera a thread para a UI respirar em arquivos grandes
+      await new Promise((res) => setTimeout(res, 0));
     }
+
+    const insertedRows = toInsert.slice(0, inserted);
+    const matched = insertedRows.filter((r) => r.reconciliation_status === "matched").length;
+    const review = insertedRows.filter((r) => r.reconciliation_status === "needs_review" || r.reconciliation_status === "divergent").length;
+    const pending = insertedRows.filter((r) => r.reconciliation_status === "pending").length;
 
     await supabase
       .from("bank_imports")
@@ -361,15 +440,18 @@ export function useCashFlow(referenceDate?: Date) {
         status: "completed",
         matched_rows: matched,
         pending_rows: pending,
+        duplicate_rows: skipped,
       })
       .eq("id", importRec.id);
 
+    report("Concluído", toInsert.length, toInsert.length);
+
     toast({
       title: "Extrato importado",
-      description: `${inserted} novas movimentações, ${skipped} duplicadas ignoradas.`,
+      description: `${inserted} movimentações gravadas · ${matched} conciliadas automaticamente · ${review} aguardando confirmação · ${skipped} duplicadas ignoradas.`,
     });
     fetchAll();
-    return { inserted, skipped, importId: importRec.id };
+    return { inserted, skipped, matched, review, pending, importId: importRec.id };
   };
 
   return {
@@ -381,6 +463,7 @@ export function useCashFlow(referenceDate?: Date) {
     updateAccount,
     deleteAccount,
     createManualTransaction,
+    analyzeDuplicates,
     updateTransactionStatus,
     updateTransactionCategory,
     reclassifyAll,
