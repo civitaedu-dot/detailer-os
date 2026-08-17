@@ -208,13 +208,17 @@ export type Database = {
       campaigns: {
         Row: {
           created_at: string
+          excluded_client_ids: string[]
           filters: Json
           id: string
+          is_draft: boolean
+          manual_client_ids: string[]
           message_template: string
           name: string
           objective: string
           scheduled_date: string | null
           scheduled_time: string | null
+          selected_client_ids: string[]
           sent_at: string | null
           sent_count: number
           status: string
@@ -224,13 +228,17 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          excluded_client_ids?: string[]
           filters?: Json
           id?: string
+          is_draft?: boolean
+          manual_client_ids?: string[]
           message_template: string
           name: string
           objective?: string
           scheduled_date?: string | null
           scheduled_time?: string | null
+          selected_client_ids?: string[]
           sent_at?: string | null
           sent_count?: number
           status?: string
@@ -240,13 +248,17 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          excluded_client_ids?: string[]
           filters?: Json
           id?: string
+          is_draft?: boolean
+          manual_client_ids?: string[]
           message_template?: string
           name?: string
           objective?: string
           scheduled_date?: string | null
           scheduled_time?: string | null
+          selected_client_ids?: string[]
           sent_at?: string | null
           sent_count?: number
           status?: string
