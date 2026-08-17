@@ -54,6 +54,9 @@ export interface BankImport {
   total_rows: number;
   matched_rows: number;
   pending_rows: number;
+  duplicate_rows?: number;
+  total_in?: number;
+  total_out?: number;
   status: string;
   created_at: string;
   period_start: string | null;
