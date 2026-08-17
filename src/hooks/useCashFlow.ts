@@ -194,9 +194,11 @@ export function useCashFlow(referenceDate?: Date) {
     if (match) {
       patch.matched_entry_type = match.entry_type;
       patch.matched_entry_id = match.entry_id;
+      patch.match_kind = "confirmed";
+      patch.match_confidence = 100;
     }
     await supabase.from("cash_transactions").update(patch).eq("id", id);
-    fetchAll();
+    setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
   };
 
   const updateTransactionCategory = async (id: string, category: string) => {
@@ -228,8 +230,8 @@ export function useCashFlow(referenceDate?: Date) {
   const fetchCandidates = async (from: string, to: string): Promise<MatchCandidate[]> => {
     if (!user?.id) return [];
     const [entries, apts, fx, vc] = await Promise.all([
-      supabase.from("financial_entries").select("id,description,entry_date,value").eq("user_id", user.id).gte("entry_date", from).lte("entry_date", to),
-      supabase.from("appointments").select("id,client_name,service_name,appointment_date,service_value,status").eq("user_id", user.id).eq("status", "concluído").gte("appointment_date", from).lte("appointment_date", to),
+      supabase.from("financial_entries").select("id,description,entry_date,value,client_name,payment_method").eq("user_id", user.id).gte("entry_date", from).lte("entry_date", to),
+      supabase.from("appointments").select("id,client_name,service_name,appointment_date,service_value,status,payment_method").eq("user_id", user.id).eq("status", "concluído").gte("appointment_date", from).lte("appointment_date", to),
       supabase.from("fixed_costs").select("id,name,value,is_active").eq("user_id", user.id).eq("is_active", true),
       supabase.from("variable_costs").select("id,name,value,cost_type").eq("user_id", user.id),
     ]);
@@ -242,6 +244,8 @@ export function useCashFlow(referenceDate?: Date) {
         date: e.entry_date,
         value: Number(e.value),
         direction: "in",
+        client_name: e.client_name,
+        payment_method: e.payment_method,
       }),
     );
     apts.data?.forEach((a: any) =>
@@ -252,6 +256,8 @@ export function useCashFlow(referenceDate?: Date) {
         date: a.appointment_date,
         value: Number(a.service_value),
         direction: "in",
+        client_name: a.client_name,
+        payment_method: a.payment_method,
       }),
     );
     fx.data?.forEach((f: any) =>
@@ -262,6 +268,7 @@ export function useCashFlow(referenceDate?: Date) {
         date: from,
         value: Number(f.value),
         direction: "out",
+        flexible_date: true,
       }),
     );
     vc.data?.forEach((v: any) =>
@@ -272,6 +279,7 @@ export function useCashFlow(referenceDate?: Date) {
         date: from,
         value: Number(v.value),
         direction: "out",
+        flexible_date: true,
       }),
     );
     return out;
