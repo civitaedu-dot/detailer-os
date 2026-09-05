@@ -46,7 +46,8 @@ export async function guardRateLimit(
   options: { identity?: string; endpoint?: string } = {},
 ): Promise<RateLimitCheck> {
   try {
-    const { data, error } = await supabase.functions.invoke("rate-limit-guard", {
+    // Fail open on a slow/unreachable limiter so the UI never hangs.
+    const invocation = supabase.functions.invoke("rate-limit-guard", {
       body: {
         rule,
         action: "check",
@@ -54,6 +55,15 @@ export async function guardRateLimit(
         endpoint: options.endpoint ?? rule,
       },
     });
+
+    const timeout = new Promise<{ data: null; error: null }>((resolve) =>
+      setTimeout(() => resolve({ data: null, error: null }), 6000),
+    );
+
+    const { data, error } = (await Promise.race([invocation, timeout])) as {
+      data: { allowed?: boolean; retry_after?: number; message?: string } | null;
+      error: unknown;
+    };
 
     if (error) {
       // A 429 surfaces here as a non-2xx error — read the real payload.
