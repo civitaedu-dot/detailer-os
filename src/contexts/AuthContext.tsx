@@ -112,17 +112,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const profileFetchRequest = useRef(0);
   const lastSubscriptionCheck = useRef<number>(0);
 
+  // Never let a hanging network request keep the app in "loading" forever.
+  const withTimeout = <T,>(promise: PromiseLike<T>, ms: number, fallback: T): Promise<T> =>
+    new Promise<T>((resolve) => {
+      const timer = setTimeout(() => resolve(fallback), ms);
+      Promise.resolve(promise).then(
+        (value) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+        () => {
+          clearTimeout(timer);
+          resolve(fallback);
+        }
+      );
+    });
+
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     const requestId = ++profileFetchRequest.current;
-    
+
     try {
-      console.log("[AuthContext] Fetching profile for user:", userId);
-      
-      const { data, error } = await supabase
+      const query = supabase
         .from("profiles")
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
+
+      const { data, error } = await withTimeout(query, 8000, {
+        data: null,
+        error: { message: "timeout" },
+      } as unknown as Awaited<typeof query>);
 
       if (requestId !== profileFetchRequest.current) return null;
 
@@ -132,32 +151,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       if (!data) {
-        console.log("[AuthContext] No profile found for user, waiting for trigger");
-        // Wait a bit and retry once (for trigger to create profile)
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const { data: retryData, error: retryError } = await supabase
+        // Wait briefly and retry once (profile is created by a DB trigger on signup)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        const retryQuery = supabase
           .from("profiles")
           .select("*")
           .eq("user_id", userId)
           .maybeSingle();
-        
+
+        const { data: retryData } = await withTimeout(retryQuery, 8000, {
+          data: null,
+          error: null,
+        } as unknown as Awaited<typeof retryQuery>);
+
         if (requestId !== profileFetchRequest.current) return null;
 
-        if (retryError) {
-          console.error("[AuthContext] Retry error fetching profile:", retryError);
-          return null;
-        }
-        
-        console.log("[AuthContext] Retry profile result:", retryData ? "found" : "not found");
-        return retryData as Profile | null;
+        return (retryData as Profile | null) ?? null;
       }
-
-      console.log("[AuthContext] Profile fetched:", { 
-        id: data.id, 
-        plan: data.plan, 
-        status: data.plan_status 
-      });
 
       // Apply onboarding answers captured before the session existed (email confirmation flow)
       if (!(data as { onboarding_completed?: boolean }).onboarding_completed) {
@@ -170,6 +181,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return null;
     }
   }, []);
+
 
   const checkSubscription = useCallback(async (): Promise<SubscriptionStatus | null> => {
     // Prevent checking too frequently (minimum 10 seconds between checks)
@@ -237,27 +249,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     let mounted = true;
     let authEventTimer: ReturnType<typeof setTimeout> | undefined;
-    
+
+    // Absolute safety net: never keep the app in a loading state.
+    const hardStop = setTimeout(() => {
+      if (mounted) setIsLoading(false);
+    }, 10000);
+
     const initializeAuth = async () => {
-      console.log("[AuthContext] Initializing auth...");
-      
       try {
-        // Get initial session
         const { data: { session: initialSession } } = await supabase.auth.getSession();
-        
+
         if (!mounted) return;
-        
+
         if (initialSession?.user) {
-          console.log("[AuthContext] Initial session found:", initialSession.user.email);
           setSession(initialSession);
           setUser(initialSession.user);
-          
+
           const profileData = await fetchProfile(initialSession.user.id);
-          if (mounted && profileData) {
+          if (mounted) {
             setProfile(profileData);
           }
-        } else {
-          console.log("[AuthContext] No initial session");
         }
       } catch (error) {
         console.error("[AuthContext] Init error:", error);
@@ -271,10 +282,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Set up auth state listener. Keep this callback synchronous to avoid auth deadlocks.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
-        console.log("[AuthContext] Auth state changed:", event, newSession?.user?.email);
-        
         if (!mounted) return;
-        
+
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
@@ -283,13 +292,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           // Defer profile queries until after auth has finished updating storage/session.
           authEventTimer = setTimeout(async () => {
             if (!mounted) return;
-            const profileData = await fetchProfile(newSession.user.id);
-            if (mounted && profileData) {
-              setProfile(profileData);
+            try {
+              const profileData = await fetchProfile(newSession.user.id);
+              if (mounted) setProfile(profileData);
+            } catch (error) {
+              console.error("[AuthContext] Profile load error:", error);
+            } finally {
+              if (mounted) setIsLoading(false);
             }
-            setIsLoading(false);
-          }, 500);
-        } else if (event === "SIGNED_OUT") {
+          }, 0);
+        } else {
           setProfile(null);
           setIsLoading(false);
         }
@@ -300,10 +312,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return () => {
       mounted = false;
+      clearTimeout(hardStop);
       if (authEventTimer) clearTimeout(authEventTimer);
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
+
 
   // Periodic subscription check
   useEffect(() => {
