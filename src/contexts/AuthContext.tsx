@@ -249,27 +249,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     let mounted = true;
     let authEventTimer: ReturnType<typeof setTimeout> | undefined;
-    
+
+    // Absolute safety net: never keep the app in a loading state.
+    const hardStop = setTimeout(() => {
+      if (mounted) setIsLoading(false);
+    }, 10000);
+
     const initializeAuth = async () => {
-      console.log("[AuthContext] Initializing auth...");
-      
       try {
-        // Get initial session
         const { data: { session: initialSession } } = await supabase.auth.getSession();
-        
+
         if (!mounted) return;
-        
+
         if (initialSession?.user) {
-          console.log("[AuthContext] Initial session found:", initialSession.user.email);
           setSession(initialSession);
           setUser(initialSession.user);
-          
+
           const profileData = await fetchProfile(initialSession.user.id);
-          if (mounted && profileData) {
+          if (mounted) {
             setProfile(profileData);
           }
-        } else {
-          console.log("[AuthContext] No initial session");
         }
       } catch (error) {
         console.error("[AuthContext] Init error:", error);
@@ -283,10 +282,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Set up auth state listener. Keep this callback synchronous to avoid auth deadlocks.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
-        console.log("[AuthContext] Auth state changed:", event, newSession?.user?.email);
-        
         if (!mounted) return;
-        
+
         setSession(newSession);
         setUser(newSession?.user ?? null);
 
@@ -295,13 +292,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           // Defer profile queries until after auth has finished updating storage/session.
           authEventTimer = setTimeout(async () => {
             if (!mounted) return;
-            const profileData = await fetchProfile(newSession.user.id);
-            if (mounted && profileData) {
-              setProfile(profileData);
+            try {
+              const profileData = await fetchProfile(newSession.user.id);
+              if (mounted) setProfile(profileData);
+            } catch (error) {
+              console.error("[AuthContext] Profile load error:", error);
+            } finally {
+              if (mounted) setIsLoading(false);
             }
-            setIsLoading(false);
-          }, 500);
-        } else if (event === "SIGNED_OUT") {
+          }, 0);
+        } else {
           setProfile(null);
           setIsLoading(false);
         }
@@ -312,10 +312,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
     return () => {
       mounted = false;
+      clearTimeout(hardStop);
       if (authEventTimer) clearTimeout(authEventTimer);
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
+
 
   // Periodic subscription check
   useEffect(() => {
