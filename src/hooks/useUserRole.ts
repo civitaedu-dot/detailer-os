@@ -15,19 +15,20 @@ export const useUserRole = () => {
     }
 
     try {
-      const { data, error } = await supabase
+      const query = supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
         .eq("role", "admin")
         .maybeSingle();
 
-      if (error) {
-        console.error("[useUserRole] Error checking role:", error);
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(!!data);
-      }
+      // Never block routing on a hanging request.
+      const result = await Promise.race([
+        Promise.resolve(query).catch(() => ({ data: null })),
+        new Promise<{ data: null }>((resolve) => setTimeout(() => resolve({ data: null }), 8000)),
+      ]);
+
+      setIsAdmin(!!(result as { data: unknown }).data);
     } catch (err) {
       console.error("[useUserRole] Exception:", err);
       setIsAdmin(false);
@@ -35,6 +36,7 @@ export const useUserRole = () => {
       setIsLoading(false);
     }
   }, [user]);
+
 
   useEffect(() => {
     checkRole();
