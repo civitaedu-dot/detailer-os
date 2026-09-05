@@ -84,9 +84,12 @@ export const PublicRoute = ({ children }: PublicRouteProps) => {
     return <Navigate to="/trial-expirado" replace />;
   }
 
-  if (user && profile && profile.plan_status !== "active") {
+  // Signed in but without an active plan (or profile unavailable) → plans page.
+  // Never leave an authenticated user stuck on the login screen.
+  if (user) {
     return <Navigate to="/planos" replace />;
   }
+
 
   return <>{children}</>;
 };
