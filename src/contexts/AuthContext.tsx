@@ -112,17 +112,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const profileFetchRequest = useRef(0);
   const lastSubscriptionCheck = useRef<number>(0);
 
+  // Never let a hanging network request keep the app in "loading" forever.
+  const withTimeout = <T,>(promise: PromiseLike<T>, ms: number, fallback: T): Promise<T> =>
+    new Promise<T>((resolve) => {
+      const timer = setTimeout(() => resolve(fallback), ms);
+      Promise.resolve(promise).then(
+        (value) => {
+          clearTimeout(timer);
+          resolve(value);
+        },
+        () => {
+          clearTimeout(timer);
+          resolve(fallback);
+        }
+      );
+    });
+
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     const requestId = ++profileFetchRequest.current;
-    
+
     try {
-      console.log("[AuthContext] Fetching profile for user:", userId);
-      
-      const { data, error } = await supabase
+      const query = supabase
         .from("profiles")
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
+
+      const { data, error } = await withTimeout(query, 8000, {
+        data: null,
+        error: { message: "timeout" },
+      } as unknown as Awaited<typeof query>);
 
       if (requestId !== profileFetchRequest.current) return null;
 
@@ -132,32 +151,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       if (!data) {
-        console.log("[AuthContext] No profile found for user, waiting for trigger");
-        // Wait a bit and retry once (for trigger to create profile)
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const { data: retryData, error: retryError } = await supabase
+        // Wait briefly and retry once (profile is created by a DB trigger on signup)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        const retryQuery = supabase
           .from("profiles")
           .select("*")
           .eq("user_id", userId)
           .maybeSingle();
-        
+
+        const { data: retryData } = await withTimeout(retryQuery, 8000, {
+          data: null,
+          error: null,
+        } as unknown as Awaited<typeof retryQuery>);
+
         if (requestId !== profileFetchRequest.current) return null;
 
-        if (retryError) {
-          console.error("[AuthContext] Retry error fetching profile:", retryError);
-          return null;
-        }
-        
-        console.log("[AuthContext] Retry profile result:", retryData ? "found" : "not found");
-        return retryData as Profile | null;
+        return (retryData as Profile | null) ?? null;
       }
-
-      console.log("[AuthContext] Profile fetched:", { 
-        id: data.id, 
-        plan: data.plan, 
-        status: data.plan_status 
-      });
 
       // Apply onboarding answers captured before the session existed (email confirmation flow)
       if (!(data as { onboarding_completed?: boolean }).onboarding_completed) {
@@ -170,6 +181,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return null;
     }
   }, []);
+
 
   const checkSubscription = useCallback(async (): Promise<SubscriptionStatus | null> => {
     // Prevent checking too frequently (minimum 10 seconds between checks)
