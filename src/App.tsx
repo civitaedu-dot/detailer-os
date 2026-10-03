@@ -30,7 +30,6 @@ import Vendas from "./pages/Vendas";
 import Campanhas from "./pages/Campanhas";
 import Estoque from "./pages/Estoque";
 import OrdensServico from "./pages/OrdensServico";
-import Pessoal from "./pages/Pessoal";
 
 const queryClient = new QueryClient();
 
@@ -67,7 +66,6 @@ const App = () => (
               <Route path="/campanhas" element={<Campanhas />} />
               <Route path="/estoque" element={<Estoque />} />
               <Route path="/ordens-servico" element={<OrdensServico />} />
-              <Route path="/pessoal" element={<Pessoal />} />
               <Route path="/socio-ia" element={<SocioIA />} />
               <Route path="/configuracoes" element={<ConfiguracaoEmpresa />} />
             </Route>

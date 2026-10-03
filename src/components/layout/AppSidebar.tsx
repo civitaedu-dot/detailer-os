@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Calendar, Users, Wrench, FileText, Car, ClipboardList,
   DollarSign, Package, UsersRound,
   TrendingUp, Megaphone, Upload,
-  Settings, Shield, Bot, Wallet
+  Settings, Shield, Bot
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -54,12 +54,6 @@ const navGroups = [
       { title: "Vendas", url: "/vendas", icon: TrendingUp },
       { title: "Campanhas", url: "/campanhas", icon: Megaphone },
       { title: "Importar", url: "/importar-dados", icon: Upload },
-    ],
-  },
-  {
-    label: "Pessoal",
-    items: [
-      { title: "Finanças Pessoais", url: "/pessoal", icon: Wallet },
     ],
   },
   {
