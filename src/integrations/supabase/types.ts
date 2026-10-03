@@ -460,6 +460,30 @@ export type Database = {
         }
         Relationships: []
       }
+      personal_budgets: {
+        Row: { category: string; created_at: string; id: string; monthly_limit: number; updated_at: string; user_id: string }
+        Insert: { category: string; created_at?: string; id?: string; monthly_limit: number; updated_at?: string; user_id: string }
+        Update: { category?: string; created_at?: string; id?: string; monthly_limit?: number; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      personal_chat_messages: {
+        Row: { content: string; created_at: string; id: string; role: string; user_id: string }
+        Insert: { content: string; created_at?: string; id?: string; role: string; user_id: string }
+        Update: { content?: string; created_at?: string; id?: string; role?: string; user_id?: string }
+        Relationships: []
+      }
+      personal_goals: {
+        Row: { created_at: string; current_amount: number; deadline: string | null; id: string; name: string; target_amount: number; updated_at: string; user_id: string }
+        Insert: { created_at?: string; current_amount?: number; deadline?: string | null; id?: string; name: string; target_amount: number; updated_at?: string; user_id: string }
+        Update: { created_at?: string; current_amount?: number; deadline?: string | null; id?: string; name?: string; target_amount?: number; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
+      personal_transactions: {
+        Row: { amount: number; category: string; created_at: string; description: string; id: string; is_paid: boolean; is_recurring: boolean; payment_method: string | null; tx_date: string; type: string; updated_at: string; user_id: string }
+        Insert: { amount: number; category: string; created_at?: string; description?: string; id?: string; is_paid?: boolean; is_recurring?: boolean; payment_method?: string | null; tx_date?: string; type: string; updated_at?: string; user_id: string }
+        Update: { amount?: number; category?: string; created_at?: string; description?: string; id?: string; is_paid?: boolean; is_recurring?: boolean; payment_method?: string | null; tx_date?: string; type?: string; updated_at?: string; user_id?: string }
+        Relationships: []
+      }
       chat_messages: {
         Row: {
           content: string
